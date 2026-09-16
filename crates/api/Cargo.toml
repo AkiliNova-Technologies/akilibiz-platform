@@ -1,0 +1,7 @@
+[package]
+name = "akilibiz-api"
+version = "0.1.0"
+edition = "2024"
+
+# The API is intentionally not implemented in this setup phase.
+[dependencies]
