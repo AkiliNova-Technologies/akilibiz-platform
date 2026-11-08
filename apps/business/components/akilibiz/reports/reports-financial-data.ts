@@ -1,0 +1,28 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+
+export type FinancialReportTab = "receivables" | "payables" | "tax" | "gross-profit" | "profit-loss" | "journals" | "trial" | "detailed-trial" | "balance-sheet";
+export interface FinancialReportEntry { id: number; label: string; date: string; amount?: number; debit?: number; credit?: number; status: string; detail: object; }
+export interface GrossProfitReport { revenue_ugx: number; cogs_ugx: number; gross_profit_ugx: number; }
+export interface ProfitLossReport { revenue_ugx: number; cogs_ugx: number; gross_profit_ugx: number; operating_expenses_ugx: number; net_profit_loss_ugx: number; }
+export interface TrialBalanceSummary { total_debit_ugx: number; total_credit_ugx: number; balances_equal: boolean; }
+export interface BalanceSheetSummary { assets_ugx: number; liabilities_ugx: number; equity_ugx: number; liabilities_and_equity_ugx: number; balances_equal: boolean; }
+
+const receivables: FinancialReportEntry[] = [{ id: 1, label: "Sarah Namutebi · SAL-20260917-002", date: "2026-09-17", amount: 115000, status: "Partially paid · Completed · Due 2026-10-17", detail: { customer: "Sarah Namutebi", sale: "SAL-20260917-002", original_amount_ugx: 315000, paid_amount_ugx: 200000, balance_ugx: 115000 } }];
+const payables: FinancialReportEntry[] = [{ id: 2, label: "Kampala Traders · GRN-20260919-001", date: "2026-09-19", amount: 100000, status: "Partially paid · Posted", detail: { supplier: "Kampala Traders", receipt: "GRN-20260919-001", original_amount_ugx: 350000, allocated_amount_ugx: 250000, balance_ugx: 100000 } }];
+const tax: FinancialReportEntry[] = [{ id: 3, label: "Sale · SAL-20260919-001 · Original", date: "2026-09-19", amount: 420000, status: "Original · Completed", detail: { taxable_amount_ugx: 355932, tax_amount_ugx: 64068, gross_amount_ugx: 420000, tax_classification: "Standard VAT" } }];
+const journals: FinancialReportEntry[] = [{ id: 4, label: "JRN-20260919-001", date: "2026-09-19", debit: 420000, credit: 420000, status: "Posted", detail: { journal_number: "JRN-20260919-001", source_reference: "SAL-20260919-001", description: "Sales receipt" } }];
+const grossProfit: GrossProfitReport = { revenue_ugx: 735000, cogs_ugx: 385000, gross_profit_ugx: 350000 };
+const profitLoss: ProfitLossReport = { revenue_ugx: 735000, cogs_ugx: 385000, gross_profit_ugx: 350000, operating_expenses_ugx: 85000, net_profit_loss_ugx: 265000 };
+const trial: TrialBalanceSummary = { total_debit_ugx: 505000, total_credit_ugx: 505000, balances_equal: true };
+const balanceSheet: BalanceSheetSummary = { assets_ugx: 1665000, liabilities_ugx: 100000, equity_ugx: 1565000, liabilities_and_equity_ugx: 1665000, balances_equal: true };
+const trialRows: FinancialReportEntry[] = [{ id: 10, label: "1000 · Cash on Hand", date: "2026-09-19", debit: 550000, credit: 0, status: "Asset", detail: { account_code: "1000", account_name: "Cash on Hand", debit_balance_ugx: 550000, credit_balance_ugx: 0 } }, { id: 11, label: "4000 · Sales Revenue", date: "2026-09-19", debit: 0, credit: 735000, status: "Income", detail: { account_code: "4000", account_name: "Sales Revenue", debit_balance_ugx: 0, credit_balance_ugx: 735000 } }];
+const balanceRows: FinancialReportEntry[] = [{ id: 20, label: "Asset · 1000 · Cash on Hand", date: "2026-09-19", amount: 550000, status: "Asset", detail: { account_code: "1000", account_name: "Cash on Hand", amount_ugx: 550000 } }, { id: 21, label: "Liability · 2000 · Accounts Payable", date: "2026-09-19", amount: 100000, status: "Liability", detail: { account_code: "2000", account_name: "Accounts Payable", amount_ugx: 100000 } }, { id: 22, label: "Equity · 3000 · Owner Equity", date: "2026-09-19", amount: 1565000, status: "Equity", detail: { account_code: "3000", account_name: "Owner Equity", amount_ugx: 1565000 } }];
+
+export function useReportsFinancialData() {
+  const [refreshToken, setRefreshToken] = useState(0);
+  const entries = useMemo<Record<FinancialReportTab, FinancialReportEntry[]>>(() => ({ receivables, payables, tax, journals, "gross-profit": [{ id: 30, label: "Sales revenue", date: "Selected period", amount: grossProfit.revenue_ugx, status: "Included transactions", detail: grossProfit }, { id: 31, label: "Cost of goods sold", date: "Selected period", amount: grossProfit.cogs_ugx, status: "Included transactions", detail: grossProfit }, { id: 32, label: "Gross profit", date: "Selected period", amount: grossProfit.gross_profit_ugx, status: "Calculated", detail: grossProfit }], "profit-loss": [{ id: 40, label: "Sales revenue", date: "Selected period", amount: profitLoss.revenue_ugx, status: "Recorded activity", detail: { section: "Revenue", ...profitLoss } }, { id: 41, label: "Cost of goods sold", date: "Selected period", amount: profitLoss.cogs_ugx, status: "Recorded activity", detail: { section: "Cost of goods sold", ...profitLoss } }, { id: 42, label: "Gross profit", date: "Selected period", amount: profitLoss.gross_profit_ugx, status: "Calculated", detail: profitLoss }, { id: 43, label: "Operating expenses", date: "Selected period", amount: profitLoss.operating_expenses_ugx, status: "Recorded activity", detail: { section: "Operating expenses", ...profitLoss } }, { id: 44, label: "Net profit / loss", date: "Selected period", amount: profitLoss.net_profit_loss_ugx, status: "Calculated", detail: profitLoss }], trial: trialRows, "detailed-trial": trialRows, "balance-sheet": balanceRows }), [refreshToken]);
+  const refresh = useCallback(async () => setRefreshToken((token) => token + 1), []);
+  return { entries, grossProfit, profitLoss, trial, balanceSheet, loading: false, refresh };
+}

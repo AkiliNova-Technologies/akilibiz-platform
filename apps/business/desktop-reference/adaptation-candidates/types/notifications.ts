@@ -1,0 +1,2 @@
+export type NotificationSeverity = "INFO" | "SUCCESS" | "WARNING" | "CRITICAL";
+export interface AppNotification { id: string; notification_type: string; category: string; severity: NotificationSeverity; title: string; message: string; source_type?: string | null; source_id?: number | null; action_type?: "NAVIGATE" | null; action_target?: string | null; status: string; is_read: boolean; created_at: string; desktop_delivered_at?: string | null; }
