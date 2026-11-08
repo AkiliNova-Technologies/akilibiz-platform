@@ -9,6 +9,7 @@ import {
   firstValidationMessage,
 } from "@/lib/business-profile";
 import { createClient } from "@/lib/supabase/server";
+import { canManageStaff, isAccessibleBusinessSelection } from "@/lib/business-access-policy";
 
 export type BusinessFormState = {
   error: string | null;
@@ -30,7 +31,7 @@ async function authenticatedClient() {
 
 async function findOwnedBusinessId() {
   const business = await requireActiveBusiness();
-  if (business.role !== "owner") {
+  if (!canManageStaff(business.role)) {
     return { error: "Only the business owner can update this profile." };
   }
   const supabase = await authenticatedClient();
@@ -41,7 +42,7 @@ export async function selectBusiness(formData: FormData) {
   const businessId = formData.get("business_id");
   if (typeof businessId !== "string") redirect("/businesses");
   const businesses = await listAccessibleBusinesses();
-  if (!businesses.some((business) => business.id === businessId)) {
+  if (!isAccessibleBusinessSelection(businesses, businessId)) {
     redirect("/businesses");
   }
   (await cookies()).set(ACTIVE_BUSINESS_COOKIE, businessId, {

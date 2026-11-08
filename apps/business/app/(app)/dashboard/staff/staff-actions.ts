@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
+import { canManageStaff, isAssignableBusinessRole } from "@/lib/business-access-policy";
 
 export type StaffActionState = { error: string | null; message: string | null };
 
 async function ownerContext() {
   const business = await requireActiveBusiness();
-  if (business.role !== "owner") return null;
+  if (!canManageStaff(business.role)) return null;
   return { business, supabase: await createClient() };
 }
 
@@ -20,8 +21,7 @@ export async function grantStaffAccess(
   if (!context) return { error: "Only business owners can manage staff access.", message: null };
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const role = String(formData.get("role") ?? "");
-  const permitted = ["manager", "cashier", "inventory_staff", "accountant"];
-  if (!email.includes("@") || email.length > 320 || !permitted.includes(role)) {
+  if (!email.includes("@") || email.length > 320 || !isAssignableBusinessRole(role)) {
     return { error: "Enter a valid email and choose a staff role.", message: null };
   }
   const { error } = await context.supabase.rpc("grant_business_staff", {
