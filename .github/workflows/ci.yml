@@ -19,7 +19,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm --filter @akilibiz/business-web db:validate
+      - run: pnpm --filter @akilibiz/business-web db:generate
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test

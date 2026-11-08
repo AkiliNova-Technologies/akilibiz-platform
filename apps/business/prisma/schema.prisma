@@ -1,0 +1,81 @@
+// AkiliBiz hosted tenancy schema — a Prisma representation of existing Supabase SQL.
+// SQL migrations in supabase/migrations remain authoritative during transition.
+// Never run prisma migrate reset, prisma db push, or prisma migrate dev against hosted data.
+// auth.users is managed by Supabase Auth; user IDs are intentionally scalar references.
+// DB constraints, RLS policies, functions and triggers are retained in SQL migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum BusinessRole {
+  owner
+  manager
+  cashier
+  inventory_staff
+  accountant
+
+  @@map("business_role")
+}
+
+model Profile {
+  id          String   @id @db.Uuid
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+}
+
+model Business {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  tradingName  String?      @map("trading_name")
+  contactEmail String?      @map("contact_email")
+  contactPhone String?      @map("contact_phone")
+  locale       String       @default("en-UG")
+  timeZone     String       @default("Africa/Kampala") @map("time_zone")
+  currencyCode String       @default("UGX") @map("currency_code")
+  createdBy    String       @map("created_by") @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  memberships  BusinessMembership[]
+  auditEvents  AuditEvent[]
+
+  @@map("businesses")
+}
+
+model BusinessMembership {
+  businessId String       @map("business_id") @db.Uuid
+  userId     String       @map("user_id") @db.Uuid
+  role       BusinessRole
+  active     Boolean      @default(true)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  business   Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@id([businessId, userId])
+  @@index([userId, businessId], map: "business_memberships_user_active_idx")
+  @@map("business_memberships")
+}
+
+model AuditEvent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String   @map("business_id") @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  eventType  String   @map("event_type")
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id") @db.Uuid
+  payload    Json     @default("{}")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  @@index([businessId, occurredAt(sort: Desc)], map: "audit_events_business_occurred_at_idx")
+  @@map("audit_events")
+}
