@@ -21,6 +21,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @akilibiz/business-web db:validate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/akilibiz
+          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/akilibiz
       - run: pnpm --filter @akilibiz/business-web db:generate
       - run: pnpm typecheck
       - run: pnpm lint
