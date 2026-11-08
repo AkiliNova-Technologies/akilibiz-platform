@@ -1,4 +1,4 @@
-import { Building2, CheckCircle2 } from "lucide-react";
+import { Building2, CheckCircle2, ArrowRight } from "lucide-react";
 import { cookies } from "next/headers";
 import { OnboardingForm } from "@/app/(app)/dashboard/onboarding-form";
 import { selectBusiness } from "@/app/(app)/dashboard/business-actions";
@@ -11,11 +11,11 @@ export default async function BusinessesPage() {
   const selected = (await cookies()).get(ACTIVE_BUSINESS_COOKIE)?.value;
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6">
+    <main className="w-full max-w-5xl space-y-5">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Choose your business</h1>
         <p className="text-sm text-muted-foreground">
-          Sign in once with your own account, then work only in businesses where you have access.
+          Select a business to continue to your workspace.
         </p>
       </div>
       {businesses.length > 0 ? (
@@ -24,10 +24,10 @@ export default async function BusinessesPage() {
           <CardContent className="space-y-3">
             {businesses.map((business) => (
               <form action={selectBusiness} key={business.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4">
+                className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/30">
                 <input type="hidden" name="business_id" value={business.id} />
                 <div className="flex items-start gap-3">
-                  <Building2 aria-hidden className="mt-1 size-5 text-muted-foreground" />
+                  <Building2 aria-hidden className="mt-0.5 size-5 text-primary" />
                   <div>
                     <p className="font-medium">{business.tradingName || business.name}</p>
                     {business.tradingName ? <p className="text-sm text-muted-foreground">{business.name}</p> : null}
@@ -35,14 +35,14 @@ export default async function BusinessesPage() {
                   </div>
                 </div>
                 <Button type="submit" variant={selected === business.id ? "secondary" : "default"}>
-                  {selected === business.id ? <><CheckCircle2 className="mr-2 size-4" /> Continue</> : "Open business"}
+                  {selected === business.id ? <><CheckCircle2 className="mr-2 size-4" /> Continue</> : <><span>Open business</span><ArrowRight className="size-4" /></>}
                 </Button>
               </form>
             ))}
           </CardContent>
         </Card>
       ) : <p className="text-sm text-muted-foreground">No business is linked to your account yet. Create one below to get started.</p>}
-      <OnboardingForm />
+      {businesses.length === 0 ? <OnboardingForm /> : null}
     </main>
   );
 }

@@ -16,14 +16,14 @@ export function AppShell({
   const { theme } = useTheme();
 
   return (
-    <SidebarProvider className="bg-background dark:bg-[#121212]">
+    <SidebarProvider className="bg-background">
       <AppSidebar account={account} />
-      <SidebarInset className="min-h-svh dark:bg-[#121212]">
+      <SidebarInset className="min-h-svh bg-background">
         <SiteHeader
           account={account}
           theme={theme}
         />
-        <div className="mx-auto w-full max-w-8xl py-6 px-4 lg:px-6">
+        <div className="w-full min-w-0 px-3 pb-6 pt-5 sm:px-4 lg:px-6">
           {children}
         </div>
       </SidebarInset>
