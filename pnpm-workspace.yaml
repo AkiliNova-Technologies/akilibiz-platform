@@ -5,9 +5,15 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
 fetchTimeout: 120000
 fetchRetries: 5
 networkConcurrency: 1
