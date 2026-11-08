@@ -7,10 +7,8 @@ import { StatusBanner } from "@/components/akilibiz/status-banner";
 
 import type { BusinessProfileInput } from "@/lib/business-profile";
 import { BusinessProfileFields } from "./business-profile-fields";
-import {
-  initialBusinessFormState,
-  updateBusinessProfile,
-} from "./business-actions";
+import { updateBusinessProfile } from "./business-actions";
+import { initialBusinessFormState } from "@/lib/business-form-state";
 
 export function ProfileForm({ defaults }: { defaults: BusinessProfileInput }) {
   const [state, formAction, isPending] = useActionState(
