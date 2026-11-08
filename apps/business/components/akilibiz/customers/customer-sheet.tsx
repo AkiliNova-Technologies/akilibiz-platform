@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Edit3, Loader2, Plus, User, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,17 @@ export function CustomerSheet({ open, onOpenChange, isEdit, initialData }: Custo
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  useEffect(() => { setFormData(isEdit && initialData ? { name: initialData.name, email: initialData.email ?? "", phone: initialData.phone ?? "", address: initialData.address ?? "", customer_type: initialData.customer_type, credit_limit: String(initialData.credit_limit ?? ""), opening_balance: String(initialData.opening_balance ?? ""), is_active: initialData.is_active } : emptyForm); setErrors({}); }, [isEdit, initialData, open]);
+  const [previousInputs, setPreviousInputs] = useState({ isEdit, initialData, open });
+  if (previousInputs.isEdit !== isEdit || previousInputs.initialData !== initialData || previousInputs.open !== open) {
+    setPreviousInputs({ isEdit, initialData, open });
+    setFormData(isEdit && initialData ? {
+      name: initialData.name, email: initialData.email ?? "", phone: initialData.phone ?? "",
+      address: initialData.address ?? "", customer_type: initialData.customer_type,
+      credit_limit: String(initialData.credit_limit ?? ""),
+      opening_balance: String(initialData.opening_balance ?? ""), is_active: initialData.is_active,
+    } : emptyForm);
+    setErrors({});
+  }
   const update = (field: keyof FormData, value: string | boolean) => { setFormData((previous) => ({ ...previous, [field]: value })); setErrors((previous) => { const next = { ...previous }; delete next[field]; return next; }); };
   const submit = async (event?: FormEvent) => { event?.preventDefault(); const next: Record<string, string> = {}; if (!formData.name.trim()) next.name = t("customers.nameRequired"); if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) next.email = t("customers.emailInvalid"); if (formData.credit_limit && (Number.isNaN(Number(formData.credit_limit)) || Number(formData.credit_limit) < 0)) next.credit_limit = Number(formData.credit_limit) < 0 ? t("customers.creditLimitNegative") : t("customers.creditLimitInvalid"); if (formData.opening_balance && (Number.isNaN(Number(formData.opening_balance)) || Number(formData.opening_balance) < 0)) next.opening_balance = Number(formData.opening_balance) < 0 ? t("customers.openingBalanceNegative") : t("customers.openingBalanceInvalid"); setErrors(next); if (Object.keys(next).length) return; setSubmitting(true); try { const payload: CreateCustomerPayload = { name: formData.name.trim(), email: formData.email.trim() || null, phone: formData.phone.trim() || null, address: formData.address.trim() || null, customer_type: formData.customer_type || null, credit_limit: formData.credit_limit ? Number(formData.credit_limit) : null, opening_balance: formData.opening_balance ? Number(formData.opening_balance) : null, is_active: formData.is_active }; if (isEdit && initialData) { await editCustomer(initialData.id, payload); toast.success(t("customers.updated")); } else { await addCustomer(payload); toast.success(t("customers.added")); } onOpenChange(false); } catch { toast.error(t("customers.saveFailed")); } finally { setSubmitting(false); } };
   const inputClass = (field?: string) => `${field && errors[field] ? "border-red-500" : ""} dark:bg-[#2c2c2c] dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500`;
