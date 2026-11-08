@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 export type Position = TableData & {
  id:string;product_id:string;on_hand_milli:number|null;reserved_milli:number|null;
  damaged_milli:number|null;minimum_milli:number|null;maximum_milli:number|null;
- is_current:boolean;snapshot_at:string;
+ is_current:boolean;snapshot_at:string;product_name?:string;sku?:string;
 };
 export type ProductSummary={id:string;name:string;sku:string;stock_unit:string;is_active:boolean};
 function quantity(value:number|null,unit:string) {
@@ -19,9 +19,10 @@ export function HostedInventory({positions,products,businessName}:{
 }) {
  const names=new Map(products.map(p=>[p.id,p]));
  const active=positions.filter(p=>p.is_current);
+ const displayPositions=positions.map(p=>({...p,product_name:names.get(p.product_id)?.name??"Unknown product",sku:names.get(p.product_id)?.sku??""}));
  const fields:TableField<Position>[]=[
-   {key:"product_id",header:"Product",cell:(_,p)=>names.get(p.product_id)?.name??"Unknown product"},
-   {key:"product_id",header:"SKU",cell:(_,p)=>names.get(p.product_id)?.sku??"—"},
+   {key:"product_name",header:"Product"},
+   {key:"sku",header:"SKU"},
    {key:"on_hand_milli",header:"On hand",align:"right",
     cell:(_,p)=>quantity(p.on_hand_milli,names.get(p.product_id)?.stock_unit??"units")},
    {key:"reserved_milli",header:"Reserved",align:"right",
@@ -45,7 +46,7 @@ export function HostedInventory({positions,products,businessName}:{
     Read-only stock snapshot. Quantities marked Not verified have no exact milli-unit value on desktop.
     No stock movement ledger, stock valuation or accounting balances have been synchronized.
   </p>
-  <DataTable<Position> title="Inventory positions" data={positions} fields={fields}
+  <DataTable<Position> title="Inventory positions" data={displayPositions} fields={fields}
     enableSelection={false} enableGlobalSearch searchPlaceholder="Search inventory..."
     emptyMessage="No inventory snapshot uploaded. Use Backup & Restore → Cloud connection in AkiliBiz Desktop."/>
  </main>;
