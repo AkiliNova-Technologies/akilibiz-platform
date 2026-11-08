@@ -95,9 +95,9 @@ export default function DashboardPage() {
     ? "Loading backend data"
     : (error ?? "Backend data unavailable");
   const exactValue = (
-    value: number | undefined,
+    value: number | null | undefined,
     formatter: (value: number) => string = String,
-  ) => (value === undefined ? pendingValue : formatter(value));
+  ) => (value == null ? pendingValue : formatter(value));
   const selectWindow = (value: string) => {
     setWindowDays(value);
     const end = to || day;
@@ -127,7 +127,7 @@ export default function DashboardPage() {
             value={exactValue(d?.completed_sales_total_ugx, money)}
             description={
               d
-                ? `${d.completed_order_count} completed sales`
+                ? "Sales and payments not synchronized yet"
                 : pendingDescription
             }
             icon={<Banknote className="size-5" />}
@@ -162,17 +162,17 @@ export default function DashboardPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Suppliers"
-            value="Unavailable"
-            description="No authoritative count returned"
+            value={exactValue(d?.suppliers_count)}
+            description="Uploaded supplier contact records"
             icon={<Truck className="size-5" />}
           />
           <MetricCard
             title="Stock on hand"
             value={exactValue(d?.stock_on_hand_product_count)}
             description={
-              d
-                ? `${d.low_stock_product_count} low · ${d.out_of_stock_product_count} out`
-                : pendingDescription
+              d?.stock_on_hand_product_count != null
+                ? `${d.low_stock_product_count ?? "—"} low · ${d.out_of_stock_product_count ?? "—"} out`
+                : "Stock snapshot not uploaded yet"
             }
             icon={<Package className="size-5" />}
           />
@@ -180,7 +180,7 @@ export default function DashboardPage() {
             title="Receivables"
             value={exactValue(d?.open_receivables_ugx, money)}
             description={
-              d ? "Open completed-sale balances" : pendingDescription
+              d ? "Receivables not synchronized yet" : pendingDescription
             }
             icon={<UserRound className="size-5" />}
           />
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             title="Supplier Payables"
             value={exactValue(d?.open_payables_ugx, money)}
             description={
-              d ? "Open and partial payable balances" : pendingDescription
+              d ? "Payables not synchronized yet" : pendingDescription
             }
             icon={<ClipboardList className="size-5" />}
           />
@@ -261,7 +261,7 @@ export default function DashboardPage() {
                     </button>
                   ))
                 ) : (
-                  <Empty title="No completed sales in the selected period" />
+                  <Empty title="Sales transactions have not been synchronized yet" />
                 )
               ) : (
                 <Empty title={pendingDescription} />
