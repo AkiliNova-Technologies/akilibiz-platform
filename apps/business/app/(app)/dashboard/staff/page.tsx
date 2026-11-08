@@ -1,305 +1,100 @@
-"use client";
-
-import { useMemo, useState } from "react";
-import {
-  BadgeCheck,
-  Clock3,
-  Mail,
-  Phone,
-  Plus,
-  RefreshCw,
-  UserCheck,
-  Users,
-} from "lucide-react";
-import { toast } from "sonner";
-import {
-  DataTable,
-  type TableAction,
-  type TableData,
-  type TableField,
-} from "@/components/akilibiz/data-table";
+import { ShieldCheck, UserRoundCheck, Users } from "lucide-react";
 import MetricCard from "@/components/akilibiz/metric-card";
-import { StaffSheet } from "@/components/akilibiz/staff/staff-sheet";
-import {
-  type StaffMember,
-  useStaffData,
-} from "@/components/akilibiz/staff/staff-data";
-import { Badge } from "@/components/ui/badge";
+import { StatusBanner } from "@/components/akilibiz/status-banner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { requireActiveBusiness } from "@/lib/business-context";
+import { createClient } from "@/lib/supabase/server";
+import { deactivateStaffAccess } from "./staff-actions";
+import { GrantAccessForm } from "./grant-access-form";
 
-type Row = {
-  name: string;
+type Member = {
+  user_id: string;
   email: string;
-  role: string;
-  phone: string;
-  status: "Active" | "Inactive";
-  staff: StaffMember;
-} & TableData;
+  role: "owner" | "manager" | "cashier" | "inventory_staff" | "accountant";
+  active: boolean;
+};
 
-export default function StaffPage() {
-  const { staff, roles, getStaff, addStaff, editStaff, setActive } =
-    useStaffData();
-  const [viewOpen, setViewOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [selected, setSelected] = useState<StaffMember | null>(null);
-  const rows = useMemo<Row[]>(
-    () =>
-      staff.map((member) => ({
-        id: member.id,
-        name: member.full_name || member.username,
-        email: member.email ?? "Not available",
-        role: member.role_name,
-        phone: member.phone || "Not available",
-        status: member.is_active ? "Active" : "Inactive",
-        staff: member,
-      })),
-    [staff],
-  );
-  const view = (member: StaffMember) => {
-    setSelected(member);
-    setViewOpen(true);
-  };
-  const edit = (member: StaffMember) => {
-    setSelected(member);
-    setEditOpen(true);
-  };
-  const changeStatus = async (member: StaffMember) => {
-    await setActive(member.id, !member.is_active);
-    toast.success(
-      `${member.full_name || member.username} ${member.is_active ? "deactivated" : "activated"}`,
-    );
-  };
-  const active = staff.filter((member) => member.is_active).length;
-  const fields: TableField<Row>[] = [
-    {
-      key: "name",
-      header: "Name",
-      enableSorting: true,
-      cell: (value) => <span className="font-medium">{String(value)}</span>,
-    },
-    { key: "email", header: "Email", align: "center" },
-    {
-      key: "role",
-      header: "Role",
-      align: "center",
-      cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
-    },
-    {
-      key: "phone",
-      header: "Phone",
-      align: "center",
-      cell: (value) => (
-        <span className="font-mono text-sm">{String(value)}</span>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      align: "center",
-      cell: (value) => (
-        <Badge variant={value === "Active" ? "outline" : "secondary"}>
-          {String(value)}
-        </Badge>
-      ),
-    },
-  ];
-  const actions: TableAction<Row>[] = [
-    { type: "view", label: "View profile", onClick: (row) => view(row.staff) },
-    {
-      type: "edit",
-      label: "Edit staff member",
-      onClick: (row) => edit(row.staff),
-    },
-    {
-      type: "custom",
-      label: "Change account status",
-      icon: <BadgeCheck className="size-4" />,
-      onClick: (row) => void changeStatus(row.staff),
-    },
-  ];
+export default async function StaffPage() {
+  const business = await requireActiveBusiness();
+  const owner = business.role === "owner";
+  const supabase = await createClient();
+  let members: Member[] = [];
+  let errorMessage: string | null = null;
+
+  if (owner) {
+    const response = await supabase.rpc("list_business_staff", {
+      target_business_id: business.id,
+    });
+    if (response.error) errorMessage = "Staff access is not available. Apply the staff-access migration and try again.";
+    else members = (response.data ?? []) as Member[];
+  }
+
+  const active = members.filter((member) => member.active);
   return (
-    <>
-      <div className="flex flex-1 flex-col">
-        <div className="flex flex-col gap-6">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Staff Directory
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Manage staff profiles, roles, and account status.
-            </p>
-          </div>
-          <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <MetricCard
-              title="Total Staff"
-              value={String(staff.length)}
-              description={`${active} active, ${staff.length - active} inactive`}
-              icon={<Users className="size-5" />}
-            />
-            <MetricCard
-              title="Active Staff"
-              value={String(active)}
-              description="Currently active accounts"
-              icon={<UserCheck className="size-5" />}
-            />
-            <MetricCard
-              title="Inactive Staff"
-              value={String(staff.length - active)}
-              description="Currently inactive accounts"
-              icon={<Clock3 className="size-5" />}
-            />
-            <MetricCard
-              title="Roles Loaded"
-              value="System"
-              description="Roles available for staff assignments"
-              icon={<BadgeCheck className="size-5" />}
-            />
+    <main className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Staff Directory</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage who can access {business.tradingName || business.name}.
+        </p>
+      </div>
+      {!owner ? (
+        <StatusBanner title="Staff access is managed by the business owner" tone="info">
+          Your current role is {business.role.replaceAll("_", " ")}. Ask the owner to change your access.
+        </StatusBanner>
+      ) : (
+        <>
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <MetricCard title="Team Members" value={String(members.length)}
+              description="Including the owner" icon={<Users className="size-5" />} />
+            <MetricCard title="Active Accounts" value={String(active.length)}
+              description="Currently allowed to access this business"
+              icon={<UserRoundCheck className="size-5" />} />
+            <MetricCard title="Business Owner" value="Protected"
+              description="Owner membership cannot be removed here"
+              icon={<ShieldCheck className="size-5" />} />
           </section>
+          {errorMessage && <StatusBanner title="Staff access unavailable" tone="error">{errorMessage}</StatusBanner>}
           <Card>
-            <CardContent className="px-6 pb-6">
-              <DataTable<Row>
-                title="Staff Management"
-                description="Manage staff profiles, roles, and account status."
-                data={rows}
-                fields={fields}
-                actions={actions}
-                enableGlobalSearch
-                searchPlaceholder="Search staff..."
-                pageSize={10}
-                onRowClick={(row) => view(row.staff)}
-                emptyMessage="No staff members found."
-                toolbarActions={
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        void getStaff();
-                        toast.success("Staff directory refreshed");
-                      }}>
-                      <RefreshCw className="mr-2 size-4" />
-                      Refresh
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setSelected(null);
-                        setAddOpen(true);
-                      }}>
-                      <Plus className="mr-2 size-4" />
-                      Add Staff
-                    </Button>
+            <CardHeader><CardTitle className="text-base">Grant business access</CardTitle></CardHeader>
+            <CardContent><GrantAccessForm /></CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Business members</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {members.length === 0 && <p className="text-sm text-muted-foreground">
+                No staff accounts are available yet.
+              </p>}
+              {members.map((member) => (
+                <div key={member.user_id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+                  <div className="min-w-0 space-y-1">
+                    <p className="break-all font-medium">{member.email}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="capitalize">
+                        {member.role.replaceAll("_", " ")}
+                      </Badge>
+                      <Badge variant={member.active ? "secondary" : "outline"}>
+                        {member.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
                   </div>
-                }
-              />
+                  {member.role !== "owner" && member.active ? (
+                    <form action={deactivateStaffAccess}>
+                      <input type="hidden" name="user_id" value={member.user_id} />
+                      <Button type="submit" variant="outline" size="sm">
+                        Remove access
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              ))}
             </CardContent>
           </Card>
-        </div>
-      </div>
-      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Staff Profile</DialogTitle>
-            <DialogDescription>
-              Review staff profile details and account status.
-            </DialogDescription>
-          </DialogHeader>
-          {selected ? (
-            <div className="space-y-4">
-              <Card>
-                <CardContent className="space-y-4 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl font-semibold">
-                        {selected.full_name || selected.username}
-                      </h3>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge
-                          variant={
-                            selected.is_active ? "outline" : "secondary"
-                          }>
-                          {selected.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                        <Badge variant="outline">{selected.role_name}</Badge>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Staff ID: {selected.id}
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="size-4 text-muted-foreground" />
-                        <span>{selected.email ?? "Not available"}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="size-4 text-muted-foreground" />
-                        <span>{selected.phone || "Not available"}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Joined</span>
-                        <span>
-                          {new Date(selected.created_at).toLocaleDateString(
-                            "en-UG",
-                            { year: "numeric", month: "short", day: "numeric" },
-                          )}
-                        </span>
-                      </div>
-                      {selected.notes ? (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Notes</p>
-                          <p className="text-sm">{selected.notes}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setViewOpen(false);
-                  edit(selected);
-                }}>
-                Edit Staff Member
-              </Button>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-      <StaffSheet
-        key={`add-${addOpen}`}
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        isEdit={false}
-        initialData={null}
-        roles={roles}
-        onSubmit={(payload) =>
-          addStaff({ ...payload, username: payload.username ?? "" })
-        }
-      />
-      <StaffSheet
-        key={`edit-${selected?.id ?? "none"}-${editOpen}`}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        isEdit
-        initialData={selected}
-        roles={roles}
-        onSubmit={(payload) =>
-          selected ? editStaff(selected.id, payload) : Promise.resolve(null)
-        }
-      />
-    </>
+        </>
+      )}
+    </main>
   );
 }
