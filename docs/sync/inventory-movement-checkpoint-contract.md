@@ -75,5 +75,10 @@ cross-tenant, altered, or unpaired payloads fail without partial mutation.
 ## Current implementation boundary
 
 Desktop `0099` adds capture-only outbox evidence and a checkpoint receipt
-table. Existing automatic inventory-position snapshots remain independent and
+table. Desktop `0100` additionally persists immutable, local-only prepared
+checkpoint requests. The preparation command reads positions and the committed
+movement watermark in a single SQLite transaction, reuses a prepared request
+after restart, and invalidates it when stock changes. These requests are not
+cloud acknowledgements. A dedicated desktop regression test covers stable
+preparation, invalidation, and immutable evidence. Existing automatic inventory-position snapshots remain independent and
 do **not** establish a verified movement checkpoint. Hosted private staging functions are committed but not deployed or callable by clients. A stable desktop checkpoint request, complete historical baseline proof, post-checkpoint snapshot write exclusion, public RPC authorization and end-to-end validation remain necessary before Phase 1A sign-off.
