@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   Archive,
@@ -291,6 +292,11 @@ export default function ProductsPage() {
             </h2>
             <p className="text-sm text-muted-foreground">
               Manage products, stock levels, pricing, and category assignments.
+            </p>
+            <p className="pt-2 text-sm">
+              <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/dashboard/products/synced">
+                View products uploaded from AkiliBiz Desktop
+              </Link>
             </p>
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
