@@ -1,3 +1,6 @@
+-- Exact business-scoped product key for stock-position foreign keys.
+alter table public.desktop_products add constraint desktop_products_business_id_id_key unique(business_id,id);
+
 -- Explicit read-only stock-position snapshot. No stock movements or
 -- inventory/COGS accounting entries are created by this replication.
 create table public.desktop_inventory_positions (
