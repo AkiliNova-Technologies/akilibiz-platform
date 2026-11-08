@@ -39,6 +39,25 @@ evidence. Two additive Platform `dev` migrations now define private checkpoint a
 6. Snapshot re-upload must never silently override a previously established
    stock ledger. A mismatch is a reconciliation error requiring operator review.
 
+## Snapshot-to-movement handover guard
+
+- Platform migration `20261108192000` adds a trigger guarding
+  `public.desktop_inventory_positions`. After a checkpoint exists for the
+  logical business/source, legacy snapshot INSERT, UPDATE, and DELETE
+  operations fail instead of replacing a movement-managed baseline.
+- The guard and checkpoint staging use the same per-source advisory transaction
+  lock. Direct writes also acquire this lock, so a snapshot cannot pass a
+  checkpoint creation concurrently.
+- Platform migration `20261108193000` checks all current inventory fields
+  (on-hand, reserved, damaged, minimum, maximum) against the submitted
+  checkpoint; a match on on-hand quantity alone is insufficient.
+- Desktop migration `0101` makes a stale local request terminal. The next
+  consistent preparation creates a fresh request identity.
+- **Activation remains disabled:** these migration files are committed to
+  `dev`, not applied to the hosted project. The desktop has no public
+  acknowledgement or movement-upload command. Test tenant authorization and
+  snapshot/replay ordering on an isolated database before deployment.
+
 ## Movement acceptance
 
 For each movement, the server verifies:
