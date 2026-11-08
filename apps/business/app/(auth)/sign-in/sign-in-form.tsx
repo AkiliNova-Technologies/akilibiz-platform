@@ -37,7 +37,7 @@ export function SignInForm() {
 
     const next = searchParams.get("next");
     const destination =
-      next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      next?.startsWith("/") && !next.startsWith("//") ? next : "/businesses";
     router.replace(destination);
     router.refresh();
   }

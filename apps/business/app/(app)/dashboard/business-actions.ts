@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { ACTIVE_BUSINESS_COOKIE, requireActiveBusiness, listAccessibleBusinesses } from "@/lib/business-context";
 import { redirect } from "next/navigation";
 import {
   businessProfileFromFormData,
@@ -26,21 +28,29 @@ async function authenticatedClient() {
 }
 
 async function findOwnedBusinessId() {
-  const supabase = await authenticatedClient();
-  const { data, error } = await supabase
-    .from("business_memberships")
-    .select("business_id")
-    .eq("active", true)
-    .eq("role", "owner")
-    .limit(2);
-
-  if (error || !data || data.length !== 1) {
-    return {
-      error: "Business profile settings are unavailable for this account.",
-    };
+  const business = await requireActiveBusiness();
+  if (business.role !== "owner") {
+    return { error: "Only the business owner can update this profile." };
   }
+  const supabase = await authenticatedClient();
+  return { businessId: business.id, supabase };
+}
 
-  return { businessId: data[0].business_id, supabase };
+export async function selectBusiness(formData: FormData) {
+  const businessId = formData.get("business_id");
+  if (typeof businessId !== "string") redirect("/businesses");
+  const businesses = await listAccessibleBusinesses();
+  if (!businesses.some((business) => business.id === businessId)) {
+    redirect("/businesses");
+  }
+  (await cookies()).set(ACTIVE_BUSINESS_COOKIE, businessId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+  revalidatePath("/dashboard", "layout");
+  redirect("/dashboard");
 }
 
 export async function onboardBusiness(
@@ -54,7 +64,7 @@ export async function onboardBusiness(
   }
 
   const supabase = await authenticatedClient();
-  const { error } = await supabase.rpc("onboard_business", {
+  const { data: business, error } = await supabase.rpc("onboard_business", {
     business_name: parsed.data.name,
     business_trading_name: parsed.data.tradingName,
     business_contact_email: parsed.data.contactEmail,
@@ -64,15 +74,21 @@ export async function onboardBusiness(
     business_currency_code: parsed.data.currencyCode,
   });
 
-  if (error) {
+  if (error || !business?.id) {
     return {
       error:
         "We could not create your business. Check the details and try again.",
     };
   }
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard/settings");
+  (await cookies()).set(ACTIVE_BUSINESS_COOKIE, business.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+  revalidatePath("/dashboard", "layout");
+  redirect("/dashboard/settings/business");
 }
 
 export async function updateBusinessProfile(

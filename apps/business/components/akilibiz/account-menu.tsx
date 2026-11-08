@@ -1,6 +1,7 @@
 "use client";
 
 import { Ellipsis, UserRound } from "lucide-react";
+import Link from "next/link";
 
 import { SignOutButton } from "@/app/(app)/dashboard/sign-out-button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -61,6 +63,7 @@ export function AccountMenu({ account, placement }: AccountMenuProps) {
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
+      <DropdownMenuItem asChild><Link href="/businesses">Switch business</Link></DropdownMenuItem>
       <SignOutButton menuItem />
     </DropdownMenuContent>
   );
