@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { updateBusinessProfile, initialBusinessFormState } from "@/app/(app)/dashboard/business-actions";
+import { updateBusinessProfile } from "@/app/(app)/dashboard/business-actions";
+import { initialBusinessFormState } from "@/lib/business-form-state";
 import { BusinessProfileFields } from "@/app/(app)/dashboard/business-profile-fields";
 import type { BusinessProfileInput } from "@/lib/business-profile";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export function BusinessSettingsForm({
           <fieldset disabled={!canEdit || pending} className="space-y-6">
             <BusinessProfileFields defaults={initial} />
           </fieldset>
-          {state.error ? <StatusBanner title="Could not save business profile" tone="error">{state.error}</StatusBanner> : null}
+          {state.error ? <StatusBanner title="Could not save business profile" tone="error">{state.error}</StatusBanner> : state.saved ? <StatusBanner title="Business profile saved" tone="success">Your changes were saved for this business.</StatusBanner> : null}
           {canEdit ? <div className="flex justify-end border-t pt-5">
             <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save changes"}</Button>
           </div> : null}

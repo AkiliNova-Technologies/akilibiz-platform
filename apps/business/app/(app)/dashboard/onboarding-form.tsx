@@ -8,7 +8,8 @@ import { StatusBanner } from "@/components/akilibiz/status-banner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { BusinessProfileFields } from "./business-profile-fields";
-import { initialBusinessFormState, onboardBusiness } from "./business-actions";
+import { onboardBusiness } from "./business-actions";
+import { initialBusinessFormState } from "@/lib/business-form-state";
 
 export function OnboardingForm() {
   const [state, formAction, isPending] = useActionState(

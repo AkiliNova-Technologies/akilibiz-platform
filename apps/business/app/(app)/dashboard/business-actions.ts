@@ -12,9 +12,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export type BusinessFormState = {
   error: string | null;
+  saved?: boolean;
 };
 
-export const initialBusinessFormState: BusinessFormState = { error: null };
+
 
 async function authenticatedClient() {
   const supabase = await createClient();
@@ -132,5 +133,5 @@ export async function updateBusinessProfile(
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/settings");
-  return { error: null };
+  return { error: null, saved: true };
 }
