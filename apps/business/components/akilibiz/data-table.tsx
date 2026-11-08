@@ -945,7 +945,7 @@ function DataTable<TData extends TableData>({
 
       {/* Table Section */}
       <div className="relative flex min-w-0 flex-col gap-4">
-        <div className="overflow-hidden rounded-none border">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           {renderTableContent()}
         </div>
 
