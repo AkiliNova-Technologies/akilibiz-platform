@@ -1,9 +1,8 @@
 # Inventory movement synchronization contract — Phase 1A
 
-Status: **design contract, not an active hosted API**. Desktop migration
+Status: **staged private hosted schema and functions, not an active hosted API**. Desktop migration
 `0099_cloud_inventory_movement_outbox.sql` captures newly posted stock movement
-evidence. No hosted movement ingestion or verified checkpoint creation is
-enabled by this document.
+evidence. Two additive Platform `dev` migrations now define private checkpoint and movement-receipt staging, but neither has been applied to the hosted project or exposed as a client-callable RPC.
 
 ## Source of truth and scope
 
@@ -77,6 +76,4 @@ cross-tenant, altered, or unpaired payloads fail without partial mutation.
 
 Desktop `0099` adds capture-only outbox evidence and a checkpoint receipt
 table. Existing automatic inventory-position snapshots remain independent and
-do **not** establish a verified movement checkpoint. Hosted read/write
-services and historical baseline reconciliation remain to be implemented and
-validated before Phase 1A sign-off.
+do **not** establish a verified movement checkpoint. Hosted private staging functions are committed but not deployed or callable by clients. A stable desktop checkpoint request, complete historical baseline proof, post-checkpoint snapshot write exclusion, public RPC authorization and end-to-end validation remain necessary before Phase 1A sign-off.
