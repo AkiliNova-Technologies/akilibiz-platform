@@ -70,6 +70,8 @@ create or replace function public.list_desktop_effective_inventory(
   target_business_id uuid
 )
 returns table(
+  id uuid,
+  product_id uuid,
   local_business_public_id text,
   local_product_id bigint,
   on_hand_milli bigint,
@@ -77,6 +79,8 @@ returns table(
   damaged_milli bigint,
   minimum_milli bigint,
   maximum_milli bigint,
+  is_current boolean,
+  snapshot_at timestamptz,
   ledger_checkpoint_id uuid,
   ledger_movement_id bigint
 )
@@ -94,13 +98,14 @@ begin
   end if;
 
   return query
-  select p.local_business_public_id,
+  select p.id,p.product_id,p.local_business_public_id,
     p.local_product_id,
     coalesce(b.on_hand_milli,p.on_hand_milli),
     p.reserved_milli,
     p.damaged_milli,
     p.minimum_milli,
     p.maximum_milli,
+    p.is_current,p.snapshot_at,
     c.id,
     coalesce(b.last_movement_id,c.movement_watermark)
   from public.desktop_inventory_positions p
@@ -110,7 +115,8 @@ begin
   left join private.desktop_inventory_checkpoint_product_balances b
     on b.checkpoint_id=c.id
    and b.local_product_id=p.local_product_id
-  where p.business_id=target_business_id and p.is_current;
+  where p.business_id=target_business_id and p.is_current
+  order by p.local_product_id;
 end
 $$;
 revoke all on function public.list_desktop_effective_inventory(uuid)
