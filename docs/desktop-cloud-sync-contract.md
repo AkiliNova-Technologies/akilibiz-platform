@@ -1,44 +1,53 @@
-# Desktop → Cloud synchronization contract (S1/S2)
+# AkiliBiz desktop → web synchronization: current capabilities
 
-Status: **protocol design / implementation gate**. No desktop data is currently uploaded.
+As of 2026-11-08. Desktop SQLite remains the source of truth for offline
+operations. All cloud uploads are authenticated against the registered
+Supabase business and device. **No SQLite business data is erased or reset.**
 
-## Verified repository facts
+## Implemented and deployed
+- Desktop-origin business registration and paired desktop device ownership.
+- Initial catalogue snapshot with 13 categories and 65 products verified in
+  the current hosted project (at the time of verification).
+- Durable SQLite change capture for category and product inserts, edits and
+  deactivations; an application worker attempts delivery every 45 seconds
+  **while an authenticated cloud owner session is present**.
+- Cloud receipt table makes retries idempotent. Desktop acknowledges each
+  outbox event only after receiving a successful server response.
+- In-memory cloud session renewal while the application remains open.
+  A fresh sign-in is required after application restart.
+- Contact directory snapshot: explicit desktop action, owner-only cloud reads,
+  source UUID upserts and source-scoped soft-deactivation. Only customer and
+  supplier contact details, types, loyalty points and supplier payment terms are
+  uploaded; financial balances are excluded.
+- Inventory stock-position snapshot: explicit desktop action, exact integer
+  milli-quantities only (or NULL when unknown). Inventory movements, valuation,
+  COGS and journals are not duplicated or posted.
+- Web Products, Categories, Customers, Suppliers and Inventory primary screens
+  now read hosted snapshots for the selected authenticated business.
+- Web dashboard derives only available directory/stock counts from hosted
+  records. Financial amounts are shown unavailable, not made-up zeros.
 
-- Desktop SQLite `businesses` has an integer local primary key and a unique text `public_id` (migration 0057). It enforces exactly one active local business through `LocalBusinessContext`.
-- Desktop `categories` and `products` use local integer IDs and `business_id` ownership (migration 0065). Product SKU is unique per local business.
-- Web Supabase `businesses.id` is a UUID. Active business access is derived from authenticated Supabase memberships, not the selected-business cookie.
-- Prisma foundation exists, but its lockfile and hosted connection/permission model require validation before deployment.
-- Web product and category screens currently use in-memory sample data; they are not safe import targets.
+## Next safety gates before declaring full business synchronization
+1. Validate Rust compile with a correctly generated Cargo.lock. CI currently
+   cannot pass `cargo test --locked` because the repository lockfile is stale.
+2. Exercise live owner/device incremental updates and replay under network loss,
+   auth expiry and concurrent local edits; verify owner revocation.
+3. Add durable, independently audited sales, sale_items, payment, expense, tax,
+   receivable, payable, supplier purchase and posted journal contracts. Use
+   exact UGX and milli quantities, immutable source IDs and local audit
+   provenance; never recompute legacy REAL columns or post cloud-side
+   accounting transactions during replication.
+4. Add contact and inventory change capture and authenticated automatic
+   delivery if ongoing uploads are desired rather than manual snapshots.
+5. Add cross-device restore/downstream read-only hydration only after identity,
+   conflict resolution and local accounting consistency have been audited.
+6. Review retention/consent and staff permissions for personal contact data.
+7. Scale upload paging beyond the initial 5,000-row safeguards and audit
+   hard-delete/tombstone semantics across business modules.
 
-## Phase S1 acceptance requirements
-
-1. The owner signs into Supabase on desktop using an external browser / PKCE flow; no web password is copied to the desktop SQLite staff-auth tables.
-2. A pairing challenge is created on the hosted server, bound to an authenticated owner, hosted business, expiry and one-time nonce. A desktop device proves possession of the challenge and its generated device identity. Pairing does not trust the submitted business UUID.
-3. The server verifies active owner membership on **every** pairing request and persists a device registration. Re-pairing must be idempotent, and revocation must block all subsequent uploads.
-4. The desktop stores the verified mapping between its local `public_id`, the hosted business UUID and device UUID. No link is marked active until the server confirms it.
-5. Initial sync shows a preview of record counts and collision checks. Never silently merge a populated hosted catalogue.
-6. Every upload request includes an authenticated device credential, stable event UUID, source local business ID, entity type and local record ID. The server derives the authorized hosted business from the device registration, **never** from client-provided `business_id`.
-7. Acknowledgments are committed on the server before the desktop marks outbox entries acknowledged. Retried event UUIDs return the original outcome.
-8. A revoked business membership or device registration immediately prevents uploads. Cross-business reads and writes are rejected.
-
-## Phase S2 catalogue data order
-
-1. Categories (parent mapping before products).
-2. Products (map category IDs and source product IDs).
-3. Inventory quantities and stock movements **only after** a separate ledger integrity review. Product stock snapshots must not become independent financial inventory postings.
-
-Use explicit integer UGX and milli-quantity fields where present in desktop. Do not infer exact values from legacy floating point columns when exact-value snapshots exist. Never synchronize tax classifications without matching hosted tax rules.
-
-## Implementation boundaries
-
-- **Desktop**: `0093_cloud_sync_foundation.sql` creates link metadata, mapping and empty outbox. It does not capture changes yet.
-- **Hosted**: device registration, pairing endpoints, catalogue schema and ingestion services are **not yet implemented**.
-- **Web**: existing product UI is mock-backed and must be connected to Prisma-backed business-scoped queries after catalogue ingestion exists.
-- **Safety**: no remote database migrations, uploads, or local database resets have been performed.
-
-## Validation before live data
-
-- Test desktop migration on a disposable SQLite database and on a copied representative development database.
-- Verify Prisma lockfile and CI; ensure runtime role is least privileged.
-- Test two independent business owners, cross-tenant spoofing, expired pairing, replay, retries, duplicate SKUs, invalid categories, revocation, partial batches and interrupted uploads.
-- Start with a single category and product in a disposable test business. Only after passing acceptance checks, link the existing real desktop business.
+## Verification
+Supabase RPCs and RLS are deployed. Anonymous callers are denied execution.
+The hosted database still contains only the previously confirmed catalogue
+records until the owner's desktop explicitly uploads contact and stock data.
+Do not infer success solely from the existence of source code or migrations.
+No automatic post-restart sync without cloud sign-in is claimed.
