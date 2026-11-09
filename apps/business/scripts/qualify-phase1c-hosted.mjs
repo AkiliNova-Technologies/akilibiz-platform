@@ -328,6 +328,36 @@ async function main() {
     assert(representativeRows.find((row) => row.entity_type === "supplier_payments")?.record.balance_remaining_ugx === 4000, "supplier payment differed from desktop source");
     mark(results, "desktop-to-hosted financial record consistency", "PASS");
 
+    // The protected Vercel browser check is opt-in. It shares this disposable
+    // run's short-lived owner identities and only executes after the web-facing
+    // representative mirrors have been published. The runner never writes
+    // credentials to disk and cleanup still executes in finally.
+    if (process.env.AKILIBIZ_PHASE1G_BROWSER === "1") {
+      assert(process.env.AKILIBIZ_PREVIEW_URL, "AKILIBIZ_PREVIEW_URL is required for browser qualification");
+      const browserResult = spawnSync(process.execPath, [
+        resolve(import.meta.dirname, "phase1g-browser-acceptance.mjs"),
+      ], {
+        cwd: resolve(import.meta.dirname, ".."),
+        encoding: "utf8",
+        timeout: 240000,
+        maxBuffer: 1024 * 1024,
+        env: {
+          ...process.env,
+          AKILIBIZ_BROWSER_USER_A_EMAIL: manifest.userAEmail,
+          AKILIBIZ_BROWSER_USER_B_EMAIL: manifest.userBEmail,
+          AKILIBIZ_BROWSER_USER_PASSWORD: password,
+          AKILIBIZ_BROWSER_RUN_ID: runId,
+        },
+      });
+      if (browserResult.error || browserResult.status !== 0) {
+        throw new Error(`Protected preview browser acceptance failed: ${redact(browserResult.stderr?.trim() || browserResult.error?.message || "nonzero exit")}`);
+      }
+      mark(results, "protected preview browser acceptance", "PASS");
+    } else {
+      mark(results, "protected preview browser acceptance", "SKIP", "set AKILIBIZ_PHASE1G_BROWSER=1 and provide approved Vercel browser authentication");
+    }
+
+
     await expectSuccess(results, "staff grant", ownerA.rpc("grant_business_staff", { target_business_id: manifest.businessAId, target_email: manifest.userBEmail, target_role: "cashier" }));
     await expectDenied(results, "non-owner mirror restriction", ownerB.from("desktop_business_records").select("local_record_id").eq("business_id", manifest.businessAId).then((data) => data.data?.length ? data : ({ error: { message: "RLS empty result", code: "RLS" } })));
     await expectDenied(results, "non-owner synchronization mutation", ownerB.rpc("upload_desktop_contacts", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }));
