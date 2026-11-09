@@ -139,7 +139,9 @@ export default function DashboardPage() {
             value={exactValue(d?.completed_sales_total_ugx, money)}
             description={
               d
-                ? `${d.completed_order_count} completed sales`
+                ? d.completed_sales_total_ugx == null
+                  ? "Completed sales data unavailable"
+                  : `${d.completed_order_count} completed sales`
                 : pendingDescription
             }
             icon={<Banknote className="size-5" />}
