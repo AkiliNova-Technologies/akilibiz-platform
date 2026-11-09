@@ -32,6 +32,10 @@ export interface SalesHistoryData {
 
 const salesLabels: Record<string, string> = {
   "sales.history": "Sales History",
+  "sales.allCashiers": "All cashiers",
+  "sales.phone": "Phone",
+  "sales.date": "Date",
+  "sales.itemsCount": "Items",
   "sales.records": "Sales records",
   "sales.recordsDescription": "View and manage sales transactions.",
   "sales.totalSales": "Total sales",
@@ -89,7 +93,7 @@ const salesLabels: Record<string, string> = {
 };
 export const t = (key: string, values?: TranslationValues) => {
   const label = salesLabels[key] ?? key;
-  return label.replace(/\\{(\\w+)\\}/g, (match, field: string) =>
+  return label.replace(/\{(\w+)\}/g, (match, field: string) =>
     values?.[field] === undefined ? match : String(values[field]),
   );
 };
