@@ -160,9 +160,9 @@ export default function FinanceCashFlowPage() {
                 <Button
                   variant="outline"
                   onClick={() => void refreshCashFlow()}
-                  disabled={loading}>
+                  disabled size="icon" aria-label="Refresh" title="Refresh">
                   {loading ? (
-                    <LoaderCircle className="size-4 animate-spin" / size="icon" aria-label="Refresh" title="Refresh" disabled>
+                    <LoaderCircle className="size-4 animate-spin" />
                   ) : (
                     <RefreshCw className="size-4" />
                   )}
