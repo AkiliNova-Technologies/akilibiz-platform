@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 export type SettingsCategory = "Business" | "Receipt" | "Tax" | "Backup";
-export type SettingStatus = "Configured" | "Needs Review" | "Not Set";
+export type SettingStatus = "Configured" | "Needs Review" | "Not Set" | "Unavailable";
 
 export interface SettingsOverviewItem {
   category: SettingsCategory;
@@ -28,7 +28,7 @@ const initialSettings: SettingsOverviewItem[] = [
     href: "/dashboard/settings/business",
     id: 1,
     label: "Business Profile",
-    status: "Not Set",
+    status: "Unavailable",
     summary: "Business identity and contact details not fully configured",
     updatedAt: null,
   },
@@ -37,7 +37,7 @@ const initialSettings: SettingsOverviewItem[] = [
     href: "/dashboard/settings/receipt",
     id: 2,
     label: "Receipt Settings",
-    status: "Not Set",
+    status: "Unavailable",
     summary: "Uses Business Profile header",
     updatedAt: null,
   },
@@ -46,7 +46,7 @@ const initialSettings: SettingsOverviewItem[] = [
     href: "/dashboard/settings/tax",
     id: 3,
     label: "Tax Configuration",
-    status: "Not Set",
+    status: "Unavailable",
     summary: "Tax rules are not fully configured",
     updatedAt: null,
   },
@@ -55,7 +55,7 @@ const initialSettings: SettingsOverviewItem[] = [
     href: "/dashboard/settings/backup",
     id: 4,
     label: "Backup & Restore",
-    status: "Not Set",
+    status: "Unavailable",
     summary: "No backups created yet",
     updatedAt: null,
   },
@@ -66,8 +66,8 @@ export function useSettingsOverviewData() {
     useState<SettingsOverviewItem[]>(initialSettings);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const summary = useMemo<SettingsOverviewSummary>(
-    () => ({
+  const summary = useMemo<SettingsOverviewSummary | null>(
+    () => settings.some((setting) => setting.status === "Unavailable") ? null : ({
       categories: new Set(settings.map((setting) => setting.category)).size,
       configured: settings.filter((setting) => setting.status === "Configured")
         .length,
