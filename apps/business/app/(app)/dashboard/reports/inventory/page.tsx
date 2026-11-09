@@ -248,9 +248,9 @@ export default function ReportsInventoryPage() {
                     actions={action((row: StockRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh}>
-                        <RefreshCw className="mr-2 size-4" />
-                        Refresh
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                        <RefreshCw className="size-4" />
+                        
                       </Button>
                     }
                     enableSelection={false}
@@ -316,9 +316,9 @@ export default function ReportsInventoryPage() {
                     actions={action((row: MoveRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh}>
-                        <RefreshCw className="mr-2 size-4" />
-                        Refresh
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                        <RefreshCw className="size-4" />
+                        
                       </Button>
                     }
                     enableSelection={false}
@@ -354,9 +354,9 @@ export default function ReportsInventoryPage() {
                     actions={action((row: ValueRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh}>
-                        <RefreshCw className="mr-2 size-4" />
-                        Refresh
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                        <RefreshCw className="size-4" />
+                        
                       </Button>
                     }
                     enableSelection={false}
