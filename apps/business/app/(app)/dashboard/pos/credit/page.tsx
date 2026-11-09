@@ -180,19 +180,19 @@ export default function CreditOrdersPage() {
 
     try {
       const result = await recordSalePayment(selectedOrder.id, {
-      amount,
-      payment_method: paymentMethod,
-      payment_reference: null,
-      notes: "Credit order payment",
-      idempotency_key: paymentRequestKey,
-    });
+        amount,
+        payment_method: paymentMethod,
+        payment_reference: null,
+        notes: "Credit order payment",
+        idempotency_key: paymentRequestKey,
+      });
 
-    if (result) {
-      toast.success(`Payment recorded for ${selectedOrder.sale_number}`);
-      setPaymentDialogOpen(false);
-      setSelectedOrder(null);
-      setPaymentAmount("");
-      await getSales({ limit: 500 });
+      if (result) {
+        toast.success(`Payment recorded for ${selectedOrder.sale_number}`);
+        setPaymentDialogOpen(false);
+        setSelectedOrder(null);
+        setPaymentAmount("");
+        await getSales({ limit: 500 });
       }
     } catch {
       toast.error("Credit payment recording is unavailable.");
