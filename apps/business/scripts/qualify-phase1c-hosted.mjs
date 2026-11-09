@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { createHmac } from "node:crypto";
+import { createHmac, createPublicKey, verify as verifySignature } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { request as httpsRequest } from "node:https";
 import { resolve } from "node:path";
@@ -44,6 +44,34 @@ function signedExpiredAccessToken(userId) {
   const unsigned = `${header}.${payload}`;
   return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
 }
+// Optional Phase 1G expiry case: validate a genuinely expired ES256 token
+// cryptographically against Supabase's public JWKS, without ever requesting
+// or exposing the hosted JWT signing secret. Supply only an expired ephemeral
+// test-user token generated through an authorized test session.
+async function verifiedExpiredAsymmetricToken(token) {
+  assert(typeof token === "string" && token.split(".").length === 3, "Invalid expired JWT fixture format");
+  const [h, p, signature] = token.split(".");
+  const header = JSON.parse(Buffer.from(h, "base64url").toString("utf8"));
+  const payload = JSON.parse(Buffer.from(p, "base64url").toString("utf8"));
+  assert(header.alg === "ES256" && typeof header.kid === "string", "Expired JWT must use hosted ES256 signing key");
+  assert(Number.isInteger(payload.exp) && payload.exp < Math.floor(Date.now() / 1000) - 5, "Expired JWT fixture is not yet expired");
+  assert(payload.exp > Math.floor(Date.now() / 1000) - 14 * 86400, "Expired JWT fixture is too old");
+  assert(payload.iss === `${process.env.SUPABASE_URL}/auth/v1` && payload.role === "authenticated",
+    "Expired JWT fixture is not scoped to approved Supabase project");
+  assert(payload.aud === "authenticated" || (Array.isArray(payload.aud) && payload.aud.includes("authenticated")),
+    "Expired JWT fixture has unexpected audience");
+  const keyResponse = await fetch(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
+  assert(keyResponse.ok, "Supabase public signing keys unavailable");
+  const jwks = await keyResponse.json();
+  const jwk = jwks.keys?.find((key) => key.kid === header.kid && key.kty === "EC" && key.crv === "P-256");
+  assert(jwk, "Expired test JWT signer is not in hosted public JWKS");
+  const publicKey = createPublicKey({ key: jwk, format: "jwk" });
+  assert(verifySignature("sha256", Buffer.from(`${h}.${p}`), {
+    key: publicKey, dsaEncoding: "ieee-p1363",
+  }, Buffer.from(signature, "base64url")), "Expired fixture failed asymmetric signature verification");
+  return token;
+}
+
 async function interruptResponseAfterServerReply(url, headers, body) {
   return new Promise((resolveInterrupted, reject) => {
     const target = new URL(url);
@@ -260,13 +288,15 @@ async function main() {
     const invalidResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: "Bearer invalid.phase1c.token", "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
     assert(invalidResponse.status === 401, `invalid bearer token returned ${invalidResponse.status}`);
     mark(results, "invalid bearer token rejection", "PASS");
-    const expiredToken = signedExpiredAccessToken(manifest.userAId);
+    const expiredToken = process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN
+      ? await verifiedExpiredAsymmetricToken(process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN)
+      : signedExpiredAccessToken(manifest.userAId);
     if (expiredToken) {
       const expiredResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${expiredToken}`, "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
       assert(expiredResponse.status === 401, `correctly signed expired bearer token returned ${expiredResponse.status}`);
-      mark(results, "correctly signed expired bearer token rejection", "PASS");
+      mark(results, "correctly signed expired bearer token rejection", "PASS", process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN ? "verified hosted ES256 signature" : "legacy signed fixture");
     } else {
-      mark(results, "correctly signed expired bearer token rejection", "SKIP", "SUPABASE_LEGACY_JWT_SECRET was not supplied");
+      mark(results, "correctly signed expired bearer token rejection", "SKIP", "supply AKILIBIZ_EXPIRED_ACCESS_TOKEN from an authorized short-lived test session; legacy signing secret is not required");
     }
     await expectDenied(results, "cross-business RPC isolation", ownerB.rpc("upload_desktop_contacts", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }));
 
