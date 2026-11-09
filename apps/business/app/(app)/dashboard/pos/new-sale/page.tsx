@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { SalePrintPreviewDialog } from "@/components/akilibiz/documents/SalePrintPreviewDialog";
 import { usePosHeaderControls } from "@/components/akilibiz/pos/pos-header-actions";
 import {
@@ -84,17 +84,16 @@ export default function POSPage() {
   const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
   const { products, loading, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
 
-  const [productView, setProductView] = useState<ProductView>("compact");
-  useEffect(() => {
+  const [productView, setProductView] = useState<ProductView>(() => {
+    if (typeof window === "undefined") return "compact";
     try {
       const saved = window.localStorage.getItem(POS_VIEW_STORAGE_KEY);
-      if (saved === "compact" || saved === "grid" || saved === "list") {
-        setProductView(saved);
-      }
+      if (saved === "compact" || saved === "grid" || saved === "list") return saved;
     } catch {
       // Display preferences are optional.
     }
-  }, []);
+    return "compact";
+  });
   const changeProductView = (view: ProductView) => {
     setProductView(view);
     try {
@@ -282,7 +281,7 @@ export default function POSPage() {
     updateItemQuantity(productId, newQuantity);
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     clearReduxCart();
     setDiscount(0);
     setCashReceived("");
@@ -290,11 +289,11 @@ export default function POSPage() {
     setOrderNotes("");
     applyDiscount(0);
     assignCustomer(undefined);
-  };
+  }, [clearReduxCart, applyDiscount, assignCustomer]);
 
   useEffect(() => {
     registerClearSale(cartItems.length, clearCart);
-  }, [cartItems.length, registerClearSale]);
+  }, [cartItems.length, registerClearSale, clearCart]);
   useEffect(() => () => unregisterClearSale(), [unregisterClearSale]);
 
   const handleCheckout = (mode: CheckoutMode) => {
@@ -365,15 +364,8 @@ export default function POSPage() {
 
     const result = await addSale(payload);
 
-    if (result) {
-      clearCart();
-      setCheckoutDialogOpen(false);
-      setPaymentMethod("cash");
-      setCashReceived("");
-      toast.success(t("pos.saleCompleted", { number: result.sale_number }));
-      setSalePrintSaleId(result.id);
-      setSalePrintOpen(true);
-    }
+    // Hosted posting is not connected; addSale cannot return a completed sale.
+    void result;
   };
 
   const placeOrder = async () => {
@@ -409,13 +401,8 @@ export default function POSPage() {
 
     const result = await addSale(payload);
 
-    if (result) {
-      clearCart();
-      setCheckoutDialogOpen(false);
-      setDueDate("");
-      setOrderNotes("");
-      toast.success(t("pos.orderPlaced", { number: result.sale_number }));
-    }
+    // Hosted posting is not connected; addSale cannot return a credit order.
+    void result;
   };
 
   return (
