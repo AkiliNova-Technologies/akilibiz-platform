@@ -245,26 +245,26 @@ export default function StaffRolesPermissionsPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Roles"
-              value={String(summary.total_roles)}
-              description={`${summary.active_roles} active roles configured`}
+              value={summary ? String(summary.total_roles) : "—"}
+              description={summary ? `${summary.active_roles} active roles configured` : "Role records unavailable"}
               icon={<ShieldCheck className="size-5" />}
             />
             <MetricCard
               title="Assigned Users"
-              value={String(summary.total_assigned_users)}
+              value={summary ? String(summary.total_assigned_users) : "—"}
               description="Users mapped to permission roles"
               icon={<Users className="size-5" />}
             />
             <MetricCard
               title="Average Permissions"
-              value={String(summary.average_permissions)}
+              value={summary ? String(summary.average_permissions) : "—"}
               description="Average enabled permissions per role"
               icon={<KeyRound className="size-5" />}
             />
             <MetricCard
               title="Access Control"
-              value="Enabled"
-              description="Permission-based staff access is active"
+              value="—"
+              description="Hosted role definitions unavailable"
               icon={<LockKeyhole className="size-5" />}
             />
           </section>
@@ -280,7 +280,7 @@ export default function StaffRolesPermissionsPage() {
                 searchPlaceholder="Search roles..."
                 pageSize={10}
                 onRowClick={(row) => void view(row)}
-                emptyMessage={loading ? "Loading roles..." : "No roles found."}
+                emptyMessage={loading ? "Loading roles..." : "Role definitions are unavailable until hosted role management is connected."}
                 toolbarActions={
                   <div className="flex gap-2">
                     <Button
@@ -290,6 +290,7 @@ export default function StaffRolesPermissionsPage() {
                       Refresh
                     </Button>
                     <Button
+                      disabled title="Hosted role creation is not connected"
                       onClick={() => {
                         setForm({
                           role_name: "",
@@ -402,7 +403,7 @@ export default function StaffRolesPermissionsPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => void create()}>Create Role</Button>
+            <Button disabled title="Hosted role creation is not connected" onClick={() => void create()}>Create Role</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -560,7 +561,7 @@ export default function StaffRolesPermissionsPage() {
                 </Button>
                 <Button
                   onClick={() => void savePermissions()}
-                  disabled={selected.is_system}>
+                  disabled title="Hosted permissions updates are not connected">
                   Save Permissions
                 </Button>
               </DialogFooter>
