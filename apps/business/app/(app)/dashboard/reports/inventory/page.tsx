@@ -228,15 +228,13 @@ export default function ReportsInventoryPage() {
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
                   title="Products shown"
-                  value={String(stock.length)}
+                  value="—"
                   description="On-hand stock in current register"
                   icon={<Eye className="size-5" />}
                 />
                 <MetricCard
                   title="Low or out of stock"
-                  value={String(
-                    stock.filter((row) => row.status !== "in_stock").length,
-                  )}
+                  value="—"
                   description="Current stock status"
                   icon={<Eye className="size-5" />}
                 />
@@ -259,7 +257,7 @@ export default function ReportsInventoryPage() {
                     enableGlobalSearch
                     enableSorting={false}
                     loading={false}
-                    emptyMessage="No stock records are available."
+                    emptyMessage="Inventory reporting is unavailable until verified stock data is connected."
                   />
                 </CardContent>
               </Card>
@@ -327,7 +325,7 @@ export default function ReportsInventoryPage() {
                     enableGlobalSearch
                     enableSorting={false}
                     loading={false}
-                    emptyMessage="No movements match the selected UTC period."
+                    emptyMessage="Stock movement reporting is unavailable until the hosted movement ledger is connected."
                   />
                 </CardContent>
               </Card>
@@ -336,13 +334,13 @@ export default function ReportsInventoryPage() {
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
                   title="Valuation total"
-                  value={ugx(valuationSummary.total_value_ugx)}
+                  value={valuationSummary ? ugx(valuationSummary.total_value_ugx) : "—"}
                   description="Valued stock"
                   icon={<Eye className="size-5" />}
                 />
                 <MetricCard
                   title="Unvalued stock"
-                  value={String(valuationSummary.unvalued_stock_count)}
+                  value={valuationSummary ? String(valuationSummary.unvalued_stock_count) : "—"}
                   description="Stock without a current value"
                   icon={<Eye className="size-5" />}
                 />
@@ -365,7 +363,7 @@ export default function ReportsInventoryPage() {
                     enableGlobalSearch
                     enableSorting={false}
                     loading={false}
-                    emptyMessage="No in-stock products require valuation."
+                    emptyMessage="Inventory valuation is unavailable until verified costing data is connected."
                   />
                 </CardContent>
               </Card>
