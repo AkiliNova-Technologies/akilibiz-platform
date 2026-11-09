@@ -5,6 +5,7 @@ import { Moon, Sun } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { type AccountDisplay } from "@/components/akilibiz/account-menu";
 import { NotificationBell } from "@/components/akilibiz/notifications/NotificationBell";
+import { PosClearSaleHeaderAction } from "@/components/akilibiz/pos/pos-header-actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -32,6 +33,7 @@ export function SiteHeader({ account, theme, rightActions }: {
           <h1 className="min-w-0 truncate text-lg font-medium sm:text-xl lg:text-2xl">{title}</h1>
         </div>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
+          {pathname === "/dashboard/pos/new-sale" && <PosClearSaleHeaderAction />}
           {rightActions ? (
             <>
               {rightActions}
