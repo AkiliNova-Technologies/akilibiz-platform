@@ -246,7 +246,7 @@ export function HostedCatalogue({
         </div>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <MetricCard title="Total Categories" value={error ? "—" : String(categories.length)}
-            description={`${activeCategories} active categories`} icon={<FolderTree className="size-5" />} />
+            description={error ? "Category data unavailable" : `${activeCategories} active categories`} icon={<FolderTree className="size-5" />} />
           <MetricCard title="Assigned Products" value={error ? "—" : String(assignedProducts)}
             description="Products assigned to categories" icon={<Package className="size-5" />} />
           <MetricCard title="Inventory Value" value="—"
@@ -358,7 +358,7 @@ export function HostedCatalogue({
         <MetricCard
           title="Total Products"
           value={error ? "—" : String(products.length)}
-          description={`${products.filter((product) => product.is_active).length} active products`}
+          description={error ? "Product data unavailable" : `${products.filter((product) => product.is_active).length} active products`}
           icon={<Package className="size-5" />}
         />
         <MetricCard
