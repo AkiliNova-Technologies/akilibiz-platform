@@ -57,6 +57,17 @@ export function BusinessProfileFields({
             />
           </AkiliFormField>
         </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          <AkiliFormField id="owner-name" label="Owner / director" optional>
+            <Input id="owner-name" disabled placeholder="Not yet available" title="Owner details are not connected" />
+          </AkiliFormField>
+          <AkiliFormField id="registration-number" label="Registration number" optional>
+            <Input id="registration-number" disabled placeholder="Not yet available" title="Business registration details are not connected" />
+          </AkiliFormField>
+          <AkiliFormField id="business-tin" label="TIN" optional>
+            <Input id="business-tin" disabled placeholder="Not yet available" title="Tax identification details are not connected" />
+          </AkiliFormField>
+        </div>
       </section>
 
       <Separator />
@@ -94,6 +105,17 @@ export function BusinessProfileFields({
               name="contactPhone"
               type="tel"
             />
+          </AkiliFormField>
+        </div>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <AkiliFormField id="business-address" label="Address" optional>
+            <Input id="business-address" disabled placeholder="Not yet available" title="Business address is not connected" />
+          </AkiliFormField>
+          <AkiliFormField id="business-city" label="City" optional>
+            <Input id="business-city" disabled placeholder="Not yet available" title="Business city is not connected" />
+          </AkiliFormField>
+          <AkiliFormField id="business-country" label="Country" optional>
+            <Input id="business-country" disabled placeholder="Not yet available" title="Business country is not connected" />
           </AkiliFormField>
         </div>
       </section>
