@@ -130,6 +130,9 @@ begin
        or (item->'record'->>'id') is distinct from (item->>'id') then
       raise exception 'Invalid mirror row identity or payload' using errcode='22023';
     end if;
+    if (item->>'id')::numeric > 9223372036854775807::numeric then
+      raise exception 'Mirror record ID exceeds bigint range' using errcode='22003';
+    end if;
     local_id := (item->>'id')::bigint;
     select r.record into existing_record from private.desktop_mirror_batch_rows r
      where r.batch_id=source_batch_id and r.local_record_id=local_id;
