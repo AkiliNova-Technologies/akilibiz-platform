@@ -5,7 +5,7 @@ import {
   AlertCircle,
   Building2,
   Database,
-  LoaderCircle,
+  RefreshCw,
   Settings2,
   ShieldCheck,
 } from "lucide-react";
@@ -29,7 +29,7 @@ type SettingsRow = SettingsOverviewItem & TableData;
 
 function statusVariant(status: SettingsOverviewItem["status"]) {
   if (status === "Configured") return "default";
-  if (status === "Needs Review") return "secondary";
+  if (status === "Needs Review" || status === "Unavailable") return "secondary";
   return "destructive";
 }
 
@@ -112,25 +112,25 @@ export default function SettingsOverviewPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Configured"
-          value={String(summary.configured)}
+          value={summary ? String(summary.configured) : "—"}
           description="Settings fully configured"
           icon={<ShieldCheck className="size-5" />}
         />
         <MetricCard
           title="Needs Review"
-          value={String(summary.needsReview)}
+          value={summary ? String(summary.needsReview) : "—"}
           description="Settings that should be checked"
           icon={<Settings2 className="size-5" />}
         />
         <MetricCard
           title="Not Set"
-          value={String(summary.notSet)}
+          value={summary ? String(summary.notSet) : "—"}
           description="Settings still missing"
           icon={<Database className="size-5" />}
         />
         <MetricCard
           title="Categories"
-          value={String(summary.categories)}
+          value={summary ? String(summary.categories) : "—"}
           description="Core configuration areas"
           icon={<Building2 className="size-5" />}
         />
@@ -144,15 +144,8 @@ export default function SettingsOverviewPage() {
             data={rows}
             fields={fields}
             toolbarActions={
-              <Button
-                variant="outline"
-                onClick={() => void loadSettings()}
-                disabled={loading}
-              >
-                {loading ? (
-                  <LoaderCircle className="mr-2 size-4 animate-spin" />
-                ) : null}
-                Refresh
+              <Button variant="outline" size="icon" onClick={() => void loadSettings()} disabled={loading} aria-label="Refresh settings" title="Refresh settings">
+                <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
               </Button>
             }
             enableGlobalSearch
@@ -162,7 +155,7 @@ export default function SettingsOverviewPage() {
             pageSize={10}
             loading={loading}
             emptyMessage={
-              loading ? "Loading settings..." : "No settings found."
+              loading ? "Loading settings..." : (error ?? "Settings information is unavailable until configuration data is connected.")
             }
           />
         </CardContent>
