@@ -83,10 +83,12 @@ export function HostedInventory({
   positions,
   products,
   businessName: _businessName,
+  error,
 }: {
   positions: Position[];
   products: ProductSummary[];
   businessName: string;
+  error?: string | null;
 }) {
   const [selectedPosition, setSelectedPosition] = useState<InventoryRow | null>(null);
   const productNames = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
@@ -191,11 +193,11 @@ export function HostedInventory({
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Inventory Items" value={String(rows.length)}
+        <MetricCard title="Inventory Items" value={error ? "—" : String(rows.length)}
           description="Current stock positions" icon={<Package className="size-5" />} />
-        <MetricCard title="Low Stock" value={lowStockCount === null ? "—" : String(lowStockCount)}
+        <MetricCard title="Low Stock" value={error || lowStockCount === null ? "—" : String(lowStockCount)}
           description="Products below minimum stock" icon={<AlertTriangle className="size-5" />} />
-        <MetricCard title="Out of Stock" value={outOfStockCount === null ? "—" : String(outOfStockCount)}
+        <MetricCard title="Out of Stock" value={error || outOfStockCount === null ? "—" : String(outOfStockCount)}
           description="Products currently unavailable" icon={<ArrowDownRight className="size-5" />} />
         <MetricCard title="Stock Value" value="—"
           description="Cost valuation unavailable" icon={<ArrowUpRight className="size-5" />} />
@@ -213,10 +215,10 @@ export function HostedInventory({
             searchPlaceholder="Search by product name or SKU..."
             pageSize={10}
             onRowClick={setSelectedPosition}
-            emptyMessage="No current inventory positions are available."
+            emptyMessage={error ?? "No current inventory positions are available."}
             toolbarActions={
               <Button type="button" variant="outline" size="icon" disabled
-                aria-label="Refresh inventory" title="Refreshing hosted inventory is not connected">
+                aria-label="Refresh inventory" title={error ? "Inventory data could not be loaded" : "Refreshing hosted inventory is not connected"}>
                 <RefreshCw className="size-4" />
               </Button>
             }
