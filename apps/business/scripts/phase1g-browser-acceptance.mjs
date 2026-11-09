@@ -130,7 +130,7 @@ async function authenticate(email, expectedName, expectedAmount) {
           "/dashboard/suppliers": "PHASE1C Supplier" };
     for (const path of pages) {
       const destination = await within(context, path);
-      assert(!/\\/sign-in|\\/businesses/.test(new URL(destination.url()).pathname),
+      assert(!/\/sign-in|\/businesses/.test(new URL(destination.url()).pathname),
         `authenticated ${expectedName} can open ${path}`);
       if (expectedDirectory[path]) {
         await destination.getByText(expectedDirectory[path], { exact: false })
