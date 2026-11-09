@@ -11,12 +11,11 @@ export async function HostedCataloguePage({view}:{view:"products"|"categories"})
     supabase.from("desktop_products").select("id,name,sku,category_id,barcode,brand,selling_price_ugx,cost_price_ugx,is_active")
       .eq("business_id",business.id).order("name")
   ]);
-  if(categoryError||productError) {
-    return <div role="alert" className="rounded-lg border p-5 text-sm text-destructive">
-      Could not load your cloud catalogue. Check your connection and business access.
-    </div>;
-  }
+  const error = categoryError || productError
+    ? "Could not load your products and categories. Check your connection and try again."
+    : null;
   return <HostedCatalogue businessName={business.name}
-    categories={(categories??[]) as HostedCategoryRow[]}
-    products={(products??[]) as HostedProductRow[]} view={view}/>;
+    error={error}
+    categories={(error ? [] : categories ?? []) as HostedCategoryRow[]}
+    products={(error ? [] : products ?? []) as HostedProductRow[]} view={view}/>;
 }
