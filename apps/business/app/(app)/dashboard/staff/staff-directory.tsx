@@ -35,6 +35,7 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
   const [adding, setAdding] = useState(false);
   const rows: StaffRow[] = members.map((member) => ({
     ...member,
+    id: member.user_id,
     name: null,
     phone: null,
     status: member.active ? "Active" : "Inactive",
@@ -170,7 +171,7 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Staff</DialogTitle>
-            <DialogDescription>Update this staff member's business role.</DialogDescription>
+            <DialogDescription>Update the business role for this staff member.</DialogDescription>
           </DialogHeader>
           {editing && editing.role !== "owner" ? (
             <GrantAccessForm key={editing.user_id} initialEmail={editing.email} initialRole={editing.role} />
