@@ -70,9 +70,6 @@ export default function ReportsPurchasingPage() {
         })),
     [dateFrom, dateTo, goodsReceived],
   );
-  const posted = rows
-    .filter((row) => row.source.status === "posted")
-    .reduce((total, row) => total + row.total_amount_ugx, 0);
   const fields: TableField<Row>[] = [
     {
       key: "receipt_number",
