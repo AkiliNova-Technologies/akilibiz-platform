@@ -18,7 +18,13 @@ export function useSupplierPaymentsData() {
   const editPayment = useCallback(async (_id: number, _payload: SupplierPaymentPayload & { supplier_name: string }): Promise<never> => unavailable(), []);
   const markSettled = useCallback(async (_id: number): Promise<never> => unavailable(), []);
   // Missing transaction data is not zero paid or zero outstanding.
-  const summary = null;
+  const summary = payments.length > 0 ? {
+    total_payment_records: payments.length,
+    total_paid: payments.reduce((sum, payment) => sum + payment.amount_paid, 0),
+    total_outstanding: payments.reduce((sum, payment) => sum + payment.balance_remaining, 0),
+    overdue_payables: payments.filter((payment) => payment.status === "Overdue")
+      .reduce((sum, payment) => sum + payment.balance_remaining, 0),
+  } : null;
   return {
     payments, loading: false, summary, getPayments: async () => payments,
     getPayment: async (id: number) => payments.find((payment) => payment.id === id) ?? null,
