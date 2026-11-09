@@ -144,7 +144,7 @@ export default function FinanceOverviewPage() {
               emptyMessage={
                 loading
                   ? "Loading recent transactions..."
-                  : "No finance transactions found."
+                  : "Finance transactions are unavailable until the hosted ledger is connected."
               }
             />
           </CardContent>
