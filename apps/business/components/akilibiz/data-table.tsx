@@ -952,14 +952,14 @@ function DataTable<TData extends TableData>({
 
         {/* Pagination */}
         {enablePagination && !loading && (
-          <div className="flex items-center justify-between px-4">
+          <div className="flex min-w-0 items-center justify-between px-1 sm:px-4">
             <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
               {t("common.rowsSelected", {
                 selected: table.getFilteredSelectedRowModel().rows.length,
                 total: table.getFilteredRowModel().rows.length,
               })}
             </div>
-            <div className="flex w-full items-center gap-8 lg:w-fit">
+            <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:gap-4 lg:w-fit lg:justify-start lg:gap-8">
               <div className="hidden items-center gap-2 lg:flex">
                 <Label htmlFor="rows-per-page" className="text-sm font-medium">
                   {t("common.rowsPerPage")}
@@ -984,13 +984,13 @@ function DataTable<TData extends TableData>({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex w-fit items-center justify-center text-sm font-medium">
+              <div className="shrink-0 whitespace-nowrap text-sm font-medium">
                 {t("common.pageOf", {
                   page: table.getState().pagination.pageIndex + 1,
                   total: table.getPageCount(),
                 })}
               </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+              <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 lg:ml-0">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex"
