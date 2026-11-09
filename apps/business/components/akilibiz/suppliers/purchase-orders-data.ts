@@ -1,5 +1,22 @@
 "use client";
 import { useCallback, useState } from "react";
-export type PurchaseOrderStatus="Draft"|"Pending"|"Partially Received"|"Received"|"Cancelled";
-export interface PurchaseOrder {id:number;po_number:string;supplier_id:number;supplier_name:string;items_count:number;total_amount:number;order_date:string;expected_delivery:string;status:PurchaseOrderStatus;created_by_name:string;notes?:string}
-export function usePurchaseOrdersData(){const[orders,setOrders]=useState<PurchaseOrder[]>([{id:1,po_number:"PO-20260919-001",supplier_id:1,supplier_name:"Kampala Traders",items_count:4,total_amount:350000,order_date:"2026-09-19",expected_delivery:"2026-09-26",status:"Pending",created_by_name:"System",notes:"Monthly replenishment"}]);const addOrder=useCallback(async(order:Omit<PurchaseOrder,"id"|"supplier_name"|"created_by_name">&{supplier_name:string})=>{const value={...order,id:Date.now(),created_by_name:"System"};setOrders(rows=>[value,...rows]);return value},[]);const editOrder=useCallback(async(id:number,payload:Partial<PurchaseOrder>)=>{setOrders(rows=>rows.map(row=>row.id===id?{...row,...payload}:row));return true},[]);const markReceived=useCallback(async(id:number)=>{setOrders(rows=>rows.map(row=>row.id===id?{...row,status:"Received"}:row));return true},[]);return{orders,loading:false,getOrders:async()=>orders,getSummary:async()=>({}),addOrder,editOrder,markReceived,getOrder:async(id:number)=>orders.find(row=>row.id===id)??null}}
+export type PurchaseOrderStatus = "Draft" | "Pending" | "Partially Received" | "Received" | "Cancelled";
+export interface PurchaseOrder {
+  id: number; po_number: string; supplier_id: number; supplier_name: string;
+  items_count: number; total_amount: number; order_date: string;
+  expected_delivery: string; status: PurchaseOrderStatus; created_by_name: string;
+  notes?: string;
+}
+const unavailable = () => { throw new Error("Purchase order posting is not available on the web yet."); };
+export function usePurchaseOrdersData() {
+  // No hosted purchase-order ledger is connected. Never display demo orders as real.
+  const [orders] = useState<PurchaseOrder[]>([]);
+  const addOrder = useCallback(async (_order: Omit<PurchaseOrder, "id" | "supplier_name" | "created_by_name"> & {supplier_name: string}): Promise<never> => unavailable(), []);
+  const editOrder = useCallback(async (_id: number, _payload: Partial<PurchaseOrder>): Promise<never> => unavailable(), []);
+  const markReceived = useCallback(async (_id: number): Promise<never> => unavailable(), []);
+  return {
+    orders, loading: false, getOrders: async () => orders, getSummary: async () => null,
+    addOrder, editOrder, markReceived,
+    getOrder: async (id: number) => orders.find((row) => row.id === id) ?? null,
+  };
+}
