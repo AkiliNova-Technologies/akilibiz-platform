@@ -115,25 +115,25 @@ export default function StaffActivityLogsPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Logs"
-              value={String(summary.total_logs)}
+              value={summary ? String(summary.total_logs) : "—"}
               description="Recorded staff activity entries"
               icon={<Activity className="size-5" />}
             />
             <MetricCard
               title="Successful Actions"
-              value={String(summary.successful_logs)}
+              value={summary ? String(summary.successful_logs) : "—"}
               description="Completed actions without issues"
               icon={<Check className="size-5" />}
             />
             <MetricCard
               title="Failed Actions"
-              value={String(summary.failed_logs)}
+              value={summary ? String(summary.failed_logs) : "—"}
               description="Failed attempts or blocked operations"
               icon={<ShieldAlert className="size-5" />}
             />
             <MetricCard
               title="Warnings"
-              value={String(summary.warning_logs)}
+              value={summary ? String(summary.warning_logs) : "—"}
               description="Actions requiring review or attention"
               icon={<AlertTriangle className="size-5" />}
             />
@@ -150,7 +150,7 @@ export default function StaffActivityLogsPage() {
                 emptyMessage={
                   loading
                     ? "Loading activity logs..."
-                    : "No activity logs found."
+                    : "Staff activity history is unavailable until the hosted audit log is connected."
                 }
                 searchPlaceholder="Search logs by user, action, module, or target..."
                 pageSize={10}
