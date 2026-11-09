@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { ArrowDown, ArrowUp, ClipboardList, Eye, History } from "lucide-react";
-import { toast } from "sonner";
 import {
   DataTable,
   type TableAction,
@@ -11,9 +10,7 @@ import {
 import MetricCard from "@/components/akilibiz/metric-card";
 import {
   type AdjustmentType,
-  stockHistorySeed,
   type StockMovement,
-  useInventoryData,
 } from "@/components/akilibiz/inventory/inventory-data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,12 +42,10 @@ const date = (value: string) =>
     minute: "2-digit",
   });
 export default function InventoryStockHistoryPage() {
-  const { loading, getSummary, refreshInventory } = useInventoryData();
   const [detail, setDetail] = useState<Row | null>(null);
-  const rows = stockHistorySeed as Row[];
-  useEffect(() => {
-    void getSummary();
-  }, [getSummary]);
+  // The hosted service does not yet expose a business-scoped movement ledger.
+  // Never present demonstration movements as recorded inventory transactions.
+  const rows: Row[] = [];
   const fields: TableField<Row>[] = [
     {
       key: "product_name",
@@ -134,15 +129,6 @@ export default function InventoryStockHistoryPage() {
       onClick: setDetail,
     },
   ];
-  const added = rows
-      .filter((row) => row.quantity_change > 0)
-      .reduce((sum, row) => sum + row.quantity_change, 0),
-    removed = rows
-      .filter((row) => row.quantity_change < 0)
-      .reduce((sum, row) => sum + Math.abs(row.quantity_change), 0),
-    events = rows.filter((row) =>
-      ["correction", "damaged", "lost"].includes(row.movement_type),
-    ).length;
   return (
     <>
       <div className="flex flex-1 flex-col">
@@ -158,26 +144,26 @@ export default function InventoryStockHistoryPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Movements"
-              value={String(rows.length)}
-              description="All recorded inventory movements"
+              value="—"
+              description="Movement records unavailable"
               icon={<History className="size-5" />}
             />
             <MetricCard
               title="Stock Added"
-              value={String(added)}
-              description="Incoming stock movements"
+              value="—"
+              description="Incoming movements unavailable"
               icon={<ArrowUp className="size-5" />}
             />
             <MetricCard
               title="Stock Removed"
-              value={String(removed)}
-              description="Outgoing stock movements"
+              value="—"
+              description="Outgoing movements unavailable"
               icon={<ArrowDown className="size-5" />}
             />
             <MetricCard
               title="Adjustment Events"
-              value={String(events)}
-              description="Corrections, damages, and losses"
+              value="—"
+              description="Adjustment records unavailable"
               icon={<ClipboardList className="size-5" />}
             />
           </section>
@@ -193,12 +179,9 @@ export default function InventoryStockHistoryPage() {
                 searchPlaceholder="Search stock history..."
                 pageSize={10}
                 onRowClick={setDetail}
-                emptyMessage="No stock movement history found."
-                onRefresh={async () => {
-                  await refreshInventory();
-                  toast.success("Stock history refreshed");
-                }}
-                refreshing={loading}
+                emptyMessage="Stock movement history is unavailable until the hosted movement ledger is connected."
+                onRefresh={() => {}}
+                refreshDisabled
               />
             </CardContent>
           </Card>
