@@ -76,7 +76,7 @@ export const toggleVariants = cva(
   }
 )
 export const tabsListVariants = cva(
-  "rounded-full p-[4px] group-data-[orientation=horizontal]/tabs:h-11 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex max-w-full items-center justify-start overflow-x-auto overflow-y-hidden group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+  "rounded-full p-[4px] group-data-[orientation=horizontal]/tabs:h-11 data-[variant=line]:rounded-full group/tabs-list text-muted-foreground inline-flex max-w-full items-center justify-start overflow-x-auto overflow-y-hidden group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
   {
     variants: {
       variant: {
