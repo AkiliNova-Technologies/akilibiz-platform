@@ -19,7 +19,7 @@ export const formatFinanceDate = (value?: string | null) => {
 export function useFinanceOverviewData() {
   // Hosted finance has no authoritative overview ledger connected.
   const [overviewTransactions] = useState<FinanceOverviewTransaction[]>([]);
-  const overviewSummary: FinanceOverviewSummary | null = null;
+  const [overviewSummary] = useState<FinanceOverviewSummary | null>(null);
   const refreshOverview = useCallback(async (_options?: { limit?: number }) => ({
     overviewSummary, overviewTransactions,
   }), [overviewTransactions]);
