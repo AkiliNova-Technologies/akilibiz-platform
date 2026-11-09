@@ -1,6 +1,7 @@
 "use client";
 import { Building2, Users } from "lucide-react";
 import { HostedSuppliers } from "@/components/akilibiz/contacts/hosted-suppliers";
+import { HostedCustomers } from "@/components/akilibiz/contacts/hosted-customers";
 import { DataTable, type TableData, type TableField } from "@/components/akilibiz/data-table";
 import MetricCard from "@/components/akilibiz/metric-card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export function HostedDirectory({view,businessName,customers,suppliers}:{
   view:"customers"|"suppliers";businessName:string;customers:HostedCustomer[];suppliers:HostedSupplier[];
 }){
   if (view === "suppliers") return <HostedSuppliers suppliers={suppliers} />;
+  if (view === "customers") return <HostedCustomers customers={customers} />;
   const customerView=view==="customers";
   const rows=customerView?customers:suppliers;
   return <main className="flex min-w-0 flex-col gap-5">
