@@ -12,10 +12,10 @@ export const staffPermissions: Permission[] = [
 export function useStaffRolesData() {
   // The hosted permission-role registry has not been connected.
   const [roles] = useState<StaffAccessRole[]>([]);
-  const summary: {
+  const [summary] = useState<{
     total_roles: number; active_roles: number; total_assigned_users: number;
     average_permissions: number;
-  } | null = null;
+  } | null>(null);
   const unavailable = (): never => {
     throw new Error("Role changes are unavailable until hosted permission management is connected.");
   };
