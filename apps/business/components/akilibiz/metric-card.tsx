@@ -27,25 +27,25 @@ export default function MetricCard({
 }: MetricCardProps) {
   return (
     <Card
-      className="border shadow-none"
+      className="group border shadow-none transition-all duration-200 ease-in-out hover:border-primary/30 hover:bg-muted/30 dark:hover:border-primary/40 dark:hover:bg-muted/20"
 
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
         <div className="space-y-1">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-200 group-hover:text-foreground/80">
             {title}
           </CardTitle>
-          <div className="text-2xl font-semibold tracking-tight">
+          <div className="text-2xl font-semibold tracking-tight transition-transform duration-200 group-hover:scale-[1.02]">
             {value}
           </div>
         </div>
-        <div className="rounded-full border bg-muted/30 p-2 text-muted-foreground">
+        <div className="rounded-xl border bg-muted/40 p-2 text-foreground/70 transition-all duration-200 group-hover:border-primary/30 group-hover:bg-primary/10 group-hover:text-primary group-hover:shadow-sm dark:group-hover:border-primary/40 dark:group-hover:bg-primary/20">
           {icon}
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         {description && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground transition-colors duration-200 group-hover:text-foreground/70">
             {description}
           </p>
         )}
