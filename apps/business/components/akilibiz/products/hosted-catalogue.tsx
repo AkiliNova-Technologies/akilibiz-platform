@@ -6,8 +6,6 @@ import {
   Archive,
   Banknote,
   Download,
-  Eye,
-  FolderTree,
   History,
   Layers,
   Package,
@@ -48,6 +46,9 @@ export type HostedProductRow = TableData & {
   selling_price_ugx: number | null;
   cost_price_ugx: number | null;
   is_active: boolean;
+  tax_classification?: null;
+  stock_quantity?: null;
+  profit_margin?: null;
 };
 
 function money(value: number | null) {
@@ -98,7 +99,7 @@ export function HostedCatalogue({
       ),
     },
     {
-      key: "id",
+      key: "tax_classification",
       header: "Tax",
       align: "center",
       enableSorting: false,
@@ -119,14 +120,14 @@ export function HostedCatalogue({
       cell: (value) => <span className="text-sm text-muted-foreground">{money(value as number | null)}</span>,
     },
     {
-      key: "id",
+      key: "stock_quantity",
       header: "Stock",
       align: "center",
       enableSorting: false,
       cell: () => <NotAvailable />,
     },
     {
-      key: "id",
+      key: "profit_margin",
       header: "Margin",
       align: "center",
       enableSorting: false,
@@ -307,7 +308,7 @@ export function HostedCatalogue({
               ))}
               <div className="flex justify-end gap-2 sm:col-span-2">
                 <Button variant="outline" onClick={() => setSelectedProduct(null)}>Close</Button>
-                <Button variant="outline" disabled><Eye className="size-4" /> Edit product unavailable</Button>
+                <Button variant="outline" disabled>Edit Product</Button>
               </div>
             </div>
           ) : null}
