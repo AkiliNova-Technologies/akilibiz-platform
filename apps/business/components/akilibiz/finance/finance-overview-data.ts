@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useState } from "react";
-import { loadFinancialMirror, mirrorValue } from "./financial-mirror-client";
+import { loadFinancialMirror } from "./financial-mirror-client";
+import { mapFinanceTransaction } from "./financial-mirror-mappers";
 export type FinanceTransactionType = "Income" | "Expense";
 export type FinancePaymentMethod = "cash" | "bank_transfer" | "mobile_money" | "card" | "cheque" | "other";
 export interface FinanceOverviewSummary {
@@ -28,16 +29,7 @@ export function useFinanceOverviewData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("finance_transactions", { pageSize: options?.limit ?? 100 });
-      const transactions = mirror.rows.map(({ localRecordId, record }) => ({
-        id: localRecordId,
-        reference: String(mirrorValue(record, "reference", "public_id") ?? localRecordId),
-        entry_type: String(mirrorValue(record, "transaction_type") ?? "Expense").toLowerCase() === "income" ? "Income" as const : "Expense" as const,
-        category: String(mirrorValue(record, "source_name", "account_name", "category_id") ?? "Unclassified"),
-        amount: Number(mirrorValue(record, "amount_ugx", "amount") ?? 0),
-        method: String(mirrorValue(record, "payment_method") ?? "other"),
-        date: String(mirrorValue(record, "transaction_date", "created_at") ?? ""),
-        description: String(mirrorValue(record, "description") ?? "") || null,
-      }));
+      const transactions = mirror.rows.map(mapFinanceTransaction);
       setOverviewTransactions(transactions); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale);
       return { overviewSummary: null, overviewTransactions: transactions };
     } catch (reason) {

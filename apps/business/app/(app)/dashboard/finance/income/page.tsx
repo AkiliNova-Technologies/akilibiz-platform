@@ -29,6 +29,7 @@ import {
   type IncomeStatus,
   useFinanceIncomeData,
 } from "@/components/akilibiz/finance/finance-income-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,7 +116,7 @@ export default function FinanceIncomePage() {
     incomeSummary,
     incomeCategories,
     loading,
-    error,
+    error, lastSuccessfulSync, isStale,
     refreshIncome,
     addIncomeEntry,
   } = useFinanceIncomeData();
@@ -242,6 +243,7 @@ export default function FinanceIncomePage() {
               income sources.
             </p>
           </div>
+          <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
           {error ? (
             <Card className="border-destructive/40">
               <CardContent className="flex items-center gap-2 p-4 text-sm text-destructive">

@@ -14,6 +14,11 @@ const recoveryManifest = process.argv[3];
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+function jwtAlgorithm(token) {
+  const [header] = String(token).split(".");
+  try { return JSON.parse(Buffer.from(header, "base64url").toString("utf8")).alg ?? null; }
+  catch { return null; }
+}
 function redact(error) {
   const text = error instanceof Error ? error.message : String(error);
   return text.replace(/eyJ[A-Za-z0-9._-]+/g, "<redacted-token>").replace(/sb_secret_[A-Za-z0-9_-]+/g, "<redacted-secret>");
@@ -138,6 +143,8 @@ commit;`;
 
 async function main() {
   for (const name of required) assert(process.env[name], `Missing required environment variable: ${name}`);
+  assert(process.env.SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_"), "SUPABASE_PUBLISHABLE_KEY must use the publishable-key format");
+  assert(process.env.SUPABASE_SECRET_KEY.startsWith("sb_secret_"), "SUPABASE_SECRET_KEY must use the scoped secret-key format");
   const parsed = new URL(process.env.SUPABASE_URL);
   assert(parsed.hostname === `${PROJECT_REF}.supabase.co`, "Hosted project URL does not match the approved project reference");
   if (recoveryMode) {
@@ -176,6 +183,8 @@ async function main() {
     const signB = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
     assert(signA.data.session && signB.data.session, "owner authentication failed");
     mark(results, "owner authentication", "PASS");
+    assert(jwtAlgorithm(signA.data.session.access_token) === "ES256", "new access token was not signed by the expected asymmetric ES256 key");
+    mark(results, "asymmetric access-token signing", "PASS", "ES256");
     const refreshed = await ownerA.auth.refreshSession({ refresh_token: signA.data.session.refresh_token });
     assert(refreshed.data.session && !refreshed.error, "session refresh failed");
     mark(results, "refresh token recovery", "PASS");
@@ -255,6 +264,25 @@ async function main() {
     assert(mirrorRows.length === 1 && mirrorRows[0].local_record_id === 1, "failed generation replaced prior mirror");
     const foreignMirror = await expectSuccess(results, "cross-business mirror read", ownerB.from("desktop_business_records").select("local_record_id").eq("business_id", manifest.businessAId));
     assert(foreignMirror.length === 0, "business B read business A mirror");
+
+    const publishFinancialEntity = async (entityType, records) => {
+      const sourceBatchId = crypto.randomUUID();
+      const base = { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, source_batch_id: sourceBatchId, entity_type: entityType, source_generation: 1 };
+      await expectSuccess(results, `${entityType} mirror staging`, ownerA.rpc("stage_desktop_business_snapshot_chunk", { ...base, expected_count: records.length, records: records.map((record) => ({ id: record.id, record })) }));
+      await expectSuccess(results, `${entityType} mirror publication`, ownerA.rpc("finalize_desktop_business_snapshot", base));
+    };
+    await publishFinancialEntity("finance_transactions", [{ id: 101, reference: `FIN-${runId.slice(0, 8)}`, transaction_type: "income", category_id: 7, amount_ugx: 25000, payment_method: "cash", transaction_date: "2026-11-09", status: "posted", source_name: "Qualification sale" }]);
+    await publishFinancialEntity("authoritative_expenses", [{ id: 102, reference: `EXP-${runId.slice(0, 8)}`, state: "posted", category_id: 8, category_name_snapshot: "Utilities", payment_basis: "paid", payee_name: "Qualification vendor", payment_method: "bank_transfer", effective_date: "2026-11-09", net_ugx: 9000, tax_ugx: 0, gross_ugx: 9000 }]);
+    await publishFinancialEntity("supplier_payments", [{ id: 103, payment_ref: `PAY-${runId.slice(0, 8)}`, supplier_id: 55, po_reference: "PO-Q", total_invoice_amount_ugx: 14000, amount_paid_ugx: 10000, balance_remaining_ugx: 4000, payment_date: "2026-11-09", payment_method: "Bank Transfer", status: "Partial", recorded_by_name_snapshot: "Qualification" }]);
+    await publishFinancialEntity("journal_entries", [{ id: 104, journal_number: `JRN-${runId.slice(0, 8)}`, entry_date: "2026-11-09", description: "Qualification receipt", status: "posted" }]);
+    await publishFinancialEntity("chart_of_accounts", [{ id: 105, code: "1000", name: "Cash", account_type: "asset", is_active: 1 }]);
+    await publishFinancialEntity("journal_lines", [{ id: 106, journal_entry_id: 104, line_number: 1, account_id: 105, debit_ugx: 25000, credit_ugx: 0, memo: "Qualification cash" }]);
+    const representativeRows = await expectSuccess(results, "representative financial mirror read", ownerA.from("desktop_business_records").select("entity_type,local_record_id,record").eq("business_id", manifest.businessAId).in("entity_type", ["finance_transactions", "authoritative_expenses", "supplier_payments", "journal_entries", "chart_of_accounts", "journal_lines"]));
+    assert(representativeRows.length === 6, `representative mirror returned ${representativeRows.length} records`);
+    assert(representativeRows.find((row) => row.entity_type === "finance_transactions")?.record.amount_ugx === 25000, "finance transaction differed from desktop source");
+    assert(representativeRows.find((row) => row.entity_type === "authoritative_expenses")?.record.gross_ugx === 9000, "expense differed from desktop source");
+    assert(representativeRows.find((row) => row.entity_type === "supplier_payments")?.record.balance_remaining_ugx === 4000, "supplier payment differed from desktop source");
+    mark(results, "desktop-to-hosted financial record consistency", "PASS");
 
     await expectSuccess(results, "staff grant", ownerA.rpc("grant_business_staff", { target_business_id: manifest.businessAId, target_email: manifest.userBEmail, target_role: "cashier" }));
     await expectDenied(results, "non-owner mirror restriction", ownerB.from("desktop_business_records").select("local_record_id").eq("business_id", manifest.businessAId).then((data) => data.data?.length ? data : ({ error: { message: "RLS empty result", code: "RLS" } })));

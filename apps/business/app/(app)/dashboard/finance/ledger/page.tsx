@@ -24,6 +24,7 @@ import {
   type LedgerRow,
   useFinanceLedgerData,
 } from "@/components/akilibiz/finance/finance-ledger-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +32,7 @@ import { Card, CardContent } from "@/components/ui/card";
 type Row = LedgerRow & TableData;
 
 export default function FinanceLedgerPage() {
-  const { ledgerEntries, ledgerSummary, loading, error, refreshLedger } =
+  const { ledgerEntries, ledgerSummary, loading, error, lastSuccessfulSync, isStale, refreshLedger } =
     useFinanceLedgerData();
   useEffect(() => {
     void refreshLedger();
@@ -102,6 +103,7 @@ export default function FinanceLedgerPage() {
             record.
           </p>
         </div>
+        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
         {error ? (
           <Card className="border-destructive/40">
             <CardContent className="flex items-center gap-2 p-4 text-sm text-destructive">

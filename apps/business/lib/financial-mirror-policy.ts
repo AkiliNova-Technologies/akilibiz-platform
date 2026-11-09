@@ -1,0 +1,17 @@
+export const FINANCIAL_MIRROR_ENTITIES = new Set([
+  "sales", "sale_payments", "supplier_payments", "supplier_payables",
+  "supplier_payment_allocations", "finance_transactions", "authoritative_expenses",
+  "expense_payables", "expense_settlements", "expense_tax_evidence",
+  "authoritative_financial_events", "journal_entries", "journal_lines",
+  "chart_of_accounts", "tax_settings", "tax_configurations",
+]);
+
+export const canReadFinancialMirrors = (role: string) => role === "owner";
+
+export function financialMirrorPagination(pageValue: string | null, pageSizeValue: string | null) {
+  const requestedPage = Number(pageValue ?? "1");
+  const requestedPageSize = Number(pageSizeValue ?? "50");
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = Number.isInteger(requestedPageSize) ? Math.min(Math.max(requestedPageSize, 1), 100) : 50;
+  return { page, pageSize, from: (page - 1) * pageSize };
+}

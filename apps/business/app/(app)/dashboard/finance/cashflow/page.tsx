@@ -24,6 +24,7 @@ import {
   type CashFlowRow,
   useFinanceCashFlowData,
 } from "@/components/akilibiz/finance/finance-cashflow-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,7 +41,7 @@ const methodLabel = (method: string) =>
   })[method] ?? method;
 
 export default function FinanceCashFlowPage() {
-  const { cashFlowEntries, cashFlowSummary, loading, error, refreshCashFlow } =
+  const { cashFlowEntries, cashFlowSummary, loading, error, lastSuccessfulSync, isStale, refreshCashFlow } =
     useFinanceCashFlowData();
   useEffect(() => {
     void refreshCashFlow();
@@ -108,6 +109,7 @@ export default function FinanceCashFlowPage() {
             Monitor money flowing into and out of the business over time.
           </p>
         </div>
+        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
         {error ? (
           <Card className="border-destructive/40">
             <CardContent className="flex items-center gap-2 p-4 text-sm text-destructive">
