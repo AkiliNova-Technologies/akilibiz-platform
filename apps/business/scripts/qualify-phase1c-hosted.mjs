@@ -270,6 +270,10 @@ async function main() {
         maxBuffer: 16 * 1024 * 1024,
         env: {
           ...qualificationChildEnv("rust"),
+          // Match the runner's approved hosted project and publishable key.
+          // Never forward the administrative key or direct database URL.
+          AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+          AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
           AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
           AKILIBIZ_ENABLE_STOCK_MOVEMENT_SYNC: "1",
           AKILIBIZ_ENABLE_BUSINESS_MIRROR_SYNC: "1",
