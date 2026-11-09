@@ -11,9 +11,9 @@ const seed: ActivityLog[] = [];
 
 export function useActivityLogsData() {
   const [logs] = useState<ActivityLog[]>(seed);
-  const summary: {
+  const [summary] = useState<{
     total_logs: number; successful_logs: number; failed_logs: number; warning_logs: number;
-  } | null = null;
+  } | null>(null);
   const getLogs = useCallback(async () => logs, [logs]); const getSummary = useCallback(async () => summary, [summary]);
   return { logs, summary, loading: false, getLogs, getSummary };
 }
