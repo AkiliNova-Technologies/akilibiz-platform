@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
+import { createHmac } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { request as httpsRequest } from "node:https";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
@@ -24,6 +26,35 @@ function client(key) {
 function mark(results, name, status, detail = "") {
   results.push({ name, status, detail });
   console.log(`${status}: ${name}${detail ? ` — ${detail}` : ""}`);
+}
+function base64url(value) {
+  return Buffer.from(value).toString("base64url");
+}
+function signedExpiredAccessToken(userId) {
+  const secret = process.env.SUPABASE_LEGACY_JWT_SECRET;
+  if (!secret) return null;
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = base64url(JSON.stringify({ aud: "authenticated", exp: now - 60, iat: now - 3600, iss: `${process.env.SUPABASE_URL}/auth/v1`, role: "authenticated", sub: userId }));
+  const unsigned = `${header}.${payload}`;
+  return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
+}
+async function interruptResponseAfterServerReply(url, headers, body) {
+  return new Promise((resolveInterrupted, reject) => {
+    const target = new URL(url);
+    const request = httpsRequest({ hostname: target.hostname, path: target.pathname, method: "POST", headers }, (response) => {
+      response.once("data", () => {
+        request.destroy();
+        response.destroy();
+        resolveInterrupted();
+      });
+      response.once("end", () => reject(new Error("response completed before transport interruption")));
+    });
+    request.once("error", (error) => {
+      if (error.code !== "ECONNRESET") reject(error);
+    });
+    request.end(body);
+  });
 }
 async function expectSuccess(results, name, promise) {
   const result = await promise;
@@ -176,12 +207,25 @@ async function main() {
     const invalidResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: "Bearer invalid.phase1c.token", "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
     assert(invalidResponse.status === 401, `invalid bearer token returned ${invalidResponse.status}`);
     mark(results, "invalid bearer token rejection", "PASS");
+    const expiredToken = signedExpiredAccessToken(manifest.userAId);
+    if (expiredToken) {
+      const expiredResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${expiredToken}`, "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
+      assert(expiredResponse.status === 401, `correctly signed expired bearer token returned ${expiredResponse.status}`);
+      mark(results, "correctly signed expired bearer token rejection", "PASS");
+    } else {
+      mark(results, "correctly signed expired bearer token rejection", "SKIP", "SUPABASE_LEGACY_JWT_SECRET was not supplied");
+    }
     await expectDenied(results, "cross-business RPC isolation", ownerB.rpc("upload_desktop_contacts", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }));
 
     await expectSuccess(results, "catalogue snapshot", ownerA.rpc("upload_desktop_catalogue", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, categories: [{ id: 1, name: "PHASE1C Goods", slug: `phase1c-${runId}`, description: "qualification", active: true }], products: [{ id: 10, category_id: 1, name: "PHASE1C Tea", sku: `P1C-${runId.slice(0, 8)}`, barcode: null, description: "qualification", brand: "AkiliBiz", stock_unit: "item", selling_price_ugx: 5000, cost_price_ugx: 3000, active: true }] }));
     const eventArgs = { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, event_id: crypto.randomUUID().replaceAll("-", ""), entity_type: "product", source_record_id: 10, operation: "upsert", record: { id: 10, category_id: 1, name: "PHASE1C Tea Updated", sku: `P1C-${runId.slice(0, 8)}`, barcode: null, description: "qualification", brand: "AkiliBiz", stock_unit: "item", selling_price_ugx: 5500, cost_price_ugx: 3000, active: true } };
     await expectSuccess(results, "catalogue event", ownerA.rpc("apply_desktop_catalogue_event", eventArgs));
     await expectSuccess(results, "catalogue event lost-acknowledgement retry", ownerA.rpc("apply_desktop_catalogue_event", eventArgs));
+    const interruptedEvent = { ...eventArgs, event_id: crypto.randomUUID().replaceAll("-", ""), record: { ...eventArgs.record, name: "PHASE1C Transport Recovery" } };
+    const interruptedBody = JSON.stringify(interruptedEvent);
+    await interruptResponseAfterServerReply(`${process.env.SUPABASE_URL}/rest/v1/rpc/apply_desktop_catalogue_event`, { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${refreshed.data.session.access_token}`, "content-type": "application/json", "content-length": Buffer.byteLength(interruptedBody) }, interruptedBody);
+    mark(results, "transport-level response interruption", "PASS");
+    await expectSuccess(results, "recovery after interrupted request", ownerA.rpc("apply_desktop_catalogue_event", interruptedEvent));
     await expectSuccess(results, "contact snapshots", ownerA.rpc("upload_desktop_contacts", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [{ public_id: crypto.randomUUID(), name: "PHASE1C Customer", email: null, phone: "+256700000001", address: "Kampala", customer_type: "retail", loyalty_points: 0, active: true }], suppliers: [{ public_id: crypto.randomUUID(), name: "PHASE1C Supplier", contact_person: "Qualification", phone: "+256700000002", email: null, address: "Kampala", payment_terms: "cash", active: true }] }));
     const position = [{ product_id: 10, on_hand_milli: 100, reserved_milli: 2, damaged_milli: 1, minimum_milli: 10, maximum_milli: 500 }];
     await expectSuccess(results, "inventory position snapshot", ownerA.rpc("upload_desktop_inventory_positions", { target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, positions: position }));

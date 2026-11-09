@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Banknote as IconCash,
   Check,
@@ -27,6 +27,7 @@ import {
   type SupplierPaymentStatus,
   useSupplierPaymentsData,
 } from "@/components/akilibiz/suppliers/supplier-payments-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { usePurchaseOrdersData } from "@/components/akilibiz/suppliers/purchase-orders-data";
 import {
   formatSupplierCurrency,
@@ -121,8 +122,9 @@ function StatusBadge({ status }: { status: SupplierPaymentStatus }) {
 }
 
 export default function SupplierPaymentsPage() {
-  const { payments, loading, summary, addPayment, editPayment, markSettled } =
+  const { payments, loading, error, lastSuccessfulSync, isStale, summary, getPayments, addPayment, editPayment, markSettled } =
     useSupplierPaymentsData();
+  useEffect(() => { void getPayments(); }, [getPayments]);
   const { suppliers } = useSuppliersData();
   const { orders } = usePurchaseOrdersData();
   const [formOpen, setFormOpen] = useState(false);
@@ -324,7 +326,7 @@ export default function SupplierPaymentsPage() {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col gap-6">
-          <div>
+        <div>
             <h2 className="text-2xl font-semibold tracking-tight">
               Supplier Payments
             </h2>
@@ -417,6 +419,7 @@ export default function SupplierPaymentsPage() {
             </CardContent>
           </Card>
         </div>
+        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
       </div>
       <Dialog
         open={formOpen || allocationOpen}

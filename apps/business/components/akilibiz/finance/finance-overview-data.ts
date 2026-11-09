@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
+import { loadFinancialMirror, mirrorValue } from "./financial-mirror-client";
 export type FinanceTransactionType = "Income" | "Expense";
 export type FinancePaymentMethod = "cash" | "bank_transfer" | "mobile_money" | "card" | "cheque" | "other";
 export interface FinanceOverviewSummary {
@@ -17,11 +18,32 @@ export const formatFinanceDate = (value?: string | null) => {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-UG", { year: "numeric", month: "short", day: "numeric" });
 };
 export function useFinanceOverviewData() {
-  // Hosted finance has no authoritative overview ledger connected.
-  const [overviewTransactions] = useState<FinanceOverviewTransaction[]>([]);
+  const [overviewTransactions, setOverviewTransactions] = useState<FinanceOverviewTransaction[]>([]);
   const [overviewSummary] = useState<FinanceOverviewSummary | null>(null);
-  const refreshOverview = useCallback(async (_options?: { limit?: number }) => ({
-    overviewSummary, overviewTransactions,
-  }), [overviewSummary, overviewTransactions]);
-  return { overviewSummary, overviewTransactions, loading: false, refreshOverview };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSuccessfulSync, setLastSuccessfulSync] = useState<string | null>(null);
+  const [isStale, setIsStale] = useState(false);
+  const refreshOverview = useCallback(async (options?: { limit?: number }) => {
+    setLoading(true); setError(null);
+    try {
+      const mirror = await loadFinancialMirror("finance_transactions", { pageSize: options?.limit ?? 100 });
+      const transactions = mirror.rows.map(({ localRecordId, record }) => ({
+        id: localRecordId,
+        reference: String(mirrorValue(record, "reference", "public_id") ?? localRecordId),
+        entry_type: String(mirrorValue(record, "transaction_type") ?? "Expense").toLowerCase() === "income" ? "Income" as const : "Expense" as const,
+        category: String(mirrorValue(record, "source_name", "account_name", "category_id") ?? "Unclassified"),
+        amount: Number(mirrorValue(record, "amount_ugx", "amount") ?? 0),
+        method: String(mirrorValue(record, "payment_method") ?? "other"),
+        date: String(mirrorValue(record, "transaction_date", "created_at") ?? ""),
+        description: String(mirrorValue(record, "description") ?? "") || null,
+      }));
+      setOverviewTransactions(transactions); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale);
+      return { overviewSummary: null, overviewTransactions: transactions };
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Financial mirror request failed.");
+      return { overviewSummary: null, overviewTransactions: [] };
+    } finally { setLoading(false); }
+  }, []);
+  return { overviewSummary, overviewTransactions, loading, error, lastSuccessfulSync, isStale, refreshOverview };
 }

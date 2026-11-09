@@ -16,6 +16,7 @@ import {
   type FinanceOverviewTransaction,
   useFinanceOverviewData,
 } from "@/components/akilibiz/finance/finance-overview-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 
 type FinanceRow = FinanceOverviewTransaction & TableData;
 
@@ -30,7 +31,7 @@ function TypeBadge({
 }
 
 export default function FinanceOverviewPage() {
-  const { overviewSummary, overviewTransactions, loading, refreshOverview } =
+  const { overviewSummary, overviewTransactions, loading, error, lastSuccessfulSync, isStale, refreshOverview } =
     useFinanceOverviewData();
   useEffect(() => {
     void refreshOverview({ limit: 20 });
@@ -131,6 +132,7 @@ export default function FinanceOverviewPage() {
             icon={<WalletCards className="size-5" />}
           />
         </section>
+        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
         <Card>
           <CardContent>
             <DataTable<FinanceRow>
@@ -144,7 +146,7 @@ export default function FinanceOverviewPage() {
               emptyMessage={
                 loading
                   ? "Loading recent transactions..."
-                  : "Finance transactions are unavailable until the hosted ledger is connected."
+                  : "No desktop-synchronized finance transactions are available."
               }
             />
           </CardContent>

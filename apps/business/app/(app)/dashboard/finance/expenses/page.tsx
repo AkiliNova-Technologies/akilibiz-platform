@@ -29,6 +29,7 @@ import {
   type ExpenseStatus,
   useFinanceExpensesData,
 } from "@/components/akilibiz/finance/finance-expenses-data";
+import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { useSuppliersData } from "@/components/akilibiz/suppliers/suppliers-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,7 @@ export default function FinanceExpensesPage() {
     expenseSummary,
     expenseCategories,
     loading,
-    error,
+    error, lastSuccessfulSync, isStale,
     refreshExpenses,
     addExpense,
     settleExpense,
@@ -306,7 +307,7 @@ export default function FinanceExpensesPage() {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
-          <div>
+        <div>
             <h2 className="text-2xl font-semibold">Expenses</h2>
             <p className="text-sm text-muted-foreground">
               Record, review and manage business expenses.
@@ -398,6 +399,7 @@ export default function FinanceExpensesPage() {
             </CardContent>
           </Card>
         </div>
+        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
       </div>
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg">
