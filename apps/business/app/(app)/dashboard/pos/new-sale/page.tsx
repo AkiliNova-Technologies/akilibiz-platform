@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { SalePrintPreviewDialog } from "@/components/akilibiz/documents/SalePrintPreviewDialog";
+import { usePosHeaderControls } from "@/components/akilibiz/pos/pos-header-actions";
 import {
   Card,
   CardContent,
@@ -80,6 +81,7 @@ const canSubmitSale = false;
 // ============================================================================
 
 export default function POSPage() {
+  const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
   const { products, loading, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
 
   const [productView, setProductView] = useState<ProductView>("compact");
@@ -290,6 +292,11 @@ export default function POSPage() {
     assignCustomer(undefined);
   };
 
+  useEffect(() => {
+    registerClearSale(cartItems.length, clearCart);
+  }, [cartItems.length, registerClearSale]);
+  useEffect(() => () => unregisterClearSale(), [unregisterClearSale]);
+
   const handleCheckout = (mode: CheckoutMode) => {
     if (cartItems.length === 0) {
       toast.error(t("pos.cartEmpty"));
@@ -414,12 +421,6 @@ export default function POSPage() {
   return (
     <>
       <div className="@container/pos min-h-0 min-w-0">
-        <div className="mb-3 flex justify-end">
-          <Button type="button" variant="outline" onClick={clearCart} disabled={cartItems.length === 0}>
-            <X className="size-4" />
-            {t("pos.clearSale")}
-          </Button>
-        </div>
         <div className="grid min-w-0 items-start gap-4 @min-[1100px]/pos:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
           {/* PRODUCT AREA */}
           <Card id="pos-products" className="min-w-0 overflow-hidden rounded-[28px] border-border/60">
