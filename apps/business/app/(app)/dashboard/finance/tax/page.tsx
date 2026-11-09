@@ -49,10 +49,10 @@ export default function FinanceTaxManagementPage() {
       </div>
       <Tabs value={tab} onValueChange={(value) => setTab(value as SectionId)}>
         <div className="min-w-0 overflow-x-auto pb-1" aria-label="Tax management sections">
-          <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full bg-background p-1.5 shadow-none">
+          <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full! bg-background p-1.5 shadow-none">
             {sections.map((section) => (
               <TabsTrigger key={section.id} value={section.id}
-                className="h-9 rounded-full border-0 bg-transparent px-4 py-2 text-sm font-normal text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-primary data-[state=active]:font-medium data-[state=active]:text-primary-foreground">
+                className="h-9 rounded-full! border-0 bg-transparent px-4 py-2 text-sm font-normal text-muted-foreground shadow-none hover:text-foreground data-[state=active]:rounded-full! data-[state=active]:border-transparent data-[state=active]:bg-primary data-[state=active]:font-medium data-[state=active]:text-primary-foreground">
                 {section.label}
               </TabsTrigger>
             ))}
