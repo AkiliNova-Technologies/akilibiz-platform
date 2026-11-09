@@ -13,7 +13,7 @@ export default async function InventoryPage(){
  ]);
  if(positionError||productError){
   return <p role="alert" className="text-sm text-destructive">
-   Could not load the synchronized inventory. Confirm the Phase 1 database updates are installed and your business access is active.
+   Could not load your inventory. Check your connection and try again.
   </p>;
  }
  return <HostedInventory businessName={business.name}
