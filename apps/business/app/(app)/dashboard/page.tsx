@@ -3,6 +3,9 @@
 import * as React from "react";
 import {
   Banknote,
+  CircleAlert,
+  Inbox,
+  Info,
   ClipboardList,
   Loader2,
   Package,
@@ -49,11 +52,17 @@ const money = (value: number) =>
     currency: "UGX",
     maximumFractionDigits: 0,
   }).format(value);
-const Empty = ({ title }: { title: string }) => (
-  <div className="flex min-h-[130px] items-center justify-center text-sm text-muted-foreground">
-    {title}
-  </div>
-);
+const Empty = ({ title, kind = "empty" }: { title: string; kind?: "empty" | "info" | "error" }) => {
+  const Icon = kind === "error" ? CircleAlert : kind === "info" ? Info : Inbox;
+  return (
+    <div role={kind === "error" ? "alert" : "status"} className="flex min-h-28 w-full min-w-0 flex-col items-center justify-center gap-2 px-4 py-5 text-center">
+      <span aria-hidden="true" className={`mb-2 inline-flex size-11 items-center justify-center rounded-2xl border bg-muted ${kind === "error" ? "text-destructive" : "text-primary"}`}>
+        <Icon className="size-5" />
+      </span>
+      <h3 className="max-w-lg text-sm font-semibold text-foreground sm:text-base">{title}</h3>
+    </div>
+  );
+};
 const dateBefore = (to: string, days: number) => {
   const date = new Date(`${to}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() - days + 1);
@@ -76,30 +85,33 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   React.useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setD(null);
     void getDashboardOverview({
       date_from: appliedPeriod.from,
       date_to: appliedPeriod.to,
     })
-      .then(setD)
-      .catch((cause) =>
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "Dashboard data is unavailable.",
-        ),
-      )
-      .finally(() => setLoading(false));
+      .then((result) => { if (active) setD(result); })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Dashboard data is unavailable.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [appliedPeriod]);
   const pendingValue = loading ? "—" : "Unavailable";
   const pendingDescription = loading
-    ? "Loading backend data"
-    : (error ?? "Backend data unavailable");
+    ? "Loading business data"
+    : (error ?? "Business data unavailable");
+  const pendingKind = error ? "error" : "info";
   const exactValue = (
     value: number | null | undefined,
     formatter: (value: number) => string = String,
   ) => (value == null ? pendingValue : formatter(value));
   const selectWindow = (value: string) => {
     setWindowDays(value);
+    if (value === "custom") return;
     const end = to || day;
     if (value === "today") {
       setFrom(end);
@@ -118,36 +130,38 @@ export default function DashboardPage() {
           </h2>
           <p className="text-sm text-muted-foreground">
             UTC period: {d?.date_from_utc ?? appliedPeriod.from} to{" "}
-            {d?.date_to_utc ?? appliedPeriod.to}. Read-only operational data.
+            {d?.date_to_utc ?? appliedPeriod.to}.
           </p>
         </section>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Revenue in selected period"
+            title="Completed sales"
             value={exactValue(d?.completed_sales_total_ugx, money)}
             description={
               d
-                ? "Sales and payments not synchronized yet"
+                ? `${d.completed_order_count} completed sales`
                 : pendingDescription
             }
             icon={<Banknote className="size-5" />}
           />
           <MetricCard
             title="Net Profit"
-            value="Unavailable"
-            description="COGS and expense policy unavailable"
+            value={pendingValue}
+            description={d ? "Profit data unavailable" : pendingDescription}
             icon={<ReceiptText className="size-5" />}
           />
           <MetricCard
-            title="Inventory Value"
+            title="Verified inventory value"
             value={
               d?.inventory_value_ugx == null
-                ? "Unavailable"
+                ? pendingValue
                 : money(d.inventory_value_ugx)
             }
             description={
               d
-                ? `${d.inventory_unvalued_count} unvalued exceptions`
+                ? d.inventory_unvalued_count > 0
+                  ? `${d.inventory_unvalued_count} items missing cost records`
+                  : "Based on recorded costs"
                 : pendingDescription
             }
             icon={<Package className="size-5" />}
@@ -155,7 +169,7 @@ export default function DashboardPage() {
           <MetricCard
             title="Customers"
             value={exactValue(d?.customers_count)}
-            description={d ? "Persisted customer records" : pendingDescription}
+            description={d ? "Customer records" : pendingDescription}
             icon={<Users className="size-5" />}
           />
         </section>
@@ -163,16 +177,16 @@ export default function DashboardPage() {
           <MetricCard
             title="Suppliers"
             value={exactValue(d?.suppliers_count)}
-            description="Uploaded supplier contact records"
+            description={d ? "Supplier records" : pendingDescription}
             icon={<Truck className="size-5" />}
           />
           <MetricCard
-            title="Stock on hand"
+            title="Products in stock"
             value={exactValue(d?.stock_on_hand_product_count)}
             description={
               d?.stock_on_hand_product_count != null
                 ? `${d.low_stock_product_count ?? "—"} low · ${d.out_of_stock_product_count ?? "—"} out`
-                : "Stock snapshot not uploaded yet"
+                : pendingDescription
             }
             icon={<Package className="size-5" />}
           />
@@ -180,15 +194,15 @@ export default function DashboardPage() {
             title="Receivables"
             value={exactValue(d?.open_receivables_ugx, money)}
             description={
-              d ? "Receivables not synchronized yet" : pendingDescription
+              d ? "Outstanding customer balances unavailable" : pendingDescription
             }
             icon={<UserRound className="size-5" />}
           />
           <MetricCard
-            title="Supplier Payables"
+            title="Supplier payables"
             value={exactValue(d?.open_payables_ugx, money)}
             description={
-              d ? "Payables not synchronized yet" : pendingDescription
+              d ? "Outstanding supplier balances unavailable" : pendingDescription
             }
             icon={<ClipboardList className="size-5" />}
           />
@@ -204,7 +218,9 @@ export default function DashboardPage() {
                 onRangeChange={(nextFrom, nextTo) => {
                   setFrom(nextFrom);
                   setTo(nextTo);
+                  setWindowDays("custom");
                 }}
+                numberOfMonths={1}
               />
               <div className="grid gap-2">
                 <Label>Observation window</Label>
@@ -213,6 +229,7 @@ export default function DashboardPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="custom">Custom range</SelectItem>
                     <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="7">Last 7 UTC days</SelectItem>
                     <SelectItem value="30">Last 30 UTC days</SelectItem>
@@ -222,11 +239,8 @@ export default function DashboardPage() {
               <div className="md:col-span-2">
                 <Button
                   className="h-11 w-full md:w-auto"
-                  onClick={() => {
-                    setLoading(true);
-                    setAppliedPeriod({ from, to });
-                  }}
-                  disabled={loading || !from || !to}
+                  onClick={() => setAppliedPeriod({ from, to })}
+                  disabled={loading || !from || !to || from > to}
                 >
                   {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Apply period
@@ -261,10 +275,10 @@ export default function DashboardPage() {
                     </button>
                   ))
                 ) : (
-                  <Empty title="Sales transactions have not been synchronized yet" />
+                  <Empty title="No completed sales for this period" />
                 )
               ) : (
-                <Empty title={pendingDescription} />
+                <Empty kind={pendingKind} title={pendingDescription} />
               )}
             </CardContent>
           </Card>
@@ -291,16 +305,16 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <Empty title="Waiting for payments data" />
+                  <Empty title="No payment records for this period" />
                 )
               ) : (
-                <Empty title={pendingDescription} />
+                <Empty kind={pendingKind} title={pendingDescription} />
               )}
               <Separator />
               <p>
                 Average transaction:{" "}
                 {!d || d.average_transaction_ugx == null
-                  ? "Unavailable"
+                  ? pendingValue
                   : money(d.average_transaction_ugx)}
               </p>
               <p>Peak hour: {d?.peak_hour_utc ?? "Unavailable"}</p>
@@ -345,7 +359,7 @@ export default function DashboardPage() {
                   <Empty title="No items sold yet" />
                 )
               ) : (
-                <Empty title={pendingDescription} />
+                <Empty kind={pendingKind} title={pendingDescription} />
               )}
             </CardContent>
           </Card>
@@ -368,10 +382,10 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <Empty title="No attributed staff activity" />
+                  <Empty title="No staff sales activity" />
                 )
               ) : (
-                <Empty title={pendingDescription} />
+                <Empty kind={pendingKind} title={pendingDescription} />
               )}
             </CardContent>
           </Card>
@@ -390,7 +404,9 @@ export default function DashboardPage() {
                 balance
               </p>
               <p className="text-sm text-muted-foreground">
-                Peak activity unavailable until a backend grouping is supplied.
+                {d?.peak_hour_utc
+                  ? `Busiest hour: ${d.peak_hour_utc}`
+                  : "No sales activity recorded for this period"}
               </p>
             </CardContent>
           </Card>
@@ -401,7 +417,7 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle>{sale?.sale_number}</DialogTitle>
             <DialogDescription>
-              Structured completed-sale summary
+              Completed sale summary
             </DialogDescription>
           </DialogHeader>
           <p>{sale && money(sale.total_amount_ugx)}</p>
