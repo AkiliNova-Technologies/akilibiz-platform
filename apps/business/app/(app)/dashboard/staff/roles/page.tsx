@@ -285,9 +285,9 @@ export default function StaffRolesPermissionsPage() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => void refreshRolesPermissions()}>
-                      <RefreshCw className="mr-2 size-4" />
-                      Refresh
+                      onClick={() => void refreshRolesPermissions()} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                      <RefreshCw className="size-4" />
+                      
                     </Button>
                     <Button
                       disabled title="Hosted role creation is not connected"
