@@ -310,14 +310,14 @@ export default function SupplierPaymentsPage() {
       type: "edit",
       label: "Edit payment",
       onClick: edit,
-      disabled: (row) => row.status === "Paid",
+      disabled: () => true,
     },
     {
       type: "custom",
       label: "Mark settled",
       icon: <Check className="size-4" />,
       onClick: (row) => void settle(row),
-      disabled: (row) => row.status === "Paid",
+      disabled: () => true,
     },
   ];
   return (
@@ -336,25 +336,25 @@ export default function SupplierPaymentsPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Payment Records"
-              value={String(summary.total_payment_records)}
+              value={summary ? String(summary.total_payment_records) : "—"}
               description="All supplier payment entries"
               icon={<ReceiptText className="size-5" />}
             />
             <MetricCard
               title="Total Paid"
-              value={formatSupplierCurrency(summary.total_paid)}
+              value={summary ? formatSupplierCurrency(summary.total_paid) : "—"}
               description="Amount already paid to suppliers"
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
               title="Outstanding Payables"
-              value={formatSupplierCurrency(summary.total_outstanding)}
+              value={summary ? formatSupplierCurrency(summary.total_outstanding) : "—"}
               description="Remaining unpaid supplier balances"
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
               title="Overdue Payables"
-              value={formatSupplierCurrency(summary.overdue_payables)}
+              value={summary ? formatSupplierCurrency(summary.overdue_payables) : "—"}
               description="Supplier balances already past due"
               icon={<TrendingDown className="size-5" />}
             />
@@ -374,7 +374,7 @@ export default function SupplierPaymentsPage() {
                 emptyMessage={
                   loading
                     ? "Loading supplier payments..."
-                    : "No supplier payments found."
+                    : "Supplier payments are unavailable until hosted payment records are connected."
                 }
                 toolbarFilters={
                   <div className="flex flex-wrap gap-2">
@@ -404,10 +404,10 @@ export default function SupplierPaymentsPage() {
                 }
                 toolbarActions={
                   <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => open(true)}>
+                    <Button variant="outline" disabled title="Supplier payment allocation is not connected">
                       Allocate Payment
                     </Button>
-                    <Button onClick={() => open()}>
+                    <Button disabled title="Supplier payment posting is not connected">
                       <Plus className="mr-2 size-4" />
                       Record Payment
                     </Button>
@@ -605,7 +605,7 @@ export default function SupplierPaymentsPage() {
               }}>
               Cancel
             </Button>
-            <Button onClick={() => void save()}>
+            <Button disabled>
               {allocationOpen
                 ? "Allocate Payment"
                 : editing
@@ -685,7 +685,7 @@ export default function SupplierPaymentsPage() {
                 </CardContent>
               </Card>
               {detail.status !== "Paid" ? (
-                <Button className="w-full" onClick={() => void settle(detail)}>
+                <Button className="w-full" disabled>
                   <Check className="mr-2 size-4" />
                   Mark Settled
                 </Button>
