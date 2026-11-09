@@ -27,8 +27,8 @@ export function BackupRestorePage() {
       </div>
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-4">
-          <Card className="gap-0 py-0">
-            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
+          <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
+            <CardContent className="space-y-3 px-4 py-3 sm:px-5 sm:py-3">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Create backup</h2>
                 <p className="text-sm text-muted-foreground">
@@ -44,8 +44,8 @@ export function BackupRestorePage() {
               </p>
             </CardContent>
           </Card>
-          <Card className="gap-0 py-0">
-            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
+          <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
+            <CardContent className="space-y-3 px-4 py-3 sm:px-5 sm:py-3">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Restore backup</h2>
                 <p className="text-sm text-muted-foreground">Choose a backup file before requesting a restore.</p>
@@ -65,8 +65,8 @@ export function BackupRestorePage() {
               </p>
             </CardContent>
           </Card>
-          <Card className="gap-0 py-0">
-            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
+          <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
+            <CardContent className="space-y-3 px-4 py-3 sm:px-5 sm:py-3">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Desktop sync</h2>
                 <p className="text-sm text-muted-foreground">
@@ -86,8 +86,8 @@ export function BackupRestorePage() {
             </CardContent>
           </Card>
         </div>
-        <Card className="min-w-0 gap-0 py-0 xl:min-h-[32rem]">
-          <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
+        <Card className="min-w-0 gap-0 py-0 sm:gap-0 sm:py-0 xl:min-h-[32rem]">
+          <CardContent className="space-y-3 px-4 py-3 sm:px-5 sm:py-3">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Backup history</h2>
               <p className="text-sm text-muted-foreground">Recent backup records for this business.</p>
