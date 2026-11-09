@@ -6,17 +6,11 @@ import { Eye, FileCheck2, FolderOpen, RotateCcw } from "lucide-react";
 import { useBrowserBackupRestore } from "@/components/akilibiz/settings/backup-restore-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 
 export function BackupRestorePage() {
   const backup = useBrowserBackupRestore();
   const filePickerRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [restoreOpen, setRestoreOpen] = React.useState(false);
-  const [confirmation, setConfirmation] = React.useState("");
 
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-5">
@@ -40,9 +34,7 @@ export function BackupRestorePage() {
                 <Button type="button" disabled title="Cloud backup creation is not connected">Create backup</Button>
                 <Button type="button" variant="outline" disabled title="Backup scheduling is not connected">Schedule backup</Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                This web application cannot yet create or schedule a downloadable backup.
-              </p>
+              <p className="text-xs text-muted-foreground">Web backup storage and scheduling are not yet available.</p>
             </CardContent>
           </Card>
           <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
@@ -79,11 +71,11 @@ export function BackupRestorePage() {
                   Verify file
                 </Button>
               </div>
-              <Button type="button" disabled={!selectedFile} onClick={() => setRestoreOpen(true)}>
+              <Button type="button" disabled title="The hosted backup restore service is not connected">
                 Restore backup
               </Button>
               <p className="text-xs text-muted-foreground">
-                Restore is not available on the web yet. You can review the confirmation, but the restore action remains disabled.
+                {selectedFile ? "This file has not been verified or uploaded." : "Backup verification and restoration are not yet available on the web."}
               </p>
             </CardContent>
           </Card>
@@ -95,20 +87,14 @@ export function BackupRestorePage() {
                   Connect a desktop business and review the supported synchronization setup.
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm">
-                <span className="text-muted-foreground">Connection status</span>
-                <span className="font-medium">Check connection details</span>
-              </div>
               <Button asChild variant="outline">
-                <Link href="/dashboard/settings/desktop-sync">Open desktop synchronization</Link>
+                <Link href="/dashboard/settings/desktop-sync">Manage desktop connection</Link>
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Pairing does not synchronize sales, payments or accounting transactions.
-              </p>
+              <p className="text-xs text-muted-foreground">Pairing alone does not transfer business records.</p>
             </CardContent>
           </Card>
         </div>
-        <Card className="min-w-0 gap-0 py-0 sm:gap-0 sm:py-0 xl:min-h-[32rem]">
+        <Card className="min-w-0 gap-0 py-0 sm:gap-0 sm:py-0 ">
           <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Backup history</h2>
@@ -152,30 +138,7 @@ export function BackupRestorePage() {
           </CardContent>
         </Card>
       </div>
-      <Dialog open={restoreOpen} onOpenChange={(open) => {
-        setRestoreOpen(open);
-        if (!open) setConfirmation("");
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Restore this backup?</DialogTitle>
-            <DialogDescription>
-              Restoring a backup would replace the current business records. Confirm the business and selected file before proceeding. The web restore service is not connected.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedFile && <p className="break-all text-sm">Selected file: {selectedFile.name}</p>}
-          <div className="space-y-2">
-            <label htmlFor="backup-restore-confirmation" className="text-sm font-medium">Type RESTORE to confirm</label>
-            <Input id="backup-restore-confirmation" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => setRestoreOpen(false)}>Cancel</Button>
-            <Button type="button" disabled title="Web restore is not connected">
-              Confirm restore
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </main>
   );
 }
