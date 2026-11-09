@@ -253,25 +253,25 @@ export default function FinanceIncomePage() {
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               title="Total Income"
-              value={formatFinanceCurrency(incomeSummary.total_income)}
+              value={incomeSummary ? formatFinanceCurrency(incomeSummary.total_income) : "—"}
               description="All recorded income excluding cancelled entries"
               icon={<ArrowUp className="size-5" />}
             />
             <MetricCard
               title="Received Income"
-              value={formatFinanceCurrency(incomeSummary.received_income)}
+              value={incomeSummary ? formatFinanceCurrency(incomeSummary.received_income) : "—"}
               description="Income already confirmed or verified"
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
               title="Pending Income"
-              value={formatFinanceCurrency(incomeSummary.pending_income)}
+              value={incomeSummary ? formatFinanceCurrency(incomeSummary.pending_income) : "—"}
               description="Income awaiting confirmation"
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
               title="Income Categories"
-              value={String(incomeSummary.income_categories)}
+              value={incomeSummary ? String(incomeSummary.income_categories) : "—"}
               description="Tracked income sources"
               icon={<CircleDollarSign className="size-5" />}
             />
@@ -289,7 +289,7 @@ export default function FinanceIncomePage() {
                 pageSize={10}
                 loading={loading}
                 onRowClick={openDetails}
-                emptyMessage="No income entries found."
+                emptyMessage="Income records are unavailable until the hosted finance service is connected."
                 toolbarActions={
                   <div className="flex gap-2">
                     <Button
@@ -304,6 +304,7 @@ export default function FinanceIncomePage() {
                       Refresh
                     </Button>
                     <Button
+                      disabled title="Income posting is not connected"
                       onClick={() => {
                         setForm(freshForm());
                         setErrors({});
@@ -499,7 +500,7 @@ export default function FinanceIncomePage() {
               disabled={submitting}>
               Cancel
             </Button>
-            <Button onClick={() => void submit()} disabled={submitting}>
+            <Button onClick={() => void submit()} disabled title="Income posting is not connected">
               {submitting ? (
                 <LoaderCircle className="mr-2 size-4 animate-spin" />
               ) : null}
