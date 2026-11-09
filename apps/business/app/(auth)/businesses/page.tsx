@@ -29,7 +29,7 @@ export default async function BusinessesPage() {
             <form
               action={selectBusiness}
               key={business.id}
-              className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border bg-card p-3 sm:flex-nowrap"
+              className="flex min-w-0 flex-wrap items-center gap-3 rounded-full border bg-card px-3 py-3 sm:flex-nowrap sm:px-4"
             >
               <input type="hidden" name="business_id" value={business.id} />
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
