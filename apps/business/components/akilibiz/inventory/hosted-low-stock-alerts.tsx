@@ -37,7 +37,7 @@ function StatusBadge({ status }: { status: AlertStatus }) {
   return <Badge variant={status === "Out of Stock" ? "destructive" : "outline"}>{status}</Badge>;
 }
 
-export function HostedLowStockAlerts({ positions, products }: { positions: Position[]; products: ProductSummary[] }) {
+export function HostedLowStockAlerts({ positions, products, error }: { positions: Position[]; products: ProductSummary[]; error?: string | null }) {
   const [selected, setSelected] = useState<AlertRow | null>(null);
   const [restock, setRestock] = useState<AlertRow | null>(null);
   const [quantity, setQuantity] = useState("");
@@ -114,11 +114,11 @@ export function HostedLowStockAlerts({ positions, products }: { positions: Posit
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Low Stock Items" value={lowCount === null ? "—" : String(lowCount)}
+        <MetricCard title="Low Stock Items" value={error || lowCount === null ? "—" : String(lowCount)}
           description="Products below minimum stock" icon={<Package className="size-5" />} />
-        <MetricCard title="Out of Stock" value={outCount === null ? "—" : String(outCount)}
+        <MetricCard title="Out of Stock" value={error || outCount === null ? "—" : String(outCount)}
           description="Products currently unavailable" icon={<TrendingDown className="size-5" />} />
-        <MetricCard title="Critical Stock" value={criticalCount === null ? "—" : String(criticalCount)}
+        <MetricCard title="Critical Stock" value={error || criticalCount === null ? "—" : String(criticalCount)}
           description="Products needing urgent attention" icon={<AlertTriangle className="size-5" />} />
         <MetricCard title="Value at Risk" value="—"
           description="Product cost values unavailable" icon={<ClipboardList className="size-5" />} />
@@ -131,9 +131,9 @@ export function HostedLowStockAlerts({ positions, products }: { positions: Posit
             data={rows} fields={fields} actions={actions}
             enableGlobalSearch searchPlaceholder="Search stock alerts..."
             pageSize={10} onRowClick={setSelected}
-            emptyMessage={alertsComplete
+            emptyMessage={error ?? (alertsComplete
               ? "No products currently need restocking."
-              : "No verified low stock alerts to display. Some stock quantities or minimum levels are unavailable."}
+              : "No verified low stock alerts to display. Some stock quantities or minimum levels are unavailable.")}
             onRefresh={() => {}} refreshDisabled
           />
         </CardContent>
