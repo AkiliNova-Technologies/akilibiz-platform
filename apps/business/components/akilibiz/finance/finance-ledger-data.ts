@@ -8,9 +8,9 @@ export interface LedgerRow {
 }
 export function useFinanceLedgerData() {
   const [ledgerEntries] = useState<LedgerRow[]>([]);
-  const ledgerSummary: {
+  const [ledgerSummary] = useState<{
     total_credits: number; total_debits: number; net_position: number; total_entries: number;
-  } | null = null;
+  } | null>(null);
   const refreshLedger = useCallback(async () => ledgerEntries, [ledgerEntries]);
   return { ledgerEntries, ledgerSummary, loading: false, error: null as string | null, refreshLedger, clearError: () => {} };
 }
