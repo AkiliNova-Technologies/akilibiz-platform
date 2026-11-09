@@ -129,19 +129,19 @@ export default function ReportsSalesPage() {
           <section className="grid gap-4 md:grid-cols-3">
             <MetricCard
               title="Sales shown"
-              value={String(rows.length)}
+              value="—"
               description={period}
               icon={<Eye className="size-5" />}
             />
             <MetricCard
               title="Total billed"
-              value={ugx(totals.billed)}
+              value="—"
               description="Exact UGX in this returned register"
               icon={<Eye className="size-5" />}
             />
             <MetricCard
               title="Outstanding"
-              value={ugx(totals.outstanding)}
+              value="—"
               description="Exact reported balance"
               icon={<Eye className="size-5" />}
             />
@@ -201,7 +201,7 @@ export default function ReportsSalesPage() {
                 enableGlobalSearch
                 enableSorting={false}
                 loading={false}
-                emptyMessage="No sales match the selected UTC period."
+                emptyMessage="Sales reporting is unavailable until the hosted sales register is connected."
               />
             </CardContent>
           </Card>
