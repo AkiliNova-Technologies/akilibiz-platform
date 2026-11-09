@@ -81,15 +81,7 @@ export function useBrowserReceiptSettings() {
     () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
     [savedSettings, settings],
   );
-  const save = useCallback(async () => {
-    setLoading(true);
-    try {
-      await Promise.resolve();
-      setSavedSettings(settings);
-    } finally {
-      setLoading(false);
-    }
-  }, [settings]);
+  const save = useCallback(async (): Promise<never> => { throw new Error("Receipt settings cannot be saved until business settings persistence is connected."); }, []);
   const reset = useCallback(() => setSettings(savedSettings), [savedSettings]);
 
   return { isDirty, loading, reset, save, setSettings, settings };
