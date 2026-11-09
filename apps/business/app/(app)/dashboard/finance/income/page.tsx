@@ -297,11 +297,11 @@ export default function FinanceIncomePage() {
                       onClick={() => void refreshIncome()}
                       disabled={loading}>
                       {loading ? (
-                        <LoaderCircle className="mr-2 size-4 animate-spin" />
+                        <LoaderCircle className="size-4 animate-spin" / size="icon" aria-label="Refresh" title="Refresh" disabled>
                       ) : (
-                        <RefreshCw className="mr-2 size-4" />
+                        <RefreshCw className="size-4" />
                       )}
-                      Refresh
+                      
                     </Button>
                     <Button
                       disabled title="Income posting is not connected"
