@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useState, useEffect, useMemo } from "react";
 import { SalePrintPreviewDialog } from "@/components/akilibiz/documents/SalePrintPreviewDialog";
 import {
@@ -24,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, Plus, Minus, Trash2, Receipt, Banknote, X, ShoppingCart, Package, Smartphone, RefreshCw, AlertTriangle, Barcode } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Receipt, Banknote, X, ShoppingCart, Package, Smartphone, RefreshCw, AlertTriangle, Barcode, LayoutGrid, List, PanelsTopLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +66,10 @@ interface Product {
 }
 
 type CheckoutMode = "sale" | "order";
+type ProductView = "compact" | "grid" | "list";
+const POS_VIEW_STORAGE_KEY = "akilibiz.pos.product-view";
+// The hosted sale and tax-posting services are not yet connected.
+const canSubmitSale = false;
 
 // ============================================================================
 // UTILITIES
@@ -80,6 +82,25 @@ type CheckoutMode = "sale" | "order";
 export default function POSPage() {
   const { products, loading, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
 
+  const [productView, setProductView] = useState<ProductView>("compact");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(POS_VIEW_STORAGE_KEY);
+      if (saved === "compact" || saved === "grid" || saved === "list") {
+        setProductView(saved);
+      }
+    } catch {
+      // Display preferences are optional.
+    }
+  }, []);
+  const changeProductView = (view: ProductView) => {
+    setProductView(view);
+    try {
+      window.localStorage.setItem(POS_VIEW_STORAGE_KEY, view);
+    } catch {
+      // The interface works without persisted preferences.
+    }
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
@@ -392,12 +413,18 @@ export default function POSPage() {
 
   return (
     <>
-      <div className="min-h-full max-h-[calc(100vh-5rem)] min-w-0">
-        <div className="grid max-h-[calc(100vh-8rem)] gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,420px)]">
+      <div className="@container/pos min-h-0 min-w-0">
+        <div className="mb-3 flex justify-end">
+          <Button type="button" variant="outline" onClick={clearCart} disabled={cartItems.length === 0}>
+            <X className="size-4" />
+            {t("pos.clearSale")}
+          </Button>
+        </div>
+        <div className="grid min-w-0 items-start gap-4 @min-[1100px]/pos:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
           {/* PRODUCT AREA */}
-          <Card className="overflow-hidden border-border/60">
+          <Card id="pos-products" className="min-w-0 overflow-hidden rounded-[28px] border-border/60">
             <CardHeader className="border-b">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-3">
                 <div>
                   <CardTitle className="text-xl">{t("pos.counter")}</CardTitle>
                   <CardDescription>
@@ -405,8 +432,8 @@ export default function POSPage() {
                   </CardDescription>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                  <div className="relative w-full min-w-0 sm:min-w-[220px] sm:flex-1">
+                <div className="grid min-w-0 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(150px,200px)_auto_auto]">
+                  <div className="relative min-w-0">
                     <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       placeholder={t("pos.search")}
@@ -420,7 +447,7 @@ export default function POSPage() {
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
                   >
-                    <SelectTrigger className="w-full sm:w-52">
+                    <SelectTrigger className="w-full min-w-0">
                       <SelectValue placeholder={t("products.category")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -432,21 +459,31 @@ export default function POSPage() {
                     </SelectContent>
                   </Select>
 
-                  <Button
-                    variant="outline"
-                    onClick={handleRefresh}
-                    disabled={loading}
-                  >
-                    <RefreshCw
-                      className={`size-4 ${loading ? "animate-spin" : ""}`}
-                    />
-                    {t("pos.refresh")}
+                  <div role="group" aria-label="Product display" className="flex w-fit items-center gap-1 rounded-md border p-1">
+                    {([
+                      ["compact", PanelsTopLeft, "Compact"],
+                      ["grid", LayoutGrid, "Grid"],
+                      ["list", List, "List"],
+                    ] as const).map(([view, Icon, label]) => (
+                      <Button key={view} type="button" size="sm"
+                        variant={productView === view ? "secondary" : "ghost"}
+                        aria-label={`${label} product view`} aria-pressed={productView === view}
+                        onClick={() => changeProductView(view)} className="gap-1.5 px-2">
+                        <Icon className="size-4" />
+                        <span className="hidden xl:inline">{label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  <Button type="button" variant="outline" size="icon"
+                    title={t("pos.refresh")} aria-label={t("pos.refresh")}
+                    onClick={handleRefresh} disabled={loading}>
+                    <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="h-[calc(100vh-88px)] max-h-[calc(100vh-17rem)] overflow-y-auto p-4 md:p-5">
+            <CardContent className="max-h-[min(70dvh,850px)] min-h-64 overflow-y-auto p-3 sm:p-4">
               {loading ? (
                 <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                   {t("pos.loadingProducts")}
@@ -462,13 +499,13 @@ export default function POSPage() {
                   </p>
                 </div>
               ) : (
-                <div
-                  className="grid gap-4"
-                  style={{
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(220px, 1fr))",
-                  }}
-                >
+                <div className={
+                  productView === "list"
+                    ? "flex flex-col gap-1.5"
+                    : productView === "compact"
+                      ? "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(min(100%,150px),1fr))] items-start gap-2"
+                      : "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-start gap-2"
+                }>
                   {filteredProducts.map((product) => {
                     const isLowStock = product.stock > 0 && product.stock <= 10;
                     const isOutOfStock = product.stock <= 0;
@@ -476,64 +513,52 @@ export default function POSPage() {
                     return (
                       <Card
                         key={product.id}
-                        onClick={() => addToCart(product)}
-                        className={`cursor-pointer border-border/60 py-0 transition hover:border-border hover:shadow-sm ${
-                          isOutOfStock ? "opacity-70" : ""
-                        }`}
+                        role="button"
+                        tabIndex={isOutOfStock ? -1 : 0}
+                        aria-disabled={isOutOfStock}
+                        onKeyDown={(event) => {
+                          if (!isOutOfStock && (event.key === "Enter" || event.key === " ")) {
+                            event.preventDefault();
+                            addToCart(product);
+                          }
+                        }}
+                        onClick={() => { if (!isOutOfStock) addToCart(product); }}
+                        className={`min-w-0 border-border/60 py-0 transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                       >
-                        <CardContent className="p-4">
-                          <div className="mb-4 flex aspect-square items-center justify-center rounded-xl bg-input/30">
-                            <Package className="size-12 text-primary/80" />
-                          </div>
-
-                          <div className="space-y-3">
+                        <CardContent className={productView === "compact" ? "p-2.5" : productView === "list" ? "flex items-center gap-3 px-3 py-2.5" : "p-3"}>
+                          {productView === "grid" && product.image ? (
+                            <img src={product.image} alt="" className="mb-3 aspect-[4/3] w-full rounded-md object-cover" />
+                          ) : null}
+                          <div className={productView === "compact" ? "min-w-0 space-y-1.5" : productView === "list" ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3" : "min-w-0 space-y-2"}>
                             <div>
-                              <h3 className="line-clamp-2 font-medium leading-tight">
-                                {product.name}
-                              </h3>
+                              <h3 className="line-clamp-2 text-sm font-medium leading-snug" title={product.name}>{product.name}</h3>
                               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                 <Barcode className="size-3.5" />
-                                <span className="font-mono">{product.sku}</span>
+                                <span className="min-w-0 truncate font-mono" title={product.sku}>{product.sku}</span>
                               </div>
                             </div>
-
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="text-base font-semibold">
-                                  {formatCurrency(product.price)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {product.category}
-                                </p>
+                            <div className="flex min-w-0 flex-wrap items-start justify-between gap-1.5">
+                              <div className="min-w-0">
+                                <p className="text-base font-semibold">{formatCurrency(product.price)}</p>
+                                <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
                               </div>
-
                               {isOutOfStock ? (
-                                <Badge variant="destructive">
-                                  {t("pos.outOfStock")}
-                                </Badge>
+                                <Badge variant="destructive">{t("pos.outOfStock")}</Badge>
                               ) : isLowStock ? (
-                                <Badge variant="outline">
-                                  {t("pos.lowStock", { count: product.stock })}
-                                </Badge>
+                                <Badge variant="outline">{t("pos.lowStock", { count: product.stock })}</Badge>
                               ) : (
-                                <Badge variant="secondary">
-                                  {t("pos.inStock", { count: product.stock })}
-                                </Badge>
+                                <Badge variant="secondary">{t("pos.inStock", { count: product.stock })}</Badge>
                               )}
                             </div>
-
-                            {isLowStock && !isOutOfStock && (
+                            {productView === "grid" && isLowStock && !isOutOfStock ? (
                               <div className="flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs text-muted-foreground">
                                 <AlertTriangle className="size-3.5" />
                                 {t("pos.lowStockItem")}
                               </div>
-                            )}
-
-                            {product.isTaxable && (
-                              <Badge variant="outline" className="text-xs">
-                                {t("pos.taxable")}
-                              </Badge>
-                            )}
+                            ) : null}
+                            {productView === "grid" && product.isTaxable ? (
+                              <Badge variant="outline" className="text-xs">{t("pos.taxable")}</Badge>
+                            ) : null}
                           </div>
                         </CardContent>
                       </Card>
@@ -544,8 +569,17 @@ export default function POSPage() {
             </CardContent>
           </Card>
 
+          <div className="sticky bottom-3 z-20 -mt-1 flex justify-center @min-[1100px]/pos:hidden">
+            <Button type="button" className="max-w-full gap-2 shadow-lg"
+              onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              aria-label="Go to current sale">
+              <ShoppingCart className="size-4" />
+              <span className="truncate">{totalUnits} items · {formatCurrency(total)}</span>
+              <span className="font-semibold">View</span>
+            </Button>
+          </div>
           {/* CART AREA */}
-          <Card className="flex h-full flex-col overflow-hidden border-border/60">
+          <Card id="pos-cart" className="flex h-[min(78dvh,850px)] min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[28px] border-border/60">
             <CardHeader className="border-b">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -575,7 +609,7 @@ export default function POSPage() {
               </div>
             </CardHeader>
 
-            <div className="flex-1 overflow-y-auto bg-muted/10 p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-muted/10 p-3 sm:p-4">
               {cartItems.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <div className="rounded-full bg-muted p-4">
@@ -597,7 +631,7 @@ export default function POSPage() {
                     return (
                       <Card
                         key={item.product_id}
-                        className="border-border/60 shadow-none py-0"
+                        className="rounded-2xl border-border/60 shadow-none py-0"
                       >
                         <CardContent className="p-3">
                           <div className="mb-3 flex items-start gap-3">
@@ -683,7 +717,7 @@ export default function POSPage() {
               )}
             </div>
 
-            <div className="border-t p-4">
+            <div className="shrink-0 border-t bg-card p-3 sm:p-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4">
                   <Label htmlFor="discount" className="text-sm font-medium">
@@ -748,7 +782,8 @@ export default function POSPage() {
                   <Button
                     className="h-12 text-base font-semibold"
                     onClick={() => handleCheckout("sale")}
-                    disabled={cartItems.length === 0}
+                    disabled={cartItems.length === 0 || !canSubmitSale}
+                    title={!canSubmitSale ? "Checkout is unavailable until sales and tax posting are connected" : undefined}
                   >
                     {t("pos.completeSale")}
                   </Button>
@@ -1104,7 +1139,7 @@ export default function POSPage() {
                 className="flex-1 h-10 text-base font-semibold"
                 onClick={completeSale}
                 disabled={
-                  saleLoading ||
+                  !canSubmitSale || saleLoading ||
                   (paymentMethod === "cash" && parsedCashReceived < total)
                 }
               >
@@ -1114,7 +1149,7 @@ export default function POSPage() {
               <Button
                 className="flex-1 h-10 text-base font-semibold"
                 onClick={placeOrder}
-                disabled={saleLoading || !customerId}
+                disabled={!canSubmitSale || saleLoading || !customerId}
               >
                 {saleLoading ? t("pos.processing") : t("pos.placeCreditOrder")}
               </Button>
@@ -1125,7 +1160,7 @@ export default function POSPage() {
                 variant="outline"
                 className="h-10 text-base font-semibold"
                 onClick={() => handleCheckout("order")}
-                disabled={cartItems.length === 0 || !customerId}
+                disabled={!canSubmitSale || cartItems.length === 0 || !customerId}
               >
                 {t("pos.switchCreditOrder")}
               </Button>
