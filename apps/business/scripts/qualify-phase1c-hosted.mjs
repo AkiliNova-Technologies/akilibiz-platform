@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { createHmac, createPublicKey, verify as verifySignature } from "node:crypto";
+import { createPublicKey, verify as verifySignature } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { request as httpsRequest } from "node:https";
 import { resolve } from "node:path";
@@ -58,18 +58,6 @@ function client(key) {
 function mark(results, name, status, detail = "") {
   results.push({ name, status, detail });
   console.log(`${status}: ${name}${detail ? ` — ${detail}` : ""}`);
-}
-function base64url(value) {
-  return Buffer.from(value).toString("base64url");
-}
-function signedExpiredAccessToken(userId) {
-  const secret = process.env.SUPABASE_LEGACY_JWT_SECRET;
-  if (!secret) return null;
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload = base64url(JSON.stringify({ aud: "authenticated", exp: now - 60, iat: now - 3600, iss: `${process.env.SUPABASE_URL}/auth/v1`, role: "authenticated", sub: userId }));
-  const unsigned = `${header}.${payload}`;
-  return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
 }
 // Optional Phase 1G expiry case: validate a genuinely expired ES256 token
 // cryptographically against Supabase's public JWKS, without ever requesting
@@ -319,13 +307,15 @@ async function main() {
     const invalidResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: "Bearer invalid.phase1c.token", "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
     assert(invalidResponse.status === 401, `invalid bearer token returned ${invalidResponse.status}`);
     mark(results, "invalid bearer token rejection", "PASS");
+    // Never substitute an HS256 token generated with a legacy signing secret.
+    // An absent approved ES256 fixture is an explicit qualification skip.
     const expiredToken = process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN
       ? await verifiedExpiredAsymmetricToken(process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN)
-      : signedExpiredAccessToken(manifest.userAId);
+      : null;
     if (expiredToken) {
       const expiredResponse = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/upload_desktop_contacts`, { method: "POST", headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${expiredToken}`, "content-type": "application/json" }, body: JSON.stringify({ target_business_id: manifest.businessAId, source_business_public_id: sourceA, source_device_public_id: deviceA, customers: [], suppliers: [] }) });
       assert(expiredResponse.status === 401, `correctly signed expired bearer token returned ${expiredResponse.status}`);
-      mark(results, "correctly signed expired bearer token rejection", "PASS", process.env.AKILIBIZ_EXPIRED_ACCESS_TOKEN ? "verified hosted ES256 signature" : "legacy signed fixture");
+      mark(results, "correctly signed expired bearer token rejection", "PASS", "verified hosted ES256 signature");
     } else {
       mark(results, "correctly signed expired bearer token rejection", "SKIP", "supply AKILIBIZ_EXPIRED_ACCESS_TOKEN from an authorized short-lived test session; legacy signing secret is not required");
     }
