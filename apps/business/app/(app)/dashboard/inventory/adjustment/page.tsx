@@ -13,14 +13,13 @@ export default async function InventoryStockAdjustmentPage() {
       .eq("business_id", business.id).order("name").limit(1000),
   ]);
 
-  if (positionError || productError) {
-    return <p role="alert" className="text-sm text-destructive">
-      Could not load your stock information. Check your connection and try again.
-    </p>;
-  }
+  const loadError = positionError || productError
+    ? "Could not load your stock information. Check your connection and try again."
+    : null;
 
   return <HostedStockAdjustment
-    positions={(positions ?? []) as Position[]}
-    products={(products ?? []) as ProductSummary[]}
+    error={loadError}
+    positions={(loadError ? [] : positions ?? []) as Position[]}
+    products={(loadError ? [] : products ?? []) as ProductSummary[]}
   />;
 }
