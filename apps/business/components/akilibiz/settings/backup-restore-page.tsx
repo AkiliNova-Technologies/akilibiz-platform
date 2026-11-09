@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Eye, FileCheck2, RotateCcw } from "lucide-react";
+import { Eye, FileCheck2, FolderOpen, RotateCcw } from "lucide-react";
 import { useBrowserBackupRestore } from "@/components/akilibiz/settings/backup-restore-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 
 export function BackupRestorePage() {
   const backup = useBrowserBackupRestore();
+  const filePickerRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [restoreOpen, setRestoreOpen] = React.useState(false);
   const [confirmation, setConfirmation] = React.useState("");
@@ -50,9 +51,30 @@ export function BackupRestorePage() {
                 <h2 className="text-lg font-semibold">Restore backup</h2>
                 <p className="text-sm text-muted-foreground">Choose a backup file before requesting a restore.</p>
               </div>
+              <input
+                ref={filePickerRef}
+                className="sr-only"
+                type="file"
+                accept=".akilibackup"
+                aria-label="Select AkiliBiz backup file"
+                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+              />
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-                <Input type="file" accept=".akilibackup" aria-label="Select AkiliBiz backup file"
-                  className="min-w-0" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border px-3 py-1.5">
+                  <span className="min-w-0 truncate text-sm text-muted-foreground" title={selectedFile?.name}>
+                    {selectedFile?.name ?? "No backup file selected"}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => filePickerRef.current?.click()}
+                  >
+                    <FolderOpen className="size-4" />
+                    Browse
+                  </Button>
+                </div>
                 <Button type="button" variant="outline" disabled title="Backup verification is not connected">
                   Verify file
                 </Button>
