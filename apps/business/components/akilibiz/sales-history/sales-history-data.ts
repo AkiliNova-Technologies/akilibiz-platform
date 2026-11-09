@@ -16,7 +16,7 @@ export type CancelSalePayload = { reason: string };
 export interface SalesHistoryData {
   sales: SaleListResponse[];
   selectedSale: SaleDetail | null;
-  summary: SalesSummary;
+  summary: SalesSummary | null;
   loading: boolean;
   getSales: () => Promise<void>;
   getSale: (id: number, options?: unknown) => Promise<SaleDetail | null>;
@@ -30,8 +30,69 @@ export interface SalesHistoryData {
   getTaxSettings: () => Promise<void>;
 }
 
-export const t = (key: string, _values?: TranslationValues) =>
-  ({ "sales.history": "Sales History", "sales.tax": "Tax" })[key] ?? key;
+const salesLabels: Record<string, string> = {
+  "sales.history": "Sales History",
+  "sales.records": "Sales records",
+  "sales.recordsDescription": "View and manage sales transactions.",
+  "sales.totalSales": "Total sales",
+  "sales.totalSalesDescription": "Value of completed sales",
+  "sales.transactions": "Transactions",
+  "sales.transactionsDescription": "Completed transactions",
+  "sales.vatCollected": "VAT collected",
+  "sales.vatCollectedDescription": "VAT on completed sales",
+  "sales.averageSale": "Average sale",
+  "sales.averageSaleDescription": "Average completed sale amount",
+  "sales.paymentMethod": "Payment method",
+  "sales.allPaymentMethods": "All payment methods",
+  "sales.status": "Status",
+  "sales.allStatuses": "All statuses",
+  "sales.completed": "Completed",
+  "sales.pending": "Pending",
+  "sales.refunded": "Refunded",
+  "sales.cancelledStatus": "Cancelled",
+  "sales.cashier": "Cashier",
+  "sales.invoice": "Invoice",
+  "sales.dateTime": "Date and time",
+  "sales.payment": "Payment",
+  "sales.tax": "Tax",
+  "sales.view": "View",
+  "sales.printReceipt": "Print receipt",
+  "sales.cancelSale": "Cancel sale",
+  "sales.tableDescription": "Sales transactions and their payment details",
+  "sales.search": "Search sales",
+  "sales.empty": "Sales history is unavailable until sales synchronization is connected.",
+  "sales.details": "Sale details",
+  "sales.detailsDescription": "Review the sale details.",
+  "sales.total": "Total",
+  "sales.subtotal": "Subtotal",
+  "sales.discount": "Discount",
+  "sales.items": "Items",
+  "sales.fullReceipt": "Full receipt",
+  "sales.keepSale": "Keep sale",
+  "sales.cancelReason": "Reason for cancellation",
+  "sales.cancelReasonHint": "Enter the reason for cancelling this sale",
+  "sales.confirmCancellation": "Confirm cancellation",
+  "sales.cancelling": "Cancelling…",
+  "sales.receiptUnavailable": "Receipt is not available.",
+  "sales.staffRequired": "Staff access is required.",
+  "sales.reasonRequired": "Enter a cancellation reason.",
+  "sales.cancelDescription": "Are you sure you want to cancel sale {number}?",
+  "sales.cancelled": "Sale {number} cancelled.",
+  "sales.vatNotice": "VAT is recorded for {jurisdiction}.",
+  "pos.cash": "Cash",
+  "pos.card": "Card",
+  "pos.mobileMoney": "Mobile Money",
+  "pos.split": "Split",
+  "pos.customer": "Customer",
+  "pos.items": "Items",
+  "pos.total": "Total"
+};
+export const t = (key: string, values?: TranslationValues) => {
+  const label = salesLabels[key] ?? key;
+  return label.replace(/\\{(\\w+)\\}/g, (match, field: string) =>
+    values?.[field] === undefined ? match : String(values[field]),
+  );
+};
 
 export const formatSalesCurrency = (value: number, _currency?: string) =>
   new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(value);
@@ -39,7 +100,7 @@ export const formatSalesCurrency = (value: number, _currency?: string) =>
 export function useSalesHistoryData(): SalesHistoryData {
   const [sales, setSales] = useState<SaleListResponse[]>([]);
   const [selectedSale, setSelectedSale] = useState<SaleDetail | null>(null);
-  const summary: SalesSummary = { total_sales_value: 0, transaction_count: 0, average_sale_value: 0, refunded_count: 0 };
+  const summary: SalesSummary | null = null;
   const user: SalesHistoryUser | null = null;
   const settings: SalesHistoryTaxSettings | null = null;
   const taxSettings: SalesHistoryTaxSettings | null = null;
@@ -53,15 +114,10 @@ export function useSalesHistoryData(): SalesHistoryData {
   const getSalesSummary = useCallback(async (): Promise<void> => {}, []);
   const refreshSales = useCallback(async (): Promise<void> => {}, []);
   const clearSale = useCallback((): void => setSelectedSale(null), []);
-  const cancelExistingSale = useCallback(async (id: number, _payload: CancelSalePayload): Promise<SaleDetail | null> => {
-    const sale = sales.find((row) => row.id === id);
-    if (!sale) return null;
-
-    const cancelledSale: SaleDetail = { ...sale, status: "cancelled", items: [] };
-    setSales((rows) => rows.map((row) => (row.id === id ? cancelledSale : row)));
-    setSelectedSale(cancelledSale);
-    return cancelledSale;
-  }, [sales]);
+  // Hosted cancellation is unavailable; never mutate local state as if the sale was cancelled.
+  const cancelExistingSale = useCallback(async (_id: number, _payload: CancelSalePayload): Promise<SaleDetail | null> => {
+    throw new Error("Sale cancellation is unavailable until hosted transactions are connected.");
+  }, []);
   const getTaxSettings = useCallback(async (): Promise<void> => {}, []);
 
   return { sales, selectedSale, summary, loading: false, getSales, getSale, getSalesSummary, refreshSales, clearSale, cancelExistingSale, user, settings, taxSettings, getTaxSettings };
