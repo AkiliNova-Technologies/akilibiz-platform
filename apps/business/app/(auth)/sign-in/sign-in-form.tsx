@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { AkiliButton } from "@/components/akilibiz/akili-button";
 import { AkiliFormField } from "@/components/akilibiz/akili-form-field";
@@ -11,7 +11,6 @@ import { createClient } from "@/lib/supabase/client";
 
 export function SignInForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +21,10 @@ export function SignInForm() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } = await createClient().auth.signInWithPassword(
-      {
-        email,
-        password,
-      },
-    );
+    const { error: signInError } = await createClient().auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (signInError) {
       setError(signInError.message);
@@ -35,10 +32,9 @@ export function SignInForm() {
       return;
     }
 
-    const next = searchParams.get("next");
-    const destination =
-      next?.startsWith("/") && !next.startsWith("//") ? next : "/businesses";
-    router.replace(destination);
+    // Business selection is part of sign-in, not the dashboard.
+    // Even a protected deep link must not bypass selection.
+    router.replace("/businesses");
     router.refresh();
   }
 
