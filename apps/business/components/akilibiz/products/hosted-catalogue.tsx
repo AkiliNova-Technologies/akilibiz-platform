@@ -73,11 +73,13 @@ export function HostedCatalogue({
   categories,
   products,
   view,
+  error,
 }: {
   businessName: string;
   categories: HostedCategoryRow[];
   products: HostedProductRow[];
   view: "products" | "categories";
+  error?: string | null;
 }) {
   const [selectedProduct, setSelectedProduct] = useState<HostedProductRow | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HostedCategoryRow | null>(null);
@@ -243,13 +245,13 @@ export function HostedCatalogue({
           <p className="text-sm text-muted-foreground">Organize products into categories.</p>
         </div>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <MetricCard title="Total Categories" value={String(categories.length)}
+          <MetricCard title="Total Categories" value={error ? "—" : String(categories.length)}
             description={`${activeCategories} active categories`} icon={<FolderTree className="size-5" />} />
-          <MetricCard title="Assigned Products" value={String(assignedProducts)}
+          <MetricCard title="Assigned Products" value={error ? "—" : String(assignedProducts)}
             description="Products assigned to categories" icon={<Package className="size-5" />} />
           <MetricCard title="Inventory Value" value="—"
             description="Stock valuation unavailable" icon={<Archive className="size-5" />} />
-          <MetricCard title="Active Categories" value={String(activeCategories)}
+          <MetricCard title="Active Categories" value={error ? "—" : String(activeCategories)}
             description="Categories currently in use" icon={<Banknote className="size-5" />} />
         </section>
         <Card>
@@ -258,6 +260,7 @@ export function HostedCatalogue({
               title="Product Categories"
               description="Manage your product categories."
               data={categories}
+              emptyMessage={error ?? "No categories found."}
               fields={categoryFields}
               actions={categoryActions}
               enableGlobalSearch
@@ -354,7 +357,7 @@ export function HostedCatalogue({
       <section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Products"
-          value={String(products.length)}
+          value={error ? "—" : String(products.length)}
           description={`${products.filter((product) => product.is_active).length} active products`}
           icon={<Package className="size-5" />}
         />
@@ -384,6 +387,7 @@ export function HostedCatalogue({
             title="Product Catalogue"
             description="View and manage your products."
             data={products}
+            emptyMessage={error ?? "No products found."}
             fields={productFields}
             actions={productActions}
             enableGlobalSearch
