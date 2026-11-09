@@ -65,6 +65,10 @@ begin
       or length(item->>'product_id')>19 then
       raise exception 'Invalid product in inventory metadata' using errcode='22023';
     end if;
+    -- Reject out-of-range values before converting untrusted JSON to bigint.
+    if (item->>'product_id')::numeric > 9223372036854775807::numeric then
+      raise exception 'Product ID exceeds bigint range' using errcode='22003';
+    end if;
     source_id:=(item->>'product_id')::bigint;
     if not exists(
       select 1 from public.desktop_inventory_positions p
@@ -86,7 +90,9 @@ begin
         raw_value:=item->>column_name;
         if jsonb_typeof(item->column_name)<>'number'
            or raw_value !~ '^-?[0-9]+$'
-           or abs(raw_value::numeric)>9223372036854775807::numeric then
+           or length(raw_value)>20
+           or raw_value::numeric < (-9223372036854775808)::numeric
+           or raw_value::numeric > 9223372036854775807::numeric then
           raise exception 'Invalid inventory field %',column_name using errcode='22023';
         end if;
       end if;
