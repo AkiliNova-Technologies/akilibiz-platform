@@ -404,10 +404,10 @@ export default function SupplierPaymentsPage() {
                 }
                 toolbarActions={
                   <div className="flex gap-2">
-                    <Button variant="outline" disabled title="Supplier payment allocation is not connected">
+                    <Button variant="outline" disabled title="Supplier payment allocation is not connected" onClick={() => open(true)}>
                       Allocate Payment
                     </Button>
-                    <Button disabled title="Supplier payment posting is not connected">
+                    <Button disabled title="Supplier payment posting is not connected" onClick={() => open()}>
                       <Plus className="mr-2 size-4" />
                       Record Payment
                     </Button>
@@ -605,7 +605,7 @@ export default function SupplierPaymentsPage() {
               }}>
               Cancel
             </Button>
-            <Button disabled>
+            <Button disabled onClick={() => void save()}>
               {allocationOpen
                 ? "Allocate Payment"
                 : editing
