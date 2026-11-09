@@ -113,25 +113,25 @@ export default function FinanceLedgerPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Total Credits"
-            value={formatFinanceCurrency(ledgerSummary.total_credits)}
+            value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.total_credits) : "—"}
             description="All credit-side ledger entries"
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
             title="Total Debits"
-            value={formatFinanceCurrency(ledgerSummary.total_debits)}
+            value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.total_debits) : "—"}
             description="All debit-side ledger entries"
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
             title="Net Position"
-            value={formatFinanceCurrency(ledgerSummary.net_position)}
+            value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.net_position) : "—"}
             description="Credit less debit balance"
             icon={<CircleDollarSign className="size-5" />}
           />
           <MetricCard
             title="Ledger Entries"
-            value={String(ledgerSummary.total_entries)}
+            value={ledgerSummary ? String(ledgerSummary.total_entries) : "—"}
             description="Recorded financial entries"
             icon={<BookOpen className="size-5" />}
           />
@@ -150,7 +150,7 @@ export default function FinanceLedgerPage() {
               emptyMessage={
                 loading
                   ? "Loading ledger entries..."
-                  : "No ledger entries found."
+                  : "Ledger entries are unavailable until the hosted accounting ledger is connected."
               }
               toolbarActions={
                 <Button
