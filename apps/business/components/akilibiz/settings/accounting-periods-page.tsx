@@ -99,7 +99,7 @@ export function AccountingPeriodsPage() {
             <CardDescription>Dates use UTC calendar dates.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={openCreate}>Create period</Button>
+            <Button onClick={openCreate} disabled title="Accounting period creation is not connected">Create period</Button>
           </CardContent>
         </Card>
         <Card>
@@ -116,7 +116,7 @@ export function AccountingPeriodsPage() {
               </p>
             ) : store.periods.length === 0 ? (
               <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                No accounting periods have been created.
+                Accounting period records are unavailable until accounting data is connected.
               </p>
             ) : (
               <div className="space-y-3">
@@ -199,7 +199,7 @@ export function AccountingPeriodsPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
               Cancel
             </Button>
-            <Button disabled={store.loading} onClick={() => void create()}>
+            <Button disabled title="Accounting period creation is not connected" onClick={() => void create()}>
               Create period
             </Button>
           </DialogFooter>
@@ -243,7 +243,7 @@ export function AccountingPeriodsPage() {
             </Button>
             <Button
               variant={target?.state === "open" ? "destructive" : "default"}
-              disabled={store.loading || !reason.trim()}
+              disabled title="Accounting period status changes are not connected"
               onClick={() => void changeState()}>
               {action} period
             </Button>
