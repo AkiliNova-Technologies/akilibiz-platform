@@ -1,91 +1,62 @@
 import { ArrowRight, Building2, CheckCircle2 } from "lucide-react";
 import { cookies } from "next/headers";
-
+import { AuthShell } from "../auth-shell";
 import { OnboardingForm } from "@/app/(app)/dashboard/onboarding-form";
 import { selectBusiness } from "@/app/(app)/dashboard/business-actions";
-import {
-  ACTIVE_BUSINESS_COOKIE,
-  listAccessibleBusinesses,
-} from "@/lib/business-context";
+import { ACTIVE_BUSINESS_COOKIE, listAccessibleBusinesses } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default async function BusinessesPage() {
   const businesses = await listAccessibleBusinesses();
   const selected = (await cookies()).get(ACTIVE_BUSINESS_COOKIE)?.value;
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6">
-      <div className="mx-auto w-full max-w-5xl space-y-5">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Choose your business
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Select a business to continue to your workspace.
-          </p>
-        </div>
-        {businesses.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Your businesses</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {businesses.map((business) => (
-                <form
-                  action={selectBusiness}
-                  key={business.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/30"
-                >
-                  <input type="hidden" name="business_id" value={business.id} />
-                  <div className="flex items-start gap-3">
-                    <Building2 aria-hidden className="mt-0.5 size-5 text-primary" />
-                    <div>
-                      <p className="font-medium">
-                        {business.tradingName || business.name}
-                      </p>
-                      {business.tradingName ? (
-                        <p className="text-sm text-muted-foreground">
-                          {business.name}
-                        </p>
-                      ) : null}
-                      <p className="text-xs capitalize text-muted-foreground">
-                        {business.role.replaceAll("_", " ")}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    variant={selected === business.id ? "secondary" : "default"}
-                  >
-                    {selected === business.id ? (
-                      <>
-                        <CheckCircle2 className="mr-2 size-4" />
-                        Continue
-                      </>
-                    ) : (
-                      <>
-                        <span>Open business</span>
-                        <ArrowRight className="size-4" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              ))}
-            </CardContent>
-          </Card>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No business is linked to your account yet. Create one below to get started.
-          </p>
-        )}
-        {businesses.length === 0 ? <OnboardingForm /> : null}
+    <AuthShell>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-foreground">AkiliBiz Business</p>
+        <h1 className="pt-2 font-[family-name:var(--font-sora)] text-3xl font-semibold tracking-tight sm:text-4xl">
+          {businesses.length ? "Choose your business" : "Set up your business"}
+        </h1>
+        <p className="pt-1 text-sm leading-6 text-muted-foreground">
+          {businesses.length
+            ? "Select the business you want to manage."
+            : "Create your first business to continue."}
+        </p>
       </div>
-    </main>
+      {businesses.length > 0 ? (
+        <div className="mt-7 space-y-2" aria-label="Your businesses">
+          {businesses.map((business) => (
+            <form
+              action={selectBusiness}
+              key={business.id}
+              className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border bg-card p-3 sm:flex-nowrap"
+            >
+              <input type="hidden" name="business_id" value={business.id} />
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <Building2 aria-hidden="true" className="size-4 text-muted-foreground" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{business.tradingName || business.name}</p>
+                {business.tradingName ? (
+                  <p className="truncate text-xs text-muted-foreground">{business.name}</p>
+                ) : null}
+                <p className="text-xs capitalize text-muted-foreground">{business.role.replaceAll("_", " ")}</p>
+              </div>
+              <Button type="submit" size="sm" variant={selected === business.id ? "secondary" : "default"} className="shrink-0">
+                {selected === business.id ? (
+                  <><CheckCircle2 className="size-4" /> Continue</>
+                ) : (
+                  <>Open <ArrowRight className="size-4" /></>
+                )}
+              </Button>
+            </form>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-7">
+          <OnboardingForm />
+        </div>
+      )}
+    </AuthShell>
   );
 }
