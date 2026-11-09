@@ -27,7 +27,7 @@ export function useReportsInventoryData() {
   const valuationSummary: InventoryValuationSummary | null = null;
   const getInventoryStockOnHand = useCallback(async () => stockOnHand, [stockOnHand]);
   const getInventoryMovementHistory = useCallback(async () => movements, [movements]);
-  const getInventoryValuationSummary = useCallback(async () => ({ ...valuationSummary, rows: valuation }), [valuation, valuationSummary]);
+  const getInventoryValuationSummary = useCallback(async () => null, []);
   const getInventoryProductDrillDown = useCallback(async (_id: number) => null, []);
   return { stockOnHand, movements, valuation, valuationSummary, getInventoryStockOnHand, getInventoryMovementHistory, getInventoryValuationSummary, getInventoryProductDrillDown };
 }
