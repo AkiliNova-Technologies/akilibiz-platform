@@ -46,6 +46,7 @@ if (process.env.AKILIBIZ_VERCEL_STORAGE_STATE) {
 if (process.env.AKILIBIZ_VERCEL_BYPASS_SECRET) {
   settings.extraHTTPHeaders = {
     "x-vercel-protection-bypass": process.env.AKILIBIZ_VERCEL_BYPASS_SECRET,
+    "x-vercel-set-bypass-cookie": "true",
   };
 }
 
