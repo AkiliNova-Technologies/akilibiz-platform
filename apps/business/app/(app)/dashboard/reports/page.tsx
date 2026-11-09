@@ -111,19 +111,19 @@ export default function ReportsOverviewPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <MetricCard
             title="Sales Reports"
-            value={formatFinanceCurrency(overviewSummary.total_sales_value)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_sales_value) : "—"}
             description="Current reported sales value"
             icon={<BarChart3 className="size-5" />}
           />
           <MetricCard
             title="Inventory Reports"
-            value={formatFinanceCurrency(overviewSummary.total_inventory_value)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_inventory_value) : "—"}
             description="Reported inventory value"
             icon={<Package className="size-5" />}
           />
           <MetricCard
             title="Financial Reports"
-            value={formatFinanceCurrency(overviewSummary.total_financial_value)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_financial_value) : "—"}
             description="Reported financial activity"
             icon={<Banknote className="size-5" />}
           />
@@ -174,7 +174,7 @@ export default function ReportsOverviewPage() {
               pageSize={10}
               loading={loading}
               emptyMessage={
-                loading ? "Loading reports..." : "No report summaries found."
+                loading ? "Loading reports..." : "Reporting summaries are unavailable until the hosted reporting service is connected."
               }
             />
           </CardContent>
