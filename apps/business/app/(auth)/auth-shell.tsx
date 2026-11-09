@@ -15,7 +15,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           fill
           priority
           sizes="50vw"
-          className="object-cover dark:brightness-[0.65]"
+          className="object-cover dark:brightness-[0.2]"
         />
       </aside>
     </main>
