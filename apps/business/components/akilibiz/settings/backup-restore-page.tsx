@@ -60,7 +60,7 @@ export function BackupRestorePage() {
                 onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
               />
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg border px-3 py-1.5">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-full border px-3 py-1.5">
                   <span className="min-w-0 truncate text-sm text-muted-foreground" title={selectedFile?.name}>
                     {selectedFile?.name ?? "No backup file selected"}
                   </span>
