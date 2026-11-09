@@ -551,6 +551,7 @@ function DataTable<TData extends TableData>({
                     action.onClick(row.original);
                   }}
                   title={action.label || action.type}
+                  aria-label={action.label || action.type}
                   className={`size-8 hover:bg-muted ${
                     isDestructive
                       ? "text-destructive hover:text-destructive"
@@ -575,7 +576,7 @@ function DataTable<TData extends TableData>({
     }
 
     return baseColumns;
-  }, [fields, actions, enableSelection, enableDragDrop, enableSorting, t]);
+  }, [fields, actions, enableSelection, enableDragDrop, enableSorting]);
 
   // The TanStack Table's `useReactTable()` API returns functions that are not safe to memoize.
   // Disable the incompatible-library ESLint check here to avoid the memoization warning.
