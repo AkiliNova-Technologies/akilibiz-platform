@@ -219,11 +219,13 @@ export default function ReportsInventoryPage() {
             </p>
           </div>
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              <TabsTrigger value="stock">Stock Overview</TabsTrigger>
-              <TabsTrigger value="movements">Movements</TabsTrigger>
-              <TabsTrigger value="valuation">Valuation</TabsTrigger>
-            </TabsList>
+            <div className="min-w-0 overflow-x-auto pb-1" aria-label="Inventory report sections">
+              <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full bg-card p-1.5">
+                <TabsTrigger value="stock">Stock Overview</TabsTrigger>
+                <TabsTrigger value="movements">Movements</TabsTrigger>
+                <TabsTrigger value="valuation">Valuation</TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="stock">
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
