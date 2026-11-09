@@ -5,5 +5,27 @@ import { useBrowserTaxSettings } from "@/components/akilibiz/settings/tax-settin
 
 export default function TaxSettingsPage() {
   const tax = useBrowserTaxSettings();
-  return <main className="flex flex-1 flex-col"><div className="mx-auto w-full max-w-8xl space-y-6"><div className="space-y-1 pt-1"><h1 className="text-2xl font-semibold tracking-tight">Tax Settings</h1><p className="max-w-2xl text-sm text-muted-foreground">Choose how your business records and shows tax on sales and services.</p></div><TaxSettingsForm isDirty={tax.isDirty} loading={tax.loading} onReset={tax.reset} onSave={tax.save} onSettingsChange={tax.setSettings} settings={tax.settings} /></div></main>;
+  return (
+    <main className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-col gap-4 md:gap-6">
+        <div className="space-y-2 pt-1">
+          <h1 className="text-xl font-semibold sm:text-2xl">Tax Configuration</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage VAT registration details and how tax appears on receipts.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Tax details are based on your business records. Confirm your registration and VAT treatment with URA.
+          </p>
+        </div>
+        <TaxSettingsForm
+          isDirty={tax.isDirty}
+          loading={tax.loading}
+          onReset={tax.reset}
+          onSave={tax.save}
+          onSettingsChange={tax.setSettings}
+          settings={tax.settings}
+        />
+      </div>
+    </main>
+  );
 }
