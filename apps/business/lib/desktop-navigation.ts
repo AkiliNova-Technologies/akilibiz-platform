@@ -162,6 +162,11 @@ export const desktopNavigation: NavigationGroup[] = [
         label: "Ledger",
         reference: "FinanceLedgerPage",
       },
+      {
+        href: "/dashboard/finance/tax",
+        label: "Tax Management",
+        reference: "FinanceTaxPage",
+      },
     ],
   },
   {
