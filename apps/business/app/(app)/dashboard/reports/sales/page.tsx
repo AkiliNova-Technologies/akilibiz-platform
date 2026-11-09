@@ -192,9 +192,9 @@ export default function ReportsSalesPage() {
                 toolbarActions={
                   <Button
                     variant="outline"
-                    onClick={refresh}>
-                    <RefreshCw className="mr-2 size-4" />
-                    Refresh
+                    onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                    <RefreshCw className="size-4" />
+                    
                   </Button>
                 }
                 enableSelection={false}
