@@ -88,8 +88,10 @@ function getDaysOverdue(dueDate: string | null | undefined): number {
 // ============================================================================
 
 export default function CreditOrdersPage() {
-  const { sales, getSales, recordSalePayment, loading } = useCreditOrdersData();
-  const { scores, getCustomerRisk } = useCreditOrdersData();
+  const { sales, getSales, recordSalePayment, loading, scores, getCustomerRisk } = useCreditOrdersData();
+  // Financial records and posting are not available in the hosted credit service yet.
+  const creditDataAvailable = false;
+  const paymentPostingAvailable = false;
 
   const [selectedOrder, setSelectedOrder] = useState<CreditOrder | null>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -155,6 +157,7 @@ export default function CreditOrdersPage() {
   }, [creditOrders]);
 
   const handleRecordPayment = (row: CreditOrder) => {
+    if (!paymentPostingAvailable) return;
     setSelectedOrder(row);
     setPaymentAmount(String(row.balance_due));
     setPaymentMethod("cash");
@@ -163,7 +166,7 @@ export default function CreditOrdersPage() {
   };
 
   const handleSubmitPayment = async () => {
-    if (!selectedOrder) return;
+    if (!paymentPostingAvailable || !selectedOrder) return;
 
     const amount = Number(paymentAmount);
     if (
@@ -175,7 +178,8 @@ export default function CreditOrdersPage() {
       return;
     }
 
-    const result = await recordSalePayment(selectedOrder.id, {
+    try {
+      const result = await recordSalePayment(selectedOrder.id, {
       amount,
       payment_method: paymentMethod,
       payment_reference: null,
@@ -189,10 +193,14 @@ export default function CreditOrdersPage() {
       setSelectedOrder(null);
       setPaymentAmount("");
       await getSales({ limit: 500 });
+      }
+    } catch {
+      toast.error("Credit payment recording is unavailable.");
     }
   };
 
   const handleRefresh = async () => {
+    if (!creditDataAvailable) return;
     await getSales({ limit: 500 });
     toast.success("Credit orders refreshed");
   };
@@ -277,7 +285,7 @@ export default function CreditOrdersPage() {
       label: "Record Payment",
       icon: <Banknote className="size-4" />,
       onClick: handleRecordPayment,
-      disabled: (row) => row.balance_due <= 0,
+      disabled: (row) => !paymentPostingAvailable || row.balance_due <= 0,
     },
   ];
 
@@ -294,12 +302,18 @@ export default function CreditOrdersPage() {
             </p>
           </div>
           {/* SUMMARY METRIC CARDS */}
-          <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+          <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <MetricCard
+              title="Total Outstanding"
+              value={creditDataAvailable ? formatCurrency(totalOutstanding) : "—"}
+              description={creditDataAvailable ? `Across ${creditOrders.length} credit orders` : "Balance data unavailable"}
+              icon={<Receipt className="size-5" />}
+            />
             <MetricCard
               title="Overdue Orders"
-              value={String(overdueOrders.length)}
+              value={creditDataAvailable ? String(overdueOrders.length) : "—"}
               description={
-                overdueOrders.length > 0
+                !creditDataAvailable ? "Overdue orders unavailable" : overdueOrders.length > 0
                   ? "Require immediate attention"
                   : "No overdue orders"
               }
@@ -308,15 +322,15 @@ export default function CreditOrdersPage() {
 
             <MetricCard
               title="Partially Paid"
-              value={String(partiallyPaidOrders.length)}
-              description="In progress payments"
+              value={creditDataAvailable ? String(partiallyPaidOrders.length) : "—"}
+              description={creditDataAvailable ? "Payments in progress" : "Payment status unavailable"}
               icon={<Clock className="size-5" />}
             />
 
             <MetricCard
               title="Unpaid Orders"
-              value={String(unpaidOrders.length)}
-              description="Awaiting first payment"
+              value={creditDataAvailable ? String(unpaidOrders.length) : "—"}
+              description={creditDataAvailable ? "Awaiting first payment" : "Payment status unavailable"}
               icon={<WalletCards className="size-5" />}
             />
           </section>
@@ -339,9 +353,10 @@ export default function CreditOrdersPage() {
                 searchPlaceholder="Search by invoice or customer..."
                 enableColumnVisibility={true}
                 enableSorting={true}
-                emptyMessage="No credit orders found"
+                emptyMessage="Credit orders are unavailable until sales synchronization is connected."
                 onRefresh={handleRefresh}
                 refreshing={loading}
+                refreshDisabled={!creditDataAvailable}
               />
             </CardContent>
           </Card>
@@ -427,7 +442,7 @@ export default function CreditOrdersPage() {
               Cancel
             </Button>
 
-            <Button onClick={handleSubmitPayment} disabled={loading}>
+            <Button onClick={handleSubmitPayment} disabled={!paymentPostingAvailable || loading}>
               {loading ? "Recording..." : "Confirm Payment"}
             </Button>
           </DialogFooter>
