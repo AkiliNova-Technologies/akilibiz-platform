@@ -29,7 +29,7 @@ const initialSettings: SettingsOverviewItem[] = [
     id: 1,
     label: "Business Profile",
     status: "Unavailable",
-    summary: "Business identity and contact details not fully configured",
+    summary: "Business configuration has not been loaded",
     updatedAt: null,
   },
   {
@@ -38,7 +38,7 @@ const initialSettings: SettingsOverviewItem[] = [
     id: 2,
     label: "Receipt Settings",
     status: "Unavailable",
-    summary: "Uses Business Profile header",
+    summary: "Receipt configuration has not been loaded",
     updatedAt: null,
   },
   {
@@ -47,7 +47,7 @@ const initialSettings: SettingsOverviewItem[] = [
     id: 3,
     label: "Tax Configuration",
     status: "Unavailable",
-    summary: "Tax rules are not fully configured",
+    summary: "Tax configuration has not been loaded",
     updatedAt: null,
   },
   {
@@ -56,7 +56,7 @@ const initialSettings: SettingsOverviewItem[] = [
     id: 4,
     label: "Backup & Restore",
     status: "Unavailable",
-    summary: "No backups created yet",
+    summary: "Backup history has not been loaded",
     updatedAt: null,
   },
 ];
