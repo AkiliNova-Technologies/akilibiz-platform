@@ -1,6 +1,7 @@
 "use client";
 
 import { EllipsisVertical, UserCircle } from "lucide-react";
+import Link from "next/link";
 import { SignOutButton } from "@/app/(app)/dashboard/sign-out-button";
 import { type AccountDisplay } from "@/components/akilibiz/account-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -73,9 +74,11 @@ export function NavUser({ account }: { account: AccountDisplay }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem disabled>
-                <UserCircle aria-hidden="true" className="size-4" />
-                Account settings
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/account">
+                  <UserCircle aria-hidden="true" className="size-4" />
+                  My Account
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
