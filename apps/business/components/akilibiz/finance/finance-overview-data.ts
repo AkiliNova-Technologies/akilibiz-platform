@@ -22,6 +22,6 @@ export function useFinanceOverviewData() {
   const [overviewSummary] = useState<FinanceOverviewSummary | null>(null);
   const refreshOverview = useCallback(async (_options?: { limit?: number }) => ({
     overviewSummary, overviewTransactions,
-  }), [overviewTransactions]);
+  }), [overviewSummary, overviewTransactions]);
   return { overviewSummary, overviewTransactions, loading: false, refreshOverview };
 }
