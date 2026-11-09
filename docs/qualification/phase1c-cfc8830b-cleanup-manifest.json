@@ -1,0 +1,14 @@
+{
+  "projectRef": "vntqfaheiwotinpuefzl",
+  "runId": "cfc8830b-df23-4fca-a35c-92c373c2a69a",
+  "prefix": "phase1c-qualification-cfc8830b-df23-4fca-a35c-92c373c2a69a",
+  "userAId": "fed3bc90-ecfd-41e8-9ec0-196a41273e82",
+  "userBId": "64ee99e2-aee3-4589-b7a4-7d70afad3bb4",
+  "businessAId": "5dbcdf3f-683f-4e43-ad7e-25e2421b1565",
+  "businessBId": "2a2efec9-a069-48a6-95e4-1fc79807f454",
+  "deviceAId": "41ee01a1-a2c2-4a17-babb-0b35cc1c20c9",
+  "deviceBId": "a3ed136a-be4a-485a-a13a-4ae080cf1e29",
+  "cleanupVerified": true,
+  "recoveryCleanupVerified": true,
+  "credentialsRetained": false
+}
