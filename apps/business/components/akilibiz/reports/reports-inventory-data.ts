@@ -24,7 +24,7 @@ export function useReportsInventoryData() {
   const [stockOnHand] = useState<InventoryStockOnHand[]>([]);
   const [movements] = useState<InventoryMovement[]>([]);
   const [valuation] = useState<InventoryValuationRow[]>([]);
-  const valuationSummary: InventoryValuationSummary | null = null;
+  const [valuationSummary] = useState<InventoryValuationSummary | null>(null);
   const getInventoryStockOnHand = useCallback(async () => stockOnHand, [stockOnHand]);
   const getInventoryMovementHistory = useCallback(async () => movements, [movements]);
   const getInventoryValuationSummary = useCallback(async () => null, []);
