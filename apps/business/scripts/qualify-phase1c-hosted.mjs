@@ -9,6 +9,33 @@ const PROJECT_REF = "vntqfaheiwotinpuefzl";
 const RUN_PREFIX = "phase1c-qualification";
 const required = ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SECRET_KEY", "DIRECT_URL"];
 const recoveryMode = process.argv[2] === "cleanup";
+// Child workers must never inherit the administrative SQL or Supabase key
+// environment. Explicitly allowlist only operating-system/toolchain settings
+// and browser/desktop publishable configuration.
+function qualificationChildEnv(kind) {
+  const common = [
+    "PATH", "HOME", "USER", "SHELL", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "TZ",
+    "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_RUNTIME_DIR",
+    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "ALL_PROXY",
+    "http_proxy", "https_proxy", "no_proxy", "all_proxy",
+    "SSL_CERT_FILE", "SSL_CERT_DIR",
+  ];
+  const rust = [
+    "CARGO_HOME", "RUSTUP_HOME", "RUSTFLAGS", "RUST_LOG",
+    "CARGO_TARGET_DIR", "RUSTC_WRAPPER", "RUSTUP_TOOLCHAIN",
+    "CC", "CXX", "AR", "PKG_CONFIG_PATH", "LD_LIBRARY_PATH", "LIBRARY_PATH",
+    "AKILIBIZ_SUPABASE_URL", "AKILIBIZ_SUPABASE_PUBLISHABLE_KEY",
+  ];
+  const browser = [
+    "PLAYWRIGHT_BROWSERS_PATH", "AKILIBIZ_PREVIEW_URL", "AKILIBIZ_PLAYWRIGHT_MODULE",
+    "AKILIBIZ_VERCEL_BYPASS_SECRET", "AKILIBIZ_VERCEL_STORAGE_STATE",
+  ];
+  const keys = [...common, ...(kind === "rust" ? rust : browser)];
+  return Object.fromEntries(keys.filter((key) => process.env[key] !== undefined)
+    .map((key) => [key, process.env[key]]));
+}
+
+
 const recoveryManifest = process.argv[3];
 
 function assert(condition, message) {
@@ -242,7 +269,7 @@ async function main() {
         encoding: "utf8",
         maxBuffer: 16 * 1024 * 1024,
         env: {
-          ...process.env,
+          ...qualificationChildEnv("rust"),
           AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
           AKILIBIZ_ENABLE_STOCK_MOVEMENT_SYNC: "1",
           AKILIBIZ_ENABLE_BUSINESS_MIRROR_SYNC: "1",
@@ -372,7 +399,7 @@ async function main() {
         timeout: 240000,
         maxBuffer: 1024 * 1024,
         env: {
-          ...process.env,
+          ...qualificationChildEnv("browser"),
           AKILIBIZ_BROWSER_USER_A_EMAIL: manifest.userAEmail,
           AKILIBIZ_BROWSER_USER_B_EMAIL: manifest.userBEmail,
           AKILIBIZ_BROWSER_USER_PASSWORD: password,
