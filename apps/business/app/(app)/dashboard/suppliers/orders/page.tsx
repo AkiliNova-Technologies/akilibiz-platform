@@ -114,7 +114,7 @@ export default function SupplierPurchaseOrdersPage() {
     {
       type: "edit",
       label: "Edit order",
-      disabled: (r) => r.status === "Received" || r.status === "Cancelled",
+      disabled: () => true,
       onClick: (r) => {
         setSelected(r);
         setData({
@@ -135,7 +135,7 @@ export default function SupplierPurchaseOrdersPage() {
       type: "custom",
       label: "Mark received",
       icon: <Check className="size-4" />,
-      disabled: (r) => r.status === "Received" || r.status === "Cancelled",
+      disabled: () => true,
       onClick: async (r) => {
         await markReceived(r.id);
         toast.success("Order marked received");
@@ -158,31 +158,25 @@ export default function SupplierPurchaseOrdersPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Orders"
-              value={String(orders.length)}
+              value="—"
               description="All recorded supplier orders"
               icon={<ClipboardList className="size-5" />}
             />
             <MetricCard
               title="Pending Orders"
-              value={String(
-                orders.filter((o) => o.status === "Pending").length,
-              )}
+              value="—"
               description="Orders awaiting fulfilment"
               icon={<Truck className="size-5" />}
             />
             <MetricCard
               title="Received Orders"
-              value={String(
-                orders.filter((o) => o.status === "Received").length,
-              )}
+              value="—"
               description="Orders fully delivered"
               icon={<Package className="size-5" />}
             />
             <MetricCard
               title="Order Value"
-              value={formatSupplierCurrency(
-                orders.reduce((s, o) => s + o.total_amount, 0),
-              )}
+              value="—"
               description="Total value committed"
               icon={<Wallet className="size-5" />}
             />
@@ -205,14 +199,10 @@ export default function SupplierPurchaseOrdersPage() {
                 emptyMessage={
                   loading
                     ? "Loading purchase orders..."
-                    : "No purchase orders found."
+                     : "Purchase orders are unavailable until the hosted purchasing service is connected."
                 }
                 toolbarActions={
-                  <Button
-                    onClick={() => {
-                      setSelected(null);
-                      setForm(true);
-                    }}>
+                  <Button disabled title="Purchase order creation is not connected">
                     <Plus className="mr-2 size-4" />
                     New Purchase Order
                   </Button>
