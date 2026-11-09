@@ -859,6 +859,7 @@ function DataTable<TData extends TableData>({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
+                    size="icon"
                     onClick={() => void onRefresh()}
                     disabled={loading || refreshing || refreshDisabled}
                     aria-label={t("common.refresh")}
@@ -866,9 +867,6 @@ function DataTable<TData extends TableData>({
                     <RefreshCwIcon
                       className={`size-4 ${refreshing ? "animate-spin" : ""}`}
                     />
-                    <span className="hidden md:inline">
-                      {t("common.refresh")}
-                    </span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t("common.refresh")}</TooltipContent>
