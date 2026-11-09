@@ -22,7 +22,7 @@ type CustomerRow = HostedCustomer & {
 
 function Missing() { return <span className="text-muted-foreground">—</span>; }
 
-export function HostedCustomers({ customers }: { customers: HostedCustomer[] }) {
+export function HostedCustomers({ customers, error }: { customers: HostedCustomer[]; error?: string | null }) {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
   const [historyCustomer, setHistoryCustomer] = useState<CustomerRow | null>(null);
   const rows = useMemo<CustomerRow[]>(() => customers.map((customer) => ({
@@ -68,9 +68,9 @@ export function HostedCustomers({ customers }: { customers: HostedCustomer[] }) 
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Customers" value={String(rows.length)} description={`${active} active customers`} icon={<Users className="size-5" />} />
+        <MetricCard title="Total Customers" value={error ? "—" : String(rows.length)} description={error ? "Customer information unavailable" : `${active} active customers`} icon={<Users className="size-5" />} />
         <MetricCard title="New This Month" value="—" description="Recent customers unavailable" icon={<UserPlus className="size-5" />} />
-        <MetricCard title="Loyalty Members" value={String(loyalty)} description="Customers with loyalty points" icon={<Star className="size-5" />} />
+        <MetricCard title="Loyalty Members" value={error ? "—" : String(loyalty)} description="Customers with loyalty points" icon={<Star className="size-5" />} />
         <MetricCard title="Average Customer Value" value="—" description="Purchasing totals unavailable" icon={<Banknote className="size-5" />} />
       </section>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
@@ -90,7 +90,7 @@ export function HostedCustomers({ customers }: { customers: HostedCustomer[] }) 
             searchPlaceholder="Search customers..."
             pageSize={10}
             onRowClick={setSelectedCustomer}
-            emptyMessage="No customers found."
+            emptyMessage={error ?? "No customers found."}
             toolbarActions={
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" disabled title="Customer import is not connected">
