@@ -22,7 +22,12 @@ export function SiteHeader({ account, theme, rightActions }: {
   const pathname = usePathname();
   // Desktop headers show Dashboard at the top of Overview, not Overview.
   const routeTitle = findDesktopRoute(pathname)?.item.label ?? "Dashboard";
-  const title = pathname === "/dashboard" ? "Dashboard" : pathname === "/dashboard/account" ? "My Account" : routeTitle;
+  const auxiliaryTitles: Record<string, string> = {
+    "/dashboard/account": "My Account",
+    "/dashboard/settings/desktop-sync": "Desktop Synchronization",
+    "/dashboard/products/synced": "Synced Products",
+  };
+  const title = pathname === "/dashboard" ? "Dashboard" : auxiliaryTitles[pathname] ?? routeTitle;
 
   return (
     <header className="sticky top-0 z-50 flex min-h-14 shrink-0 items-center gap-2 border-b bg-background py-2 transition-[width,height] ease-linear dark:bg-[#323232] group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-14">
