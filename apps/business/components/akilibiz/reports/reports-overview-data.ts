@@ -9,7 +9,7 @@ const reportRows: ReportsOverviewRow[] = [];
 
 export function useReportsOverviewData() {
   const [overviewRows] = useState<ReportsOverviewRow[]>(reportRows);
-  const overviewSummary: ReportsOverviewSummary | null = null;
+  const [overviewSummary] = useState<ReportsOverviewSummary | null>(null);
   const loadOverview = useCallback(async () => overviewRows, [overviewRows]);
   return { overviewRows, overviewSummary, loading: false, error: null as string | null, loadOverview, clearError: () => {} };
 }
