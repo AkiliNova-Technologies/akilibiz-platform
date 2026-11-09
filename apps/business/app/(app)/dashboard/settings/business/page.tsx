@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { StatusBanner } from "@/components/akilibiz/status-banner";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { BusinessSettingsForm } from "./business-settings-form";
@@ -12,7 +12,24 @@ export default async function BusinessSettingsPage() {
     .eq("id", active.id)
     .single();
 
-  if (error || !business) redirect("/businesses");
+  const loadError = error || !business;
+  const initial = business ? {
+    name: business.name,
+    tradingName: business.trading_name,
+    contactEmail: business.contact_email,
+    contactPhone: business.contact_phone,
+    locale: business.locale,
+    timeZone: business.time_zone,
+    currencyCode: business.currency_code,
+  } : {
+    name: active.name,
+    tradingName: active.tradingName,
+    contactEmail: null,
+    contactPhone: null,
+    locale: "en-UG",
+    timeZone: "Africa/Kampala",
+    currencyCode: "UGX",
+  };
 
   return (
     <main className="flex flex-1 flex-col">
@@ -23,17 +40,14 @@ export default async function BusinessSettingsPage() {
             Manage the verified profile for {active.name}. Changes are saved to this business only.
           </p>
         </div>
+        {loadError && (
+          <StatusBanner tone="error" title="Business profile unavailable">
+            Your business details could not be loaded. Check your connection and try again.
+          </StatusBanner>
+        )}
         <BusinessSettingsForm
-          initial={{
-            name: business.name,
-            tradingName: business.trading_name,
-            contactEmail: business.contact_email,
-            contactPhone: business.contact_phone,
-            locale: business.locale,
-            timeZone: business.time_zone,
-            currencyCode: business.currency_code,
-          }}
-          canEdit={active.role === "owner"}
+          initial={initial}
+          canEdit={!loadError && active.role === "owner"}
         />
       </div>
     </main>
