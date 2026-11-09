@@ -327,6 +327,8 @@ export default function SupplierPurchaseOrdersPage() {
               Cancel
             </Button>
             <Button
+              disabled
+              title="Purchase-order posting is not connected"
               onClick={async () => {
                 if (!data.po_number || !data.supplier_id || !data.order_date) {
                   toast.error(
@@ -395,6 +397,8 @@ export default function SupplierPurchaseOrdersPage() {
                   selected.status !== "Cancelled" && (
                     <Button
                       className="w-full"
+                      disabled
+                      title="Goods receipt posting is not connected"
                       onClick={async () => {
                         await markReceived(selected.id);
                         setDetail(false);
