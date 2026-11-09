@@ -127,13 +127,15 @@ export default function ReportsFinancialPage() {
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as FinancialReportTab)}>
-            <TabsList className="h-auto flex-wrap justify-start">
-              {tabs.map(([key, label]) => (
-                <TabsTrigger key={key} value={key}>
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="min-w-0 overflow-x-auto pb-1" aria-label="Financial report sections">
+              <TabsList className="h-auto min-w-max flex-nowrap justify-start gap-1 rounded-full bg-card p-1.5">
+                {tabs.map(([key, label]) => (
+                  <TabsTrigger key={key} value={key}>
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
             {tabs.map(([key, label]) => (
               <TabsContent key={key} value={key}>
                 <Card className="mb-4">
