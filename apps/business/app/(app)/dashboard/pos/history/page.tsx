@@ -510,6 +510,7 @@ export default function SalesHistoryPage() {
               emptyMessage={t("sales.empty")}
               onRefresh={handleRefresh}
               refreshing={loading}
+              refreshDisabled={!salesHistoryAvailable}
             />
           </CardContent>
         </Card>
