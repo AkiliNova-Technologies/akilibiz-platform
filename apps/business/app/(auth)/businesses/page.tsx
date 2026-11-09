@@ -29,18 +29,22 @@ export default async function BusinessesPage() {
             <form
               action={selectBusiness}
               key={business.id}
-              className="flex min-w-0 flex-wrap items-center gap-3 rounded-full border bg-card px-3 py-3 sm:flex-nowrap sm:px-4"
+              className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-full border bg-card px-3 py-3 transition-colors hover:bg-muted/30 sm:px-4"
             >
               <input type="hidden" name="business_id" value={business.id} />
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                <Building2 aria-hidden="true" className="size-4 text-muted-foreground" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{business.tradingName || business.name}</p>
-                {business.tradingName ? (
-                  <p className="truncate text-xs text-muted-foreground">{business.name}</p>
-                ) : null}
-                <p className="text-xs capitalize text-muted-foreground">{business.role.replaceAll("_", " ")}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                  <Building2 aria-hidden="true" className="size-4 text-muted-foreground" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold" title={business.tradingName || business.name}>
+                    {business.tradingName || business.name}
+                  </p>
+                  {business.tradingName ? (
+                    <p className="truncate text-xs text-muted-foreground" title={business.name}>{business.name}</p>
+                  ) : null}
+                  <p className="text-xs capitalize text-muted-foreground">{business.role.replaceAll("_", " ")}</p>
+                </div>
               </div>
               <Button type="submit" size="sm" variant={selected === business.id ? "secondary" : "default"} className="shrink-0">
                 {selected === business.id ? (
