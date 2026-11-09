@@ -129,13 +129,13 @@ export default function ReportsPurchasingPage() {
           <section className="grid gap-4 md:grid-cols-2">
             <MetricCard
               title="Posted receipts"
-              value={money(posted)}
+              value="—"
               description="Exact UGX from posted goods receipts"
               icon={<ReceiptText className="size-5" />}
             />
             <MetricCard
               title="Receipt register"
-              value={String(rows.length)}
+              value="—"
               description="Posted and voided receipts remain traceable"
               icon={<Truck className="size-5" />}
             />
@@ -204,7 +204,7 @@ export default function ReportsPurchasingPage() {
                 enableSorting={false}
                 pageSize={10}
                 loading={false}
-                emptyMessage="No goods receipts are available."
+                emptyMessage="Purchasing reports are unavailable until hosted goods-received records are connected."
               />
             </CardContent>
           </Card>
