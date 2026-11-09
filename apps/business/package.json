@@ -8,6 +8,7 @@
     "start": "next start --port 3001",
     "verify:hosted-rls": "node --env-file=.env.hosted-rls scripts/verify-hosted-rls.mjs",
     "qualify:phase1c": "node scripts/qualify-phase1c-hosted.mjs",
+    "verify:sync-security": "node scripts/check-sync-security-posture.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
