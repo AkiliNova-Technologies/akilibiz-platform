@@ -12,19 +12,22 @@ import { StatusBanner } from "@/components/akilibiz/status-banner";
 
 const initial: StaffActionState = { error: null, message: null };
 
-export function GrantAccessForm() {
+export function GrantAccessForm({ initialEmail = "", initialRole }: {
+  initialEmail?: string;
+  initialRole?: "manager" | "cashier" | "inventory_staff" | "accountant";
+}) {
   const [state, action, pending] = useActionState(grantStaffAccess, initial);
   return (
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="staff-email">Staff account email</Label>
-          <Input id="staff-email" name="email" type="email" required
+          <Input id="staff-email" name="email" type="email" required defaultValue={initialEmail}
             placeholder="staff@example.com" autoComplete="off" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="staff-role">Business role</Label>
-          <Select name="role" required>
+          <Select name="role" required defaultValue={initialRole}>
             <SelectTrigger id="staff-role" className="w-full">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
