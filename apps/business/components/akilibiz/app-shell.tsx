@@ -3,6 +3,7 @@
 import { AppSidebar } from "@/components/akilibiz/app-sidebar";
 import { type AccountDisplay } from "@/components/akilibiz/account-menu";
 import { SiteHeader } from "@/components/akilibiz/site-header";
+import { PosHeaderProvider } from "@/components/akilibiz/pos/pos-header-actions";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -16,6 +17,7 @@ export function AppShell({
   const { theme } = useTheme();
 
   return (
+    <PosHeaderProvider>
     <SidebarProvider className="bg-background">
       <AppSidebar account={account} />
       <SidebarInset className="min-h-svh bg-background">
@@ -28,5 +30,6 @@ export function AppShell({
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </PosHeaderProvider>
   );
 }
