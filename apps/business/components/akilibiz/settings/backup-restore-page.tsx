@@ -27,8 +27,8 @@ export function BackupRestorePage() {
       </div>
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-4">
-          <Card>
-            <CardContent className="space-y-4 px-4 py-5 sm:px-6">
+          <Card className="gap-0 py-0">
+            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Create backup</h2>
                 <p className="text-sm text-muted-foreground">
@@ -44,8 +44,8 @@ export function BackupRestorePage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="space-y-4 px-4 py-5 sm:px-6">
+          <Card className="gap-0 py-0">
+            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Restore backup</h2>
                 <p className="text-sm text-muted-foreground">Choose a backup file before requesting a restore.</p>
@@ -65,8 +65,8 @@ export function BackupRestorePage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="space-y-4 px-4 py-5 sm:px-6">
+          <Card className="gap-0 py-0">
+            <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Desktop sync</h2>
                 <p className="text-sm text-muted-foreground">
@@ -86,8 +86,8 @@ export function BackupRestorePage() {
             </CardContent>
           </Card>
         </div>
-        <Card className="min-w-0 xl:min-h-[32rem]">
-          <CardContent className="space-y-4 px-4 py-5 sm:px-6">
+        <Card className="min-w-0 gap-0 py-0 xl:min-h-[32rem]">
+          <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Backup history</h2>
               <p className="text-sm text-muted-foreground">Recent backup records for this business.</p>
@@ -96,21 +96,21 @@ export function BackupRestorePage() {
               <table className="w-full min-w-[34rem] text-left text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-3 font-medium">Date &amp; time</th>
-                    <th className="px-3 py-3 font-medium">File name</th>
-                    <th className="px-3 py-3 font-medium">Size</th>
-                    <th className="px-3 py-3 font-medium">Status</th>
-                    <th className="px-3 py-3 text-right font-medium">Actions</th>
+                    <th className="px-3 py-2 font-medium">Date &amp; time</th>
+                    <th className="px-3 py-2 font-medium">File name</th>
+                    <th className="px-3 py-2 font-medium">Size</th>
+                    <th className="px-3 py-2 font-medium">Status</th>
+                    <th className="px-3 py-2 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {backup.backups.map((item) => (
                     <tr key={item.id} className="border-t">
-                      <td className="px-3 py-3">{new Date(item.createdAt).toLocaleString("en-UG")}</td>
-                      <td className="px-3 py-3">{item.name}</td>
-                      <td className="px-3 py-3">{item.size}</td>
-                      <td className="px-3 py-3">{item.status}</td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-2">{new Date(item.createdAt).toLocaleString("en-UG")}</td>
+                      <td className="px-3 py-2">{item.name}</td>
+                      <td className="px-3 py-2">{item.size}</td>
+                      <td className="px-3 py-2">{item.status}</td>
+                      <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
                           <Button type="button" variant="ghost" size="icon" disabled aria-label="View backup" title="View backup"><Eye className="size-4" /></Button>
                           <Button type="button" variant="ghost" size="icon" disabled aria-label="Verify backup" title="Verify backup"><FileCheck2 className="size-4" /></Button>
@@ -120,7 +120,7 @@ export function BackupRestorePage() {
                     </tr>
                   ))}
                   {backup.backups.length === 0 && (
-                    <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <tr><td colSpan={5} className="px-4 py-7 text-center text-sm text-muted-foreground">
                       Backup history is unavailable until the secure backup service is connected.
                     </td></tr>
                   )}
