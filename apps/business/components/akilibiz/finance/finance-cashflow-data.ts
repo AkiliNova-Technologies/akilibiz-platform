@@ -8,9 +8,9 @@ export interface CashFlowRow {
 }
 export function useFinanceCashFlowData() {
   const [cashFlowEntries] = useState<CashFlowRow[]>([]);
-  const cashFlowSummary: {
+  const [cashFlowSummary] = useState<{
     total_inflow: number; total_outflow: number; net_cash_flow: number; transaction_count: number;
-  } | null = null;
+  } | null>(null);
   const refreshCashFlow = useCallback(async () => cashFlowEntries, [cashFlowEntries]);
   return { cashFlowEntries, cashFlowSummary, loading: false, error: null as string | null, refreshCashFlow, clearError: () => {} };
 }
