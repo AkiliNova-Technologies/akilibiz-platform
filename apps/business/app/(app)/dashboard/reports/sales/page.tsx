@@ -108,13 +108,6 @@ export default function ReportsSalesPage() {
     from || to
       ? `${from || "All"} to ${to || "All"} UTC`
       : "All available UTC dates";
-  const totals = useMemo(
-    () => ({
-      billed: rows.reduce((total, row) => total + row.total, 0),
-      outstanding: rows.reduce((total, row) => total + row.balance, 0),
-    }),
-    [rows],
-  );
   return (
     <>
       <div className="flex flex-1 flex-col">
