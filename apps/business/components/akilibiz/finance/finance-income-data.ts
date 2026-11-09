@@ -24,7 +24,7 @@ export interface IncomeSummary {
 export function useFinanceIncomeData() {
   // Real income data and posting are not yet connected to hosted finance.
   const [incomeEntries] = useState<IncomeRow[]>([]);
-  const incomeSummary: IncomeSummary | null = null;
+  const [incomeSummary] = useState<IncomeSummary | null>(null);
   const incomeCategories: IncomeCategory[] = [];
   const addIncomeEntry = useCallback(async (_payload: CreateIncomePayload): Promise<never> => {
     throw new Error("Income recording is unavailable until hosted finance posting is connected.");
