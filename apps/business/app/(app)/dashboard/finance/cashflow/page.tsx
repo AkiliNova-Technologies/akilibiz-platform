@@ -119,25 +119,25 @@ export default function FinanceCashFlowPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Total Inflow"
-            value={formatFinanceCurrency(cashFlowSummary.total_inflow)}
+            value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.total_inflow) : "—"}
             description="All recorded incoming cash movements"
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
             title="Total Outflow"
-            value={formatFinanceCurrency(cashFlowSummary.total_outflow)}
+            value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.total_outflow) : "—"}
             description="All recorded outgoing cash movements"
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
             title="Net Cash Flow"
-            value={formatFinanceCurrency(cashFlowSummary.net_cash_flow)}
+            value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.net_cash_flow) : "—"}
             description="Difference between inflow and outflow"
             icon={<Banknote className="size-5" />}
           />
           <MetricCard
             title="Transactions"
-            value={String(cashFlowSummary.transaction_count)}
+            value={cashFlowSummary ? String(cashFlowSummary.transaction_count) : "—"}
             description="Cash movement entries in current view"
             icon={<WalletCards className="size-5" />}
           />
@@ -154,7 +154,7 @@ export default function FinanceCashFlowPage() {
               pageSize={10}
               loading={loading}
               emptyMessage={
-                loading ? "Loading cash flow..." : "No cash movements found."
+                loading ? "Loading cash flow..." : "Cash flow records are unavailable until the hosted finance ledger is connected."
               }
               toolbarActions={
                 <Button
