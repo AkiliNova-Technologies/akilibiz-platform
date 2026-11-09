@@ -46,8 +46,8 @@ begin
   if not exists (
     select 1 from private.desktop_inventory_checkpoints c
     where c.business_id=target_business_id
-      and c.source_business_public_id=source_business_public_id
-      and c.source_device_public_id=source_device_public_id
+      and c.source_business_public_id=upload_desktop_inventory_metadata.source_business_public_id
+      and c.source_device_public_id=upload_desktop_inventory_metadata.source_device_public_id
   ) then
     raise exception 'Confirmed checkpoint required for inventory metadata'
       using errcode='23503';
@@ -73,7 +73,7 @@ begin
     if not exists(
       select 1 from public.desktop_inventory_positions p
       where p.business_id=target_business_id
-        and p.local_business_public_id=source_business_public_id
+        and p.local_business_public_id=upload_desktop_inventory_metadata.source_business_public_id
         and p.local_product_id=source_id and p.is_current
     ) then
       raise exception 'New stock products require an authorized source baseline'
@@ -104,7 +104,7 @@ begin
       target_business_id,source_business_public_id,source_id,
       (item->>'reserved_milli')::bigint,(item->>'damaged_milli')::bigint,
       (item->>'minimum_milli')::bigint,(item->>'maximum_milli')::bigint
-    ) on conflict(business_id,source_business_public_id,local_product_id)
+    ) on conflict on constraint desktop_inventory_current_metadata_pkey
     do update set reserved_milli=excluded.reserved_milli,
       damaged_milli=excluded.damaged_milli,
       minimum_milli=excluded.minimum_milli,
@@ -113,7 +113,7 @@ begin
   end loop;
   delete from private.desktop_inventory_current_metadata m
    where m.business_id=target_business_id
-     and m.source_business_public_id=source_business_public_id
+     and m.source_business_public_id=upload_desktop_inventory_metadata.source_business_public_id
      and not exists(
        select 1 from jsonb_array_elements(positions) e
        where (e->>'product_id')::bigint=m.local_product_id

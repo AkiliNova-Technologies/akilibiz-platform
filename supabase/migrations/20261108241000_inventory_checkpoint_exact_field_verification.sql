@@ -37,8 +37,8 @@ begin
   ));
   select * into existing from private.desktop_inventory_checkpoints c
    where c.business_id=target_business_id
-     and c.source_business_public_id=source_business_public_id
-     and c.source_device_public_id=source_device_public_id
+     and c.source_business_public_id=stage_desktop_inventory_checkpoint.source_business_public_id
+     and c.source_device_public_id=stage_desktop_inventory_checkpoint.source_device_public_id
    for update;
   if found then
     if existing.request_id=checkpoint_request_id
@@ -51,7 +51,7 @@ begin
   end if;
   if (select count(*) from public.desktop_inventory_positions p
       where p.business_id=target_business_id
-        and p.local_business_public_id=source_business_public_id
+        and p.local_business_public_id=stage_desktop_inventory_checkpoint.source_business_public_id
         and p.is_current) <> jsonb_array_length(positions) then
     raise exception 'Checkpoint snapshot count differs from current cloud stock'
       using errcode='23514';
@@ -82,23 +82,7 @@ begin
       if item->column_name <> 'null'::jsonb then
         raw_value := item->>column_name;
         if jsonb_typeof(item->column_name)<>'number'
-           or raw_value !~ '^-?[0-9]+
-    seen_count := seen_count+1;
-  end loop;
-  insert into private.desktop_inventory_checkpoints(
-    business_id,source_business_public_id,source_device_public_id,
-    request_id,movement_watermark,positions
-  ) values (
-    target_business_id,source_business_public_id,source_device_public_id,
-    checkpoint_request_id,movement_watermark,positions
-  ) returning id into checkpoint_id;
-  insert into private.desktop_inventory_movement_cursors(checkpoint_id,latest_movement_id)
-  values(checkpoint_id,movement_watermark);
-  return checkpoint_id;
-end;
-$$;
-
-
+           or raw_value !~ '^-?[0-9]+$'
            or abs(raw_value::numeric)>9223372036854775807::numeric then
           raise exception 'Checkpoint field % requires exact int8 or null',column_name
             using errcode='22023';
@@ -109,7 +93,7 @@ $$;
       p.minimum_milli,p.maximum_milli,p.is_current into remote_position
       from public.desktop_inventory_positions p
       where p.business_id=target_business_id
-        and p.local_business_public_id=source_business_public_id
+        and p.local_business_public_id=stage_desktop_inventory_checkpoint.source_business_public_id
         and p.local_product_id=source_id;
     if not found or not remote_position.is_current
        or remote_position.on_hand_milli is distinct from (item->>'on_hand_milli')::bigint

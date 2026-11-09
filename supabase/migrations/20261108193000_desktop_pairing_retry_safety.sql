@@ -59,7 +59,7 @@ begin
   insert into private.desktop_devices(
     business_id,local_business_public_id,device_public_id,paired_by
   ) values(challenge.business_id,btrim(local_business_public_id),device_public_id,actor)
-  on conflict (device_public_id) do nothing
+  on conflict on constraint desktop_devices_device_public_id_key do nothing
   returning id into device_uuid;
 
   if device_uuid is null then

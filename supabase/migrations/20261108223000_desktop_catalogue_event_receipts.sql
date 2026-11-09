@@ -13,7 +13,7 @@ create table private.desktop_catalogue_event_receipts (
 );
 revoke all on private.desktop_catalogue_event_receipts from public,anon,authenticated,service_role;
 
-create function public.apply_desktop_catalogue_event(
+create or replace function public.apply_desktop_catalogue_event(
   target_business_id uuid,
   source_business_public_id text,
   source_device_public_id uuid,
@@ -51,7 +51,8 @@ begin
   ));
   if exists (
     select 1 from private.desktop_catalogue_event_receipts r
-    where r.business_id=target_business_id and r.source_business_public_id=source_business_public_id
+    where r.business_id=target_business_id
+      and r.source_business_public_id=apply_desktop_catalogue_event.source_business_public_id
       and r.event_id=apply_desktop_catalogue_event.event_id
   ) then
     return true;

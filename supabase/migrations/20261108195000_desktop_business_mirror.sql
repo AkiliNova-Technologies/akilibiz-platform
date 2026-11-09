@@ -112,10 +112,10 @@ begin
   select * into saved from private.desktop_mirror_batches b
    where b.batch_id=source_batch_id for update;
   if not found or saved.business_id<>target_business_id
-     or saved.source_business_public_id<>source_business_public_id
-     or saved.source_device_public_id<>source_device_public_id
-     or saved.entity_type<>entity_type
-     or saved.source_generation<>source_generation
+     or saved.source_business_public_id<>stage_desktop_business_snapshot_chunk.source_business_public_id
+     or saved.source_device_public_id<>stage_desktop_business_snapshot_chunk.source_device_public_id
+     or saved.entity_type<>stage_desktop_business_snapshot_chunk.entity_type
+     or saved.source_generation<>stage_desktop_business_snapshot_chunk.source_generation
      or saved.expected_count<>expected_count then
     raise exception 'Mirror batch identity conflict' using errcode='23505';
   end if;
@@ -184,10 +184,10 @@ begin
   select * into batch from private.desktop_mirror_batches b
    where b.batch_id=source_batch_id for update;
   if not found or batch.business_id<>target_business_id
-     or batch.source_business_public_id<>source_business_public_id
-     or batch.source_device_public_id<>source_device_public_id
-     or batch.entity_type<>entity_type
-     or batch.source_generation<>source_generation then
+     or batch.source_business_public_id<>finalize_desktop_business_snapshot.source_business_public_id
+     or batch.source_device_public_id<>finalize_desktop_business_snapshot.source_device_public_id
+     or batch.entity_type<>finalize_desktop_business_snapshot.entity_type
+     or batch.source_generation<>finalize_desktop_business_snapshot.source_generation then
     raise exception 'Mirror batch not found for this source' using errcode='23503';
   end if;
   if batch.state='committed' then return batch.expected_count; end if;
@@ -198,8 +198,8 @@ begin
   end if;
   select * into head from private.desktop_mirror_heads h
    where h.business_id=target_business_id
-     and h.source_business_public_id=source_business_public_id
-     and h.entity_type=entity_type for update;
+     and h.source_business_public_id=finalize_desktop_business_snapshot.source_business_public_id
+     and h.entity_type=finalize_desktop_business_snapshot.entity_type for update;
   if found and head.committed_generation>=source_generation then
     raise exception 'Stale or conflicting mirror generation' using errcode='23505';
   end if;
@@ -207,8 +207,8 @@ begin
   -- visible to readers, and retries cannot roll back a newer generation.
   delete from public.desktop_business_records r
    where r.business_id=target_business_id
-     and r.local_business_public_id=source_business_public_id
-     and r.entity_type=entity_type;
+     and r.local_business_public_id=finalize_desktop_business_snapshot.source_business_public_id
+     and r.entity_type=finalize_desktop_business_snapshot.entity_type;
   insert into public.desktop_business_records(
     business_id,local_business_public_id,entity_type,local_record_id,record
   )
@@ -221,7 +221,7 @@ begin
   ) values(
     target_business_id,source_business_public_id,entity_type,
     source_generation,source_batch_id
-  ) on conflict(business_id,source_business_public_id,entity_type)
+  ) on conflict on constraint desktop_mirror_heads_pkey
     do update set committed_generation=excluded.committed_generation,
       committed_batch_id=excluded.committed_batch_id,committed_at=now();
   update private.desktop_mirror_batches

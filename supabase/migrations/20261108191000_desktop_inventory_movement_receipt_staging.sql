@@ -82,8 +82,8 @@ begin
   ));
   select * into baseline from private.desktop_inventory_checkpoints b
   where b.business_id=target_business_id
-    and b.source_business_public_id=source_business_public_id
-    and b.source_device_public_id=source_device_public_id;
+    and b.source_business_public_id=stage_desktop_inventory_movement.source_business_public_id
+    and b.source_device_public_id=stage_desktop_inventory_movement.source_device_public_id;
   if not found then
     raise exception 'Verified inventory checkpoint required' using errcode='23503';
   end if;
@@ -91,9 +91,10 @@ begin
   -- A repeated ID must bind to precisely the same payload and cursor context.
   select * into prior from private.desktop_inventory_movement_receipts r
   where r.business_id=target_business_id
-    and r.source_business_public_id=source_business_public_id
-    and r.source_device_public_id=source_device_public_id
-    and (r.event_id=source_event_id or r.source_movement_id=source_movement_id);
+    and r.source_business_public_id=stage_desktop_inventory_movement.source_business_public_id
+    and r.source_device_public_id=stage_desktop_inventory_movement.source_device_public_id
+    and (r.event_id=stage_desktop_inventory_movement.source_event_id
+      or r.source_movement_id=stage_desktop_inventory_movement.source_movement_id);
   if found then
     if prior.event_id=source_event_id and prior.source_movement_id=source_movement_id
       and prior.previous_movement_id=previous_movement_id
