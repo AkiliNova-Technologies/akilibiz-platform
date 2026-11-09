@@ -54,10 +54,6 @@ const tabs: Array<[FinancialReportTab, string]> = [
 export default function ReportsFinancialPage() {
   const {
     entries,
-    grossProfit,
-    profitLoss,
-    trial,
-    balanceSheet,
     loading,
     refresh,
   } = useReportsFinancialData();
@@ -235,50 +231,11 @@ export default function ReportsFinancialPage() {
                       enableGlobalSearch
                       enableSorting={false}
                       loading={loading}
-                      emptyMessage="No financial records are available for this selection."
+                      emptyMessage="Financial reports are unavailable until the hosted accounting ledger is connected."
                     />
-                    {key === "trial" ? (
-                      <p className="px-4 pb-4 text-sm text-muted-foreground">
-                        Total debit: {ugx(trial.total_debit_ugx)} · Total
-                        credit: {ugx(trial.total_credit_ugx)} ·{" "}
-                        {trial.balances_equal
-                          ? "Balances equal"
-                          : "Totals do not balance"}
-                      </p>
-                    ) : null}
-                    {key === "detailed-trial" ? (
-                      <p className="px-4 pb-4 text-sm text-muted-foreground">
-                        Total debit: {ugx(trial.total_debit_ugx)} · Total
-                        credit: {ugx(trial.total_credit_ugx)} ·{" "}
-                        {trial.balances_equal
-                          ? "Balances equal"
-                          : "Totals do not balance"}
-                      </p>
-                    ) : null}
-                    {key === "balance-sheet" ? (
-                      <p className="px-4 pb-4 text-sm text-muted-foreground">
-                        Assets: {ugx(balanceSheet.assets_ugx)} · Liabilities +
-                        equity: {ugx(balanceSheet.liabilities_and_equity_ugx)} ·{" "}
-                        {balanceSheet.balances_equal
-                          ? "Balances equal"
-                          : "Totals do not balance"}
-                      </p>
-                    ) : null}
-                    {key === "gross-profit" ? (
-                      <p className="px-4 pb-4 text-sm text-muted-foreground">
-                        Revenue: {ugx(grossProfit.revenue_ugx)} · Cost of goods
-                        sold: {ugx(grossProfit.cogs_ugx)} · Gross profit:{" "}
-                        {ugx(grossProfit.gross_profit_ugx)}
-                      </p>
-                    ) : null}
-                    {key === "profit-loss" ? (
-                      <p className="px-4 pb-4 text-sm text-muted-foreground">
-                        Revenue: {ugx(profitLoss.revenue_ugx)} · Cost of goods
-                        sold: {ugx(profitLoss.cogs_ugx)} · Operating expenses:{" "}
-                        {ugx(profitLoss.operating_expenses_ugx)} · Net profit /
-                        loss: {ugx(profitLoss.net_profit_loss_ugx)}
-                      </p>
-                    ) : null}
+                    <p className="px-4 pb-4 text-sm text-muted-foreground">
+                      Financial report totals are unavailable until the hosted accounting ledger is connected.
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
