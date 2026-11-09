@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { Banknote as IconCash, CreditCard, Smartphone, Eye as IconEye, Printer, ReceiptText as IconReceipt, ReceiptText as IconReceiptTax } from "lucide-react";
+import { Banknote as IconCash, CreditCard, Smartphone, Eye as IconEye, Printer, ReceiptText as IconReceipt, ReceiptText as IconReceiptTax, Ban } from "lucide-react";
 
 import {
   DataTable,
@@ -160,10 +159,13 @@ export default function SalesHistoryPage() {
     refreshSales,
     clearSale,
     cancelExistingSale,
+    user,
+    taxSettings,
+    getTaxSettings,
   } = useSalesHistoryData();
-  const { user } = useSalesHistoryData();
 
-  const { settings: taxSettings, getTaxSettings } = useSalesHistoryData();
+  // Hosted transaction reads, receipts, and cancellation are not yet connected.
+  const salesHistoryAvailable = false;
 
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -222,6 +224,8 @@ export default function SalesHistoryPage() {
       };
     }
 
+    if (!salesHistoryAvailable) return null;
+
     const completedSales = filteredSales.filter(
       (s) => s.status === "completed",
     );
@@ -241,8 +245,9 @@ export default function SalesHistoryPage() {
   }, [summary, filteredSales, sales]);
 
   const handleViewSale = async (sale: SaleHistoryRow) => {
-    await getSale(sale.id);
-    setDetailsOpen(true);
+    if (!salesHistoryAvailable) return;
+    const detail = await getSale(sale.id);
+    if (detail) setDetailsOpen(true);
   };
 
   const handleRefresh = async () => {
@@ -250,7 +255,7 @@ export default function SalesHistoryPage() {
   };
 
   const handleReceipt = async (saleId: number) => {
-    if (receiptLoading) return;
+    if (!salesHistoryAvailable || receiptLoading) return;
     setReceiptLoading(true);
     try {
       setReceiptSaleId(saleId);
@@ -263,11 +268,13 @@ export default function SalesHistoryPage() {
   };
 
   const handleOpenCancellation = (sale: SaleHistoryRow) => {
+    if (!salesHistoryAvailable) return;
     setCancelTarget(sale);
     setCancelReason("");
   };
 
   const handleCancelSale = async () => {
+    if (!salesHistoryAvailable) return;
     if (!cancelTarget || !user?.staff_id) {
       toast.error(t("sales.staffRequired"));
       return;
@@ -286,6 +293,8 @@ export default function SalesHistoryPage() {
         setDetailsOpen(false);
         await refreshSales();
       }
+    } catch {
+      toast.error("This sale cannot be cancelled yet.");
     } finally {
       setCancelling(false);
     }
@@ -303,7 +312,7 @@ export default function SalesHistoryPage() {
       header: t("sales.dateTime"),
       enableSorting: true,
       cell: (value) => (
-        <span>{format(new Date(String(value)), "dd MMM yyyy, hh:mm a")}</span>
+        <span>{new Intl.DateTimeFormat("en-UG", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(String(value)))}</span>
       ),
     },
     {
@@ -372,18 +381,21 @@ export default function SalesHistoryPage() {
       type: "view",
       label: t("sales.view"),
       onClick: handleViewSale,
+      disabled: () => !salesHistoryAvailable,
     },
     {
       type: "custom",
       label: t("sales.printReceipt"),
       icon: <Printer className="size-4" />,
       onClick: (row) => void handleReceipt(row.id),
+      disabled: () => !salesHistoryAvailable,
     },
     {
       type: "custom",
       label: t("sales.cancelSale"),
+      icon: <Ban className="size-4" />,
       onClick: handleOpenCancellation,
-      disabled: (row) => row.status !== "completed",
+      disabled: (row) => !salesHistoryAvailable || row.status !== "completed",
     },
   ];
 
@@ -403,28 +415,28 @@ export default function SalesHistoryPage() {
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <MetricCard
             title={t("sales.totalSales")}
-            value={formatCurrency(stats.totalValue)}
+            value={stats ? formatCurrency(stats.totalValue) : "—"}
             description={t("sales.totalSalesDescription")}
             icon={<IconCash className="size-5" />}
           />
 
           <MetricCard
             title={t("sales.transactions")}
-            value={String(stats.transactionCount)}
+            value={stats ? String(stats.transactionCount) : "—"}
             description={t("sales.transactionsDescription")}
             icon={<IconReceipt className="size-5" />}
           />
 
           <MetricCard
             title={t("sales.vatCollected")}
-            value={formatCurrency(stats.totalTax)}
+            value={stats ? formatCurrency(stats.totalTax) : "—"}
             description={t("sales.vatCollectedDescription")}
             icon={<IconReceiptTax className="size-5" />}
           />
 
           <MetricCard
             title={t("sales.averageSale")}
-            value={formatCurrency(stats.avgSale)}
+            value={stats ? formatCurrency(stats.avgSale) : "—"}
             description={t("sales.averageSaleDescription")}
             icon={<IconCash className="size-5" />}
           />
@@ -494,7 +506,7 @@ export default function SalesHistoryPage() {
               enableGlobalSearch
               searchPlaceholder={t("sales.search")}
               pageSize={10}
-              onRowClick={handleViewSale}
+              onRowClick={salesHistoryAvailable ? handleViewSale : undefined}
               emptyMessage={t("sales.empty")}
               onRefresh={handleRefresh}
               refreshing={loading}
@@ -714,12 +726,12 @@ export default function SalesHistoryPage() {
               </Card>
 
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" disabled={receiptLoading} onClick={() => void handleReceipt(selectedSale.id)}>
+                <Button variant="outline" className="flex-1" disabled={!salesHistoryAvailable || receiptLoading} onClick={() => void handleReceipt(selectedSale.id)}>
                   <Printer className="mr-2 size-4" />
                   {t("sales.printReceipt")}
                 </Button>
 
-                <Button className="flex-1" disabled={receiptLoading} onClick={() => void handleReceipt(selectedSale.id)}>
+                <Button className="flex-1" disabled={!salesHistoryAvailable || receiptLoading} onClick={() => void handleReceipt(selectedSale.id)}>
                   <IconEye className="mr-2 size-4" />
                   {t("sales.fullReceipt")}
                 </Button>
@@ -753,7 +765,7 @@ export default function SalesHistoryPage() {
             <Button variant="outline" onClick={() => setCancelTarget(null)} disabled={cancelling}>
               {t("sales.keepSale")}
             </Button>
-            <Button variant="destructive" onClick={handleCancelSale} disabled={cancelling || !cancelReason.trim()}>
+            <Button variant="destructive" onClick={handleCancelSale} disabled={!salesHistoryAvailable || cancelling || !cancelReason.trim()}>
               {cancelling ? t("sales.cancelling") : t("sales.confirmCancellation")}
             </Button>
           </DialogFooter>
