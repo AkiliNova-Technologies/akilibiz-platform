@@ -232,6 +232,11 @@ export const desktopNavigation: NavigationGroup[] = [
         reference: "SettingsBusinessProfilePage",
       },
       {
+        href: "/dashboard/settings/merchant-wallets",
+        label: "Merchant Wallets",
+        reference: "SettingsMerchantWalletsPage",
+      },
+      {
         href: "/dashboard/settings/receipt",
         label: "Receipt Settings",
         reference: "SettingsReceiptPage",
@@ -243,7 +248,7 @@ export const desktopNavigation: NavigationGroup[] = [
       },
       {
         href: "/dashboard/settings/backup",
-        label: "Backup & Restore",
+        label: "Backup, Restore & Sync",
         reference: "SettingsBackupRestorePage",
       },
       {
