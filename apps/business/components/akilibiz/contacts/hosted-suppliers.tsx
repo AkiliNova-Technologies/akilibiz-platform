@@ -15,7 +15,7 @@ function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
 }
 
-export function HostedSuppliers({suppliers}:{suppliers:HostedSupplier[]}) {
+export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];error?:string|null}) {
   const [selected, setSelected] = useState<HostedSupplier | null>(null);
   const activeCount = useMemo(() => suppliers.filter((supplier) => supplier.is_active).length, [suppliers]);
 
@@ -55,9 +55,9 @@ export function HostedSuppliers({suppliers}:{suppliers:HostedSupplier[]}) {
         <p className="text-sm text-muted-foreground">Manage supplier information and purchasing relationships.</p>
       </div>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Suppliers" value={String(suppliers.length)}
-          description={`${activeCount} active suppliers`} icon={<Truck className="size-5" />} />
-        <MetricCard title="Active Suppliers" value={String(activeCount)}
+        <MetricCard title="Total Suppliers" value={error ? "—" : String(suppliers.length)}
+          description={error ? "Supplier information unavailable" : `${activeCount} active suppliers`} icon={<Truck className="size-5" />} />
+        <MetricCard title="Active Suppliers" value={error ? "—" : String(activeCount)}
           description="Available suppliers" icon={<Package className="size-5" />} />
         <MetricCard title="Purchase Value" value="—"
           description="Purchase totals unavailable" icon={<Banknote className="size-5" />} />
@@ -77,7 +77,7 @@ export function HostedSuppliers({suppliers}:{suppliers:HostedSupplier[]}) {
             searchPlaceholder="Search suppliers..."
             pageSize={10}
             onRowClick={setSelected}
-            emptyMessage="No suppliers found."
+            emptyMessage={error ?? "No suppliers found."}
             toolbarActions={
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" disabled title="Supplier import is unavailable">
