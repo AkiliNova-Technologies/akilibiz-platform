@@ -200,6 +200,50 @@ async function main() {
     manifest.businessBId = registrationB[0].hosted_business_id;
     manifest.deviceBId = deviceB;
     await save();
+
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1") {
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      const manifestPath = resolve(desktopRepo, "src-tauri", "Cargo.toml");
+      const worker = spawnSync("cargo", [
+        "test", "--manifest-path", manifestPath,
+        "--test", "hosted_worker_qualification",
+        "real_worker_uses_production_http_and_durable_queues",
+        "--", "--ignored", "--exact", "--nocapture",
+      ], {
+        cwd: desktopRepo,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        env: {
+          ...process.env,
+          AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+          AKILIBIZ_ENABLE_STOCK_MOVEMENT_SYNC: "1",
+          AKILIBIZ_ENABLE_BUSINESS_MIRROR_SYNC: "1",
+          AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceB,
+          AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessBId,
+          AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceB,
+          AKILIBIZ_QUALIFICATION_USER_ID: signB.data.user.id,
+          AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: signB.data.session.access_token,
+          AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: signB.data.session.refresh_token,
+        },
+      });
+      if (worker.status !== 0) {
+        const diagnostic = redact(`${worker.stdout ?? ""}\n${worker.stderr ?? ""}`);
+        throw new Error(`real desktop worker qualification failed\n${diagnostic}`);
+      }
+      mark(results, "real Rust desktop worker production tick", "PASS");
+
+      const workerFinance = await expectSuccess(results, "real worker exact financial mirror", ownerB
+        .from("desktop_business_records")
+        .select("record")
+        .eq("business_id", manifest.businessBId)
+        .eq("entity_type", "finance_transactions"));
+      assert(workerFinance.some((row) => row.record?.amount_ugx === 12345), "real worker financial amount was not preserved exactly");
+      const workerInventory = await expectSuccess(results, "real worker effective inventory", ownerB
+        .rpc("list_desktop_effective_inventory", { target_business_id: manifest.businessBId }));
+      assert(workerInventory.some((row) => row.on_hand_milli === 1500), "real worker movement did not produce the expected hosted quantity");
+      manifest.realDesktopWorker = true;
+      await save();
+    }
     const retryRegistration = await ownerA.rpc("register_desktop_business", { local_business_public_id: sourceA, device_public_id: deviceA, business_name: `PHASE1C ${runId} A`, business_trading_name: "Phase1C A", business_contact_email: manifest.userAEmail, business_contact_phone: null, business_time_zone: "Africa/Kampala", business_currency_code: "UGX" });
     assert(!retryRegistration.error && retryRegistration.data[0].created === false, "business registration retry was not idempotent");
     mark(results, "business registration lost-acknowledgement retry", "PASS");
