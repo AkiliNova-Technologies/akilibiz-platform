@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, Plus, Minus, Trash2, Receipt, Banknote, X, ShoppingCart, Package, Smartphone, RefreshCw, AlertTriangle, Barcode, LayoutGrid, List, PanelsTopLeft } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Receipt, Banknote, ShoppingCart, Package, Smartphone, RefreshCw, AlertTriangle, Barcode, LayoutGrid, List, PanelsTopLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
