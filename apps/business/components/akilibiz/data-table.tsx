@@ -214,6 +214,7 @@ interface DataTableProps<TData extends TableData> {
   toolbarActions?: React.ReactNode;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
+  refreshDisabled?: boolean;
 
   // Customization
   emptyMessage?: string;
@@ -395,6 +396,7 @@ function DataTable<TData extends TableData>({
   toolbarActions,
   onRefresh,
   refreshing = false,
+  refreshDisabled = false,
 
   // Customization
   emptyMessage,
@@ -858,7 +860,7 @@ function DataTable<TData extends TableData>({
                   <Button
                     variant="outline"
                     onClick={() => void onRefresh()}
-                    disabled={loading || refreshing}
+                    disabled={loading || refreshing || refreshDisabled}
                     aria-label={t("common.refresh")}
                   >
                     <RefreshCwIcon
