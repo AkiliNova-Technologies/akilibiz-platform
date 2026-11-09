@@ -86,9 +86,6 @@ export default function DashboardPage() {
   const [error, setError] = React.useState<string | null>(null);
   React.useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError(null);
-    setD(null);
     void getDashboardOverview({
       date_from: appliedPeriod.from,
       date_to: appliedPeriod.to,
