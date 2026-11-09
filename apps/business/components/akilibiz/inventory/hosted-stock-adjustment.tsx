@@ -62,9 +62,10 @@ function formatQuantity(milli: number | null, unit: string) {
   return `${new Intl.NumberFormat("en-UG", { maximumFractionDigits: 3 }).format(milli / 1000)} ${unit}`;
 }
 
-export function HostedStockAdjustment({ positions, products }: {
+export function HostedStockAdjustment({ positions, products, error }: {
   positions: Position[];
   products: ProductSummary[];
+  error?: string | null;
 }) {
   const [form, setForm] = useState<Form>(initialForm);
   const [selectedMovement, setSelectedMovement] = useState<AdjustmentRow | null>(null);
@@ -143,7 +144,7 @@ export function HostedStockAdjustment({ positions, products }: {
                     ))}
                   </SelectContent>
                 </Select>
-                {verifiedProducts.length === 0 && <p className="text-xs text-muted-foreground">No products with verified stock are available.</p>}
+                {verifiedProducts.length === 0 && !error && <p className="text-xs text-muted-foreground">No products with verified stock are available.</p>}
               </div>
               <div className="space-y-2">
                 <FieldLabel required>Adjustment Type</FieldLabel>
@@ -226,7 +227,7 @@ export function HostedStockAdjustment({ positions, products }: {
               data={movements} fields={fields} actions={actions}
               enableGlobalSearch searchPlaceholder="Search adjustment history..."
               pageSize={5} onRowClick={undefined}
-              emptyMessage="Adjustment history is unavailable until stock movements are connected."
+              emptyMessage={error ?? "Adjustment history is unavailable until stock movements are connected."}
               onRefresh={() => {}} refreshDisabled
             />
           </CardContent>
