@@ -34,14 +34,13 @@ export function BackupRestorePage() {
                 <Button type="button" disabled title="Cloud backup creation is not connected">Create backup</Button>
                 <Button type="button" variant="outline" disabled title="Backup scheduling is not connected">Schedule backup</Button>
               </div>
-              <p className="text-xs text-muted-foreground">Web backup storage and scheduling are not yet available.</p>
             </CardContent>
           </Card>
           <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
             <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Restore backup</h2>
-                <p className="text-sm text-muted-foreground">Choose a backup file before requesting a restore.</p>
+                <p className="text-sm text-muted-foreground">Check the integrity of a saved backup file.</p>
               </div>
               <input
                 ref={filePickerRef}
@@ -61,6 +60,7 @@ export function BackupRestorePage() {
                     size="sm"
                     variant="outline"
                     className="shrink-0"
+                    disabled title="Backup verification is not connected"
                     onClick={() => filePickerRef.current?.click()}
                   >
                     <FolderOpen className="size-4" />
@@ -74,9 +74,6 @@ export function BackupRestorePage() {
               <Button type="button" disabled title="The hosted backup restore service is not connected">
                 Restore backup
               </Button>
-              <p className="text-xs text-muted-foreground">
-                {selectedFile ? "This file has not been verified or uploaded." : "Backup verification and restoration are not yet available on the web."}
-              </p>
             </CardContent>
           </Card>
           <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
@@ -90,11 +87,10 @@ export function BackupRestorePage() {
               <Button asChild variant="outline">
                 <Link href="/dashboard/settings/desktop-sync">Manage desktop connection</Link>
               </Button>
-              <p className="text-xs text-muted-foreground">Pairing alone does not transfer business records.</p>
             </CardContent>
           </Card>
         </div>
-        <Card className="min-w-0 gap-0 py-0 sm:gap-0 sm:py-0 ">
+        <Card className="min-w-0 gap-0 py-0 sm:gap-0 sm:py-0">
           <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Backup history</h2>
@@ -129,7 +125,7 @@ export function BackupRestorePage() {
                   ))}
                   {backup.backups.length === 0 && (
                     <tr><td colSpan={5} className="px-4 py-7 text-center text-sm text-muted-foreground">
-                      Backup history is unavailable until the secure backup service is connected.
+                      No backup records available.
                     </td></tr>
                   )}
                 </tbody>
