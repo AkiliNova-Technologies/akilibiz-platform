@@ -270,6 +270,8 @@ export default function FinanceExpensesPage() {
       cell: (value) => formatFinanceDate(String(value)),
     },
     { key: "payee", header: "Supplier / Payee", enableSorting: true },
+    { key: "due_date", header: "Due date", enableSorting: true,
+      cell: (value) => value ? formatFinanceDate(String(value)) : "—" },
     { key: "category", header: "Category", enableSorting: true },
     {
       key: "gross_ugx",
@@ -321,25 +323,25 @@ export default function FinanceExpensesPage() {
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               title="Total Expenses"
-              value={formatFinanceCurrency(expenseSummary.total_expenses)}
+              value={expenseSummary ? formatFinanceCurrency(expenseSummary.total_expenses) : "—"}
               description="All approved and paid expenses"
               icon={<ArrowDown className="size-5" />}
             />
             <MetricCard
               title="Paid Expenses"
-              value={formatFinanceCurrency(expenseSummary.paid_expenses)}
+              value={expenseSummary ? formatFinanceCurrency(expenseSummary.paid_expenses) : "—"}
               description="Expenses already settled"
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
               title="Pending Expenses"
-              value={formatFinanceCurrency(expenseSummary.pending_expenses)}
+              value={expenseSummary ? formatFinanceCurrency(expenseSummary.pending_expenses) : "—"}
               description="Awaiting approval or settlement"
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
               title="Expense Categories"
-              value={String(expenseSummary.expense_categories)}
+              value={expenseSummary ? String(expenseSummary.expense_categories) : "—"}
               description="Tracked spending areas"
               icon={<CircleDollarSign className="size-5" />}
             />
@@ -357,7 +359,7 @@ export default function FinanceExpensesPage() {
                 pageSize={10}
                 loading={loading}
                 emptyMessage={
-                  loading ? "Loading expenses…" : "No expenses recorded yet."
+                  loading ? "Loading expenses…" : "Expense records are unavailable until the hosted finance service is connected."
                 }
                 toolbarFilters={
                   <Select value={stateFilter} onValueChange={setStateFilter}>
@@ -381,6 +383,8 @@ export default function FinanceExpensesPage() {
                 refreshing={loading}
                 toolbarActions={
                   <Button
+                    disabled
+                    title="Expense posting is not connected"
                     onClick={() => {
                       setForm(fresh());
                       setErrors({});
@@ -635,7 +639,7 @@ export default function FinanceExpensesPage() {
               disabled={submitting}>
               Cancel
             </Button>
-            <Button onClick={() => void submit()} disabled={submitting}>
+            <Button onClick={() => void submit()} disabled>
               {submitting ? (
                 <LoaderCircle className="mr-2 size-4 animate-spin" />
               ) : null}
@@ -705,7 +709,7 @@ export default function FinanceExpensesPage() {
                     The remaining balance is checked before payment is recorded.
                     Payments above that balance are not allowed.
                   </p>
-                  <Button type="button" onClick={() => void settle()}>
+                  <Button type="button" onClick={() => void settle()} disabled>
                     Record payment
                   </Button>
                 </div>
@@ -724,7 +728,7 @@ export default function FinanceExpensesPage() {
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={() => void reverse()}>
+                    onClick={() => void reverse()} disabled>
                     Reverse expense
                   </Button>
                 </div>
