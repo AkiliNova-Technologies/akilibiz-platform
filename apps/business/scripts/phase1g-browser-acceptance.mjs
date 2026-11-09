@@ -98,9 +98,12 @@ async function authenticate(email, expectedName, expectedAmount) {
     const first = await readMirror("finance_transactions", 1);
     assert(first.status === 200 && first.body.readOnly === true,
       `owner ${expectedName} receives read-only financial projection`);
+    assert(first.body.total === 1 && first.body.rows.length === 1,
+      `owner ${expectedName} sees exactly its own financial generation`);
     assert(first.body.rows.some((row) => row.record?.amount_ugx === expectedAmount),
       `owner ${expectedName} sees expected source financial amount`);
-    assert(Boolean(first.body.lastSuccessfulSync), `owner ${expectedName} sees sync time`);
+    assert(Boolean(first.body.lastSuccessfulSync) && first.body.isStale === false,
+      `owner ${expectedName} sees fresh sync time`);
     const empty = await readMirror("finance_transactions", 99);
     assert(empty.status === 200 && empty.body.rows.length === 0,
       `owner ${expectedName} sees valid empty pagination`);
@@ -118,10 +121,21 @@ async function authenticate(email, expectedName, expectedAmount) {
       "/dashboard/finance/expenses",
       "/dashboard/finance/ledger",
     ];
+    const expectedDirectory = expectedName === "Phase1C B"
+      ? { "/dashboard/products/synced": "PHASE1 Worker Product",
+          "/dashboard/customers": "PHASE1 Worker Customer",
+          "/dashboard/suppliers": "PHASE1 Worker Supplier" }
+      : { "/dashboard/customers": "PHASE1C Customer",
+          "/dashboard/suppliers": "PHASE1C Supplier" };
     for (const path of pages) {
       const destination = await within(context, path);
-      assert(!/\/sign-in|\/businesses/.test(new URL(destination.url()).pathname),
+      assert(!/\\/sign-in|\\/businesses/.test(new URL(destination.url()).pathname),
         `authenticated ${expectedName} can open ${path}`);
+      if (expectedDirectory[path]) {
+        await destination.getByText(expectedDirectory[path], { exact: false })
+          .first().waitFor({ state: "visible", timeout: 25000 });
+        passed.push(`rendered ${expectedName} hosted records on ${path}`);
+      }
       await destination.close();
     }
     await page.close();
