@@ -99,7 +99,7 @@ export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];er
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Supplier Details</DialogTitle>
-            <DialogDescription>Review the supplier's available contact information.</DialogDescription>
+            <DialogDescription>Review the available contact information for this supplier.</DialogDescription>
           </DialogHeader>
           {selected && (
             <div className="space-y-4">
