@@ -87,7 +87,7 @@ export function BackupRestorePage() {
                 </div>
                 <Button
                   onClick={() => void backup.createBackup()}
-                  disabled={backup.loading !== null}>
+                  disabled title="Backup creation is not connected">
                   <Database className="mr-2 size-4" />
                   {backup.loading === "create"
                     ? "Creating backup…"
@@ -121,14 +121,14 @@ export function BackupRestorePage() {
                   <Button
                     variant="outline"
                     onClick={() => picker.current?.click()}
-                    disabled={backup.loading !== null}>
+                    disabled title="Backup file verification is not connected">
                     <FolderOpen className="mr-2 size-4" />
                     Choose backup file
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => setRestoreOpen(true)}
-                    disabled={!selectedFile || backup.loading !== null}>
+                    disabled title="Backup restore is not connected">
                     <RotateCcw className="mr-2 size-4" />
                     Restore backup
                   </Button>
@@ -153,9 +153,9 @@ export function BackupRestorePage() {
               </div>
               {!backup.hasBackups ? (
                 <div className="rounded-lg border border-dashed p-6 text-center">
-                  <p className="font-medium">No backups created yet</p>
+                  <p className="font-medium">Backup history unavailable</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Create a backup to see its status and details here.
+                    Backup records will appear when the secure backup service is connected.
                   </p>
                 </div>
               ) : (
@@ -210,7 +210,7 @@ export function BackupRestorePage() {
             </Button>
             <Button
               variant="destructive"
-              disabled={confirmation !== "RESTORE" || backup.loading !== null}
+              disabled title="Backup restore is not connected"
               onClick={() => void confirmRestore()}>
               {backup.loading === "restore" ? "Restoring…" : "Restore backup"}
             </Button>
