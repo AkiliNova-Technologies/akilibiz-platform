@@ -30,7 +30,7 @@ export function usePosData() {
   const updateItemQuantity = useCallback((id: number, quantity: number) => setItems((current) => current.map((item) => item.product_id === id ? { ...item, quantity } : item)), []);
   const removeFromCart = useCallback((id: number) => setItems((current) => current.filter((item) => item.product_id !== id)), []);
   const clearCart = useCallback(() => setItems([]), []);
-  const addSale = useCallback(async (_payload: CreateSalePayload) => ({ id: Date.now(), sale_number: "SALE-PREVIEW" }), []);
+  const addSale = useCallback(async (_payload: CreateSalePayload): Promise<never> => { throw new Error("Sales are unavailable until hosted transaction posting is connected."); }, []);
   const scores: Record<number, PosRiskScore> = {};
   return { products: temporaryProducts, categories: temporaryCategories, customers: temporaryCustomers, loading: false, saleLoading: false, scores, riskLoading: false, taxSettings: { vat_registered: false }, cartItems: items, cartSubtotal: subtotal, cartTotal: subtotal, customerId, getProducts: async () => {}, getCategories: async () => {}, getCustomers: async () => {}, getCustomerRisk: async (_id: number) => {}, getTaxSettings: async () => {}, getTaxClassifications: async () => {}, addSale, addToReduxCart: addToCart, updateItemQuantity, removeFromCart, clearReduxCart: clearCart, applyDiscount, assignCustomer };
 }
