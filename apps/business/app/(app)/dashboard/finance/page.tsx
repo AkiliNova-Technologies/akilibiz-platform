@@ -108,25 +108,25 @@ export default function FinanceOverviewPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             title="Total Income"
-            value={formatFinanceCurrency(overviewSummary.total_income)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_income) : "—"}
             description="Revenue generated"
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
             title="Total Expenses"
-            value={formatFinanceCurrency(overviewSummary.total_expenses)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_expenses) : "—"}
             description="Operational costs"
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
             title="Net Balance"
-            value={formatFinanceCurrency(overviewSummary.net_balance)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.net_balance) : "—"}
             description="Profit / Loss position"
             icon={<Banknote className="size-5" />}
           />
           <MetricCard
             title="Cash Position"
-            value={formatFinanceCurrency(overviewSummary.cash_position)}
+            value={overviewSummary ? formatFinanceCurrency(overviewSummary.cash_position) : "—"}
             description="Available working balance"
             icon={<WalletCards className="size-5" />}
           />
