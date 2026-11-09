@@ -242,7 +242,7 @@ export default function SalesHistoryPage() {
       refundedCount: refundedSales.length,
       totalTax,
     };
-  }, [summary, filteredSales, sales]);
+  }, [summary, filteredSales, sales, salesHistoryAvailable]);
 
   const handleViewSale = async (sale: SaleHistoryRow) => {
     if (!salesHistoryAvailable) return;
@@ -570,10 +570,7 @@ export default function SalesHistoryPage() {
                   <div className="flex justify-between gap-4">
                     <span className="text-sm text-muted-foreground">{t("sales.date")}</span>
                     <span className="text-right font-medium">
-                      {format(
-                        new Date(selectedSale.created_at),
-                        "dd MMM yyyy, hh:mm a",
-                      )}
+                      {new Intl.DateTimeFormat("en-UG", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(selectedSale.created_at))}
                     </span>
                   </div>
 
