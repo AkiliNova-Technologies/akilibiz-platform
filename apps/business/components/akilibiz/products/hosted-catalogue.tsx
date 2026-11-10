@@ -51,7 +51,8 @@ export type HostedProductRow = TableData & {
   cost_price_ugx: number | null;
   is_active: boolean;
   tax_classification?: null;
-  stock_quantity?: null;
+  stock_unit: string;
+  stock_quantity?: number | null;
   profit_margin?: null;
 };
 
@@ -64,6 +65,11 @@ function money(value: number | null) {
   }).format(value);
 }
 
+function stockLabel(milli: number | null | undefined, unit: string) {
+  if (milli === null || milli === undefined || !Number.isSafeInteger(milli)) return "—";
+  return `${new Intl.NumberFormat("en-UG", { maximumFractionDigits: 3 }).format(milli / 1000)} ${unit}`;
+}
+
 function NotAvailable() {
   return <span className="text-muted-foreground">—</span>;
 }
@@ -74,12 +80,14 @@ export function HostedCatalogue({
   products,
   view,
   error,
+  stockError,
 }: {
   businessName: string;
   categories: HostedCategoryRow[];
   products: HostedProductRow[];
   view: "products" | "categories";
   error?: string | null;
+  stockError?: string | null;
 }) {
   const [selectedProduct, setSelectedProduct] = useState<HostedProductRow | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HostedCategoryRow | null>(null);
@@ -88,7 +96,7 @@ export function HostedCatalogue({
     [categories],
   );
 
-  // These fields have not been synchronized; do not present estimates as recorded values.
+  // Only verified synced snapshots are shown; no inventory values or margins are estimated.
   const productFields: TableField<HostedProductRow>[] = [
     { key: "name", header: "Product Name", enableSorting: true },
     {
@@ -131,7 +139,7 @@ export function HostedCatalogue({
       header: "Stock",
       align: "center",
       enableSorting: false,
-      cell: () => <NotAvailable />,
+      cell: (_, row) => <span className="text-sm">{stockLabel(row.stock_quantity, row.stock_unit)}</span>,
     },
     {
       key: "profit_margin",
@@ -364,7 +372,7 @@ export function HostedCatalogue({
         <MetricCard
           title="Stock Risk"
           value="—"
-          description="Stock levels unavailable"
+          description={stockError ?? "Stock risk summary unavailable"}
           icon={<AlertTriangle className="size-5" />}
         />
         <MetricCard
@@ -442,7 +450,7 @@ export function HostedCatalogue({
                 ["Brand", selectedProduct.brand || "—"],
                 ["Selling Price", money(selectedProduct.selling_price_ugx)],
                 ["Cost Price", money(selectedProduct.cost_price_ugx)],
-                ["Stock", "—"],
+                ["Stock", stockLabel(selectedProduct.stock_quantity, selectedProduct.stock_unit)],
                 ["Margin", "—"],
                 ["Tax", "—"],
                 ["Status", selectedProduct.is_active ? "Active" : "Inactive"],
