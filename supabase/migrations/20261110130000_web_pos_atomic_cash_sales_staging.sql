@@ -197,6 +197,7 @@ declare
   new_sale_id uuid;
   new_receipt text;
   source_record record;
+  work_lines jsonb := '[]'::jsonb;
 begin
   if actor is null then
     raise exception 'Authentication required' using errcode='42501';
@@ -277,12 +278,8 @@ begin
 
   new_sale_id := gen_random_uuid();
   new_receipt := 'WEB-' || replace(new_sale_id::text,'-','');
-  -- The initial insert is deferred until validated totals are computed.
-  create temporary table if not exists pg_temp.web_pos_work_lines (
-    line_number integer, product_id uuid, quantity_milli bigint,
-    unit_price_ugx bigint, subtotal_ugx bigint, tax_ugx bigint, total_ugx bigint
-  ) on commit drop;
-  truncate pg_temp.web_pos_work_lines;
+  -- Build the complete validated receipt in local PL/pgSQL memory.
+  -- No temporary table or caller-controlled relations in SECURITY DEFINER code.
 
   for item in select value from jsonb_array_elements(sale_items) loop
     item_index := item_index + 1;
@@ -348,11 +345,15 @@ begin
        sum_subtotal>9223372036854775807::numeric then
       raise exception 'Sale amount exceeds limit' using errcode='22003';
     end if;
-    insert into pg_temp.web_pos_work_lines values (
-      item_index,item_id,quantity_requested,product.selling_price_ugx,
-      (case when tax_rule.tax_inclusive then price_subtotal-line_tax else price_subtotal end)::bigint,
-      line_tax::bigint,line_total::bigint
-    );
+    work_lines := work_lines || jsonb_build_array(jsonb_build_object(
+      'line_number',item_index,
+      'product_id',item_id,
+      'quantity_milli',quantity_requested,
+      'unit_price_ugx',product.selling_price_ugx,
+      'subtotal_ugx',(case when tax_rule.tax_inclusive then price_subtotal-line_tax else price_subtotal end)::bigint,
+      'tax_ugx',line_tax::bigint,
+      'total_ugx',line_total::bigint
+    ));
   end loop;
   if cash_received_ugx::numeric < sum_total then
     raise exception 'Cash received is less than total' using errcode='23514';
@@ -371,12 +372,18 @@ begin
     unit_price_ugx,subtotal_ugx,tax_ugx,total_ugx
   ) select target_business_id,new_sale_id,product_id,line_number,
     quantity_milli,unit_price_ugx,subtotal_ugx,tax_ugx,total_ugx
-    from pg_temp.web_pos_work_lines;
+    from jsonb_to_recordset(work_lines) as lines(
+      line_number integer, product_id uuid, quantity_milli bigint,
+      unit_price_ugx bigint, subtotal_ugx bigint, tax_ugx bigint, total_ugx bigint
+    );
 
   insert into private.web_pos_stock_holds (
     business_id,sale_id,product_id,quantity_milli
   ) select target_business_id,new_sale_id,product_id,quantity_milli
-    from pg_temp.web_pos_work_lines;
+    from jsonb_to_recordset(work_lines) as lines(
+      line_number integer, product_id uuid, quantity_milli bigint,
+      unit_price_ugx bigint, subtotal_ugx bigint, tax_ugx bigint, total_ugx bigint
+    );
 
   insert into private.web_pos_payments (
     business_id,sale_id,method,status,amount_ugx
@@ -391,8 +398,7 @@ begin
       'currency','UGX','subtotal_ugx',sum_subtotal,
       'tax_ugx',sum_tax,'total_ugx',sum_total,
       'payment_method','cash',
-      'lines',(select jsonb_agg(to_jsonb(l) order by l.line_number)
-        from pg_temp.web_pos_work_lines l)
+      'lines',work_lines
     )
   );
   insert into public.audit_events (
