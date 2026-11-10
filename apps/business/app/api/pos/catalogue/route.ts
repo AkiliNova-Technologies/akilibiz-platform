@@ -24,7 +24,10 @@ export async function GET() {
       .select("id,name,sku,category_id,selling_price_ugx,stock_unit,is_active")
       .eq("business_id", business.id)
       .order("name"),
-    supabase.rpc("list_desktop_effective_inventory", {
+    supabase.rpc(
+      process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE === "1"
+        ? "list_web_pos_sellable_inventory"
+        : "list_desktop_effective_inventory", {
       target_business_id: business.id,
     }),
   ]);
