@@ -119,6 +119,18 @@ describe("GET /api/financial-mirrors", () => {
     expect((await GET(request(99))).status).toBe(502);
   });
 
+  it("serves owner-only receipt snapshots from the same tenant-scoped read model", async () => {
+    const fixture = setup({
+      data: [{ local_record_id: 1, record: { business_header: "Shop" }, captured_at: "2026-11-10T06:00:00Z" }],
+      count: 1, error: null,
+    });
+    const response = await GET(new NextRequest("http://localhost/api/financial-mirrors?entity=receipt_settings"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).rows).toHaveLength(1);
+    expect(fixture.pageQuery.eq).toHaveBeenCalledWith("business_id", "business-a");
+    expect(fixture.pageQuery.eq).toHaveBeenCalledWith("entity_type", "receipt_settings");
+  });
+
   it("keeps role restrictions before querying hosted data", async () => {
     mocks.requireActiveBusiness.mockResolvedValue({ id: "business-a", role: "cashier" });
     const fixture = setup({ data: [], count: 0, error: null });
