@@ -55,6 +55,24 @@ begin
   end if;
   if not has_function_privilege(
     'authenticated',
+    'public.list_web_pos_sellable_inventory(uuid)','EXECUTE'
+  ) or has_function_privilege(
+    'anon',
+    'public.list_web_pos_sellable_inventory(uuid)','EXECUTE'
+  ) then
+    raise exception 'Unexpected hold-aware inventory RPC grants';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='list_web_pos_sellable_inventory'
+      and p.prosecdef
+      and p.proconfig @> array['search_path=']::text[]
+  ) then
+    raise exception 'Missing fixed search path on hold-aware inventory RPC';
+  end if;
+  if not has_function_privilege(
+    'authenticated',
     'public.reconcile_web_pos_stock_holds(uuid,text,uuid,uuid)','EXECUTE'
   ) or has_function_privilege(
     'anon',
