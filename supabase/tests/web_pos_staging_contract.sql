@@ -38,7 +38,10 @@ begin
        or has_table_privilege('anon',table_oid,'UPDATE')
        or has_table_privilege('authenticated',table_oid,'UPDATE')
        or has_table_privilege('anon',table_oid,'DELETE')
-       or has_table_privilege('authenticated',table_oid,'DELETE') then
+       or has_table_privilege('authenticated',table_oid,'DELETE')
+       or has_table_privilege('service_role',table_oid,'INSERT')
+       or has_table_privilege('service_role',table_oid,'UPDATE')
+       or has_table_privilege('service_role',table_oid,'DELETE') then
       raise exception 'Staged web POS table exposed to a client role: %',table_name;
     end if;
   end loop;
