@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import type { FinancePaymentMethod } from "@/components/akilibiz/finance/finance-overview-data";
 import { loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
-import { requiredAmount, requiredEnum } from "@/components/akilibiz/finance/mirror-field-validation";
+import { requiredAmount, requiredEnum, requiredId } from "@/components/akilibiz/finance/mirror-field-validation";
 
 export type ExpenseStatus = "pending" | "approved" | "paid" | "rejected";
 export type ExpenseState = "draft" | "posted" | "cancelled" | "voided" | "corrected" | "refunded";
@@ -49,12 +49,12 @@ export function useFinanceExpensesData() {
         const state = requiredEnum(record, "state", ["draft", "posted", "cancelled", "voided", "corrected", "refunded"] as const);
         const status = requiredEnum(record, "status", ["pending", "approved", "paid", "rejected"] as const);
         const paymentBasis = requiredEnum(record, "payment_basis", ["paid", "supplier_credit"] as const);
-        const method = requiredEnum(record, "payment_method", ["cash", "mobile_money", "bank_transfer", "card", "other"] as const);
+        const method = requiredEnum(record, "payment_method", ["cash", "mobile_money", "bank_transfer", "card", "cheque", "other"] as const);
         return [{
           id: localRecordId,
           reference: String(mirrorValue(record, "reference", "public_id") ?? localRecordId),
           category: String(mirrorValue(record, "category_name_snapshot") ?? "Unclassified"),
-          category_id: requiredAmount(record, "category_id"),
+          category_id: requiredId(record, "category_id"),
           payee: String(mirrorValue(record, "payee_name") ?? "—"),
           supplier_id: Number(mirrorValue(record, "supplier_id") ?? 0) || undefined,
           net_ugx: requiredAmount(record, "net_ugx"),
