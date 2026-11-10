@@ -56,7 +56,7 @@ type InventoryRow = Position & {
   current_stock: number | null;
   min_stock: number | null;
   max_stock: number | null;
-  last_restock: null;
+  last_restock: string | null;
   status: "In Stock" | "Low Stock" | "Out of Stock" | "Overstocked" | null;
 };
 
@@ -114,7 +114,7 @@ export function HostedInventory({
         current_stock: position.on_hand_milli,
         min_stock: position.minimum_milli,
         max_stock: position.maximum_milli,
-        last_restock: null,
+        last_restock: position.snapshot_at ?? null,
         status: stockStatus(position),
       };
     })
@@ -177,10 +177,10 @@ export function HostedInventory({
     },
     {
       key: "last_restock",
-      header: "Last Updated",
+      header: "Stock Snapshot",
       align: "center",
       enableSorting: false,
-      cell: () => <span className="text-muted-foreground">—</span>,
+      cell: (value) => <span className="text-sm text-muted-foreground">{typeof value === "string" && !Number.isNaN(Date.parse(value)) ? new Intl.DateTimeFormat("en-UG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Kampala" }).format(new Date(value)) : "—"}</span>,
     },
     {
       key: "status",
@@ -258,7 +258,7 @@ export function HostedInventory({
                     ["Damaged Stock", exactQuantity(selectedPosition.damaged_milli, unitFor(selectedPosition.product_id))],
                     ["Status", selectedPosition.status ?? "—"],
                     ["Stock Value", "—"],
-                    ["Last Updated", "—"],
+                    ["Stock Snapshot", selectedPosition.last_restock && !Number.isNaN(Date.parse(selectedPosition.last_restock)) ? new Intl.DateTimeFormat("en-UG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Kampala" }).format(new Date(selectedPosition.last_restock)) : "—"],
                   ] as const).map(([label, value]) => (
                     <div key={label} className="flex justify-between gap-4">
                       <span className="text-sm text-muted-foreground">{label}</span>
