@@ -39,6 +39,8 @@ export function useFinanceIncomeData() {
     try {
       const mirror = await loadFinancialMirror("finance_transactions");
       const rows = mirror.rows.flatMap((row) => mapIncomeTransaction(row) ?? []);
+      const expected = mirror.rows.filter((row) => row.record.transaction_type === "income").length;
+      if (rows.length !== expected) setError(`${expected - rows.length} income record(s) were hidden because required details were invalid.`);
       setIncomeEntries(rows); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale);
       return rows;
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Income mirror request failed."); return []; }
