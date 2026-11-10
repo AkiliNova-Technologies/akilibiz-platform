@@ -52,13 +52,14 @@ import { toast } from "sonner";
 // ============================================================================
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   sku: string;
   category: string;
-  price: number;
+  price: number | null;
   stock: number;
   stockUnit: string;
+  inventoryAvailable: boolean;
   isActive: boolean;
   isTaxable: boolean;
   taxClassificationId: number | null;
@@ -82,7 +83,7 @@ const canSubmitSale = false;
 
 export default function POSPage() {
   const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
-  const { products, loading, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
+  const { products, loading, error, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
 
   const [productView, setProductView] = useState<ProductView>(() => {
     if (typeof window === "undefined") return "compact";
@@ -155,11 +156,6 @@ export default function POSPage() {
 
   const localProducts = useMemo<Product[]>(() => {
     return products.map((product) => {
-      const price =
-        typeof product.selling_price === "string"
-          ? parseFloat(product.selling_price)
-          : product.selling_price;
-
       const categoryName = product.category_id
         ? categoryMap.get(product.category_id) ||
           `Category ${product.category_id}`
@@ -170,9 +166,10 @@ export default function POSPage() {
         name: product.name,
         sku: product.sku,
         category: categoryName,
-        price,
-        stock: Number(product.stock_quantity || 0),
+        price: product.selling_price,
+        stock: product.stock_quantity,
         stockUnit: product.stock_unit || "pcs",
+        inventoryAvailable: product.inventory_available,
         isActive: Boolean(product.is_active),
         isTaxable: Boolean(product.is_taxable),
         taxClassificationId: product.tax_classification_id || null,
@@ -236,6 +233,16 @@ export default function POSPage() {
       return;
     }
 
+    if (product.price === null) {
+      toast.error(t("pos.priceUnavailable"));
+      return;
+    }
+
+    if (!product.inventoryAvailable) {
+      toast.error(t("pos.inventoryUnavailable"));
+      return;
+    }
+
     if (product.stock <= 0) {
       toast.error(t("pos.productOutOfStock"));
       return;
@@ -264,7 +271,7 @@ export default function POSPage() {
     });
   };
 
-  const updateQuantity = (productId: number, newQuantity: number) => {
+  const updateQuantity = (productId: string, newQuantity: number) => {
     const product = localProducts.find((p) => p.id === productId);
     if (!product) return;
 
@@ -476,6 +483,14 @@ export default function POSPage() {
                 <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                   {t("pos.loadingProducts")}
                 </div>
+              ) : error ? (
+                <div role="alert" className="flex h-64 flex-col items-center justify-center gap-3 text-center">
+                  <AlertTriangle className="size-8 text-destructive" />
+                  <p className="font-medium">{error}</p>
+                  <Button type="button" variant="outline" onClick={handleRefresh}>
+                    {t("pos.refresh")}
+                  </Button>
+                </div>
               ) : filteredProducts.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center text-center">
                   <div className="rounded-full bg-muted p-4">
@@ -496,7 +511,8 @@ export default function POSPage() {
                 }>
                   {filteredProducts.map((product) => {
                     const isLowStock = product.stock > 0 && product.stock <= 10;
-                    const isOutOfStock = product.stock <= 0;
+                    const isUnavailable = !product.inventoryAvailable || product.price === null;
+                    const isOutOfStock = product.stock <= 0 || isUnavailable;
 
                     return (
                       <Card
@@ -527,10 +543,16 @@ export default function POSPage() {
                             </div>
                             <div className="flex min-w-0 flex-wrap items-start justify-between gap-1.5">
                               <div className="min-w-0">
-                                <p className="text-base font-semibold">{formatCurrency(product.price)}</p>
+                                <p className="text-base font-semibold">
+                                  {product.price === null ? t("pos.priceUnavailable") : formatCurrency(product.price)}
+                                </p>
                                 <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
                               </div>
-                              {isOutOfStock ? (
+                              {!product.inventoryAvailable ? (
+                                <Badge variant="destructive">{t("pos.inventoryUnavailable")}</Badge>
+                              ) : product.price === null ? (
+                                <Badge variant="destructive">{t("pos.priceUnavailable")}</Badge>
+                              ) : isOutOfStock ? (
                                 <Badge variant="destructive">{t("pos.outOfStock")}</Badge>
                               ) : isLowStock ? (
                                 <Badge variant="outline">{t("pos.lowStock", { count: product.stock })}</Badge>
