@@ -29,7 +29,8 @@ export function useFinanceOverviewData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("finance_transactions", { pageSize: options?.limit ?? 100 });
-      const transactions = mirror.rows.map(mapFinanceTransaction);
+      const transactions = mirror.rows.flatMap((row) => mapFinanceTransaction(row) ?? []);
+      if (transactions.length !== mirror.rows.length) setError(`${mirror.rows.length - transactions.length} finance record(s) were hidden because required details were invalid.`);
       setOverviewTransactions(transactions); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale);
       return { overviewSummary: null, overviewTransactions: transactions };
     } catch (reason) {
