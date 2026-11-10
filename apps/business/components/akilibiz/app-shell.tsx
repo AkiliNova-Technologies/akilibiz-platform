@@ -20,7 +20,7 @@ export function AppShell({
     <PosHeaderProvider>
     <SidebarProvider className="bg-background">
       <AppSidebar account={account} />
-      <SidebarInset className="min-h-svh bg-background">
+      <SidebarInset className="min-h-svh min-w-0 max-w-full bg-background">
         <SiteHeader
           account={account}
           theme={theme}
