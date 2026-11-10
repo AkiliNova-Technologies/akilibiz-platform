@@ -506,8 +506,8 @@ export default function POSPage() {
                   productView === "list"
                     ? "flex flex-col gap-1.5"
                     : productView === "compact"
-                      ? "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(min(100%,150px),1fr))] items-start gap-2"
-                      : "grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-start gap-2"
+                      ? "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,150px),1fr))] items-stretch gap-2"
+                      : "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-stretch gap-2"
                 }>
                   {filteredProducts.map((product) => {
                     const isLowStock = product.stock > 0 && product.stock <= 10;
@@ -527,13 +527,13 @@ export default function POSPage() {
                           }
                         }}
                         onClick={() => { if (!isOutOfStock) addToCart(product); }}
-                        className={`min-w-0 border-border/60 py-0 transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                        className={`min-w-0 border-border/60 py-0 ${productView === "list" ? "" : "h-full"} transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                       >
-                        <CardContent className={productView === "compact" ? "p-2.5" : productView === "list" ? "flex items-center gap-3 px-3 py-2.5" : "p-3"}>
+                        <CardContent className={productView === "compact" ? "flex h-full flex-col p-2.5" : productView === "list" ? "flex items-center gap-3 px-3 py-2.5" : "flex h-full flex-col p-3"}>
                           {productView === "grid" && product.image ? (
                             <img src={product.image} alt="" className="mb-3 aspect-[4/3] w-full rounded-md object-cover" />
                           ) : null}
-                          <div className={productView === "compact" ? "min-w-0 space-y-1.5" : productView === "list" ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3" : "min-w-0 space-y-2"}>
+                          <div className={productView === "compact" ? "flex min-w-0 flex-1 flex-col gap-1.5" : productView === "list" ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3" : "flex min-w-0 flex-1 flex-col gap-2"}>
                             <div>
                               <h3 className="line-clamp-2 text-sm font-medium leading-snug" title={product.name}>{product.name}</h3>
                               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
@@ -541,7 +541,7 @@ export default function POSPage() {
                                 <span className="min-w-0 truncate font-mono" title={product.sku}>{product.sku}</span>
                               </div>
                             </div>
-                            <div className="flex min-w-0 flex-wrap items-start justify-between gap-1.5">
+                            <div className={productView === "list" ? "flex min-w-0 flex-wrap items-start justify-between gap-1.5" : "mt-auto flex min-w-0 flex-wrap items-start justify-between gap-1.5 pt-2"}>
                               <div className="min-w-0">
                                 <p className="text-base font-semibold">
                                   {product.price === null ? t("pos.priceUnavailable") : formatCurrency(product.price)}
