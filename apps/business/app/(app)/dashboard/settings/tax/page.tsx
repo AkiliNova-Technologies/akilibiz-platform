@@ -35,7 +35,7 @@ export default function TaxSettingsPage() {
           onSettingsChange={tax.setSettings}
           settings={tax.settings}
         />
-        ) : null
+        ) : null}
       </div>
     </main>
   );
