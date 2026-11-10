@@ -3,7 +3,7 @@ import { mirrorValue } from "./financial-mirror-client";
 /** Mirror records are untrusted snapshots: absence is not zero or a payment state. */
 export function requiredAmount(record: Record<string, unknown>, ...fields: string[]): number {
   const raw = mirrorValue(record, ...fields);
-  if (raw === null || raw === undefined || raw === "" || typeof raw === "boolean") {
+  if (raw === null || raw === undefined || (typeof raw === "string" && raw.trim() === "") || typeof raw === "boolean") {
     throw new Error(`Missing amount: ${fields.join("/")}`);
   }
   if (typeof raw !== "number" && typeof raw !== "string") {
