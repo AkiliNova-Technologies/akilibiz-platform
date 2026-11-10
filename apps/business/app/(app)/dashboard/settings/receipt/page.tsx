@@ -31,7 +31,7 @@ export default function ReceiptSettingsPage() {
           onSettingsChange={receipt.setSettings}
           settings={receipt.settings}
         />
-        ) : null
+        ) : null}
       </div>
     </main>
   );
