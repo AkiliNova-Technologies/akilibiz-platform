@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import type { Position, ProductSummary } from "@/components/akilibiz/inventory/hosted-inventory";
+import type { Position, ProductSummary, CategorySummary } from "@/components/akilibiz/inventory/hosted-inventory";
 
 type AlertStatus = "Low Stock" | "Out of Stock" | "Critical";
 type AlertRow = TableData & {
@@ -21,13 +21,13 @@ type AlertRow = TableData & {
   product_id: string;
   product_name: string;
   sku: string;
-  category: null;
+  category: string | null;
   current_stock: number;
   min_stock: number;
   shortage: number;
   stock_unit: string;
   status: AlertStatus;
-  last_updated: null;
+  last_updated: string | null;
 };
 
 function formatQuantity(milli: number, unit: string) {
@@ -37,7 +37,7 @@ function StatusBadge({ status }: { status: AlertStatus }) {
   return <Badge variant={status === "Out of Stock" ? "destructive" : "outline"}>{status}</Badge>;
 }
 
-export function HostedLowStockAlerts({ positions, products, error }: { positions: Position[]; products: ProductSummary[]; error?: string | null }) {
+export function HostedLowStockAlerts({ positions, products, categories, error, categoryError }: { positions: Position[]; products: ProductSummary[]; categories: CategorySummary[]; error?: string | null; categoryError?: string | null }) {
   const [selected, setSelected] = useState<AlertRow | null>(null);
   const [restock, setRestock] = useState<AlertRow | null>(null);
   const [quantity, setQuantity] = useState("");
@@ -48,6 +48,7 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
     () => new Map(products.map((product) => [product.id, product])),
     [products],
   );
+  const categoryNames = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
   const currentPositions = useMemo(() => positions.filter((position) => position.is_current), [positions]);
   const alertsComplete = currentPositions.every((position) =>
     position.on_hand_milli !== null && Number.isSafeInteger(position.on_hand_milli) &&
@@ -66,15 +67,15 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
       product_id: position.product_id,
       product_name: product?.name ?? position.product_name ?? "Unknown product",
       sku: product?.sku ?? position.sku ?? "",
-      category: null,
+      category: product?.category_id ? categoryNames.get(product.category_id) ?? null : null,
       current_stock: current,
       min_stock: minimum,
       shortage: Math.max(0, minimum - current),
       stock_unit: product?.stock_unit ?? "units",
       status,
-      last_updated: null,
+      last_updated: position.snapshot_at ?? null,
     }];
-  }), [currentPositions, productNames]);
+  }), [currentPositions, productNames, categoryNames]);
 
   const lowCount = alertsComplete ? rows.filter((row) => row.status === "Low Stock").length : null;
   const outCount = alertsComplete ? rows.filter((row) => row.status === "Out of Stock").length : null;
@@ -83,7 +84,7 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
   const fields: TableField<AlertRow>[] = [
     { key: "product_name", header: "Product", enableSorting: true, cell: (value) => <span className="font-medium">{String(value)}</span> },
     { key: "sku", header: "SKU", align: "center", cell: (value) => <span className="font-mono text-sm">{String(value)}</span> },
-    { key: "category", header: "Category", align: "center", enableSorting: false, cell: () => <span className="text-muted-foreground">—</span> },
+    { key: "category", header: "Category", align: "center", enableSorting: false, cell: (value) => value ? <span>{String(value)}</span> : <span className="text-muted-foreground">—</span> },
     { key: "current_stock", header: "Current Stock", align: "center", enableSorting: true, cell: (_, row) =>
       <Badge variant={row.current_stock <= 0 ? "destructive" : "outline"}>{formatQuantity(row.current_stock, row.stock_unit)}</Badge> },
     { key: "min_stock", header: "Min Stock", align: "center", enableSorting: true, cell: (_, row) =>
@@ -91,8 +92,8 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
     { key: "shortage", header: "Shortage", align: "center", enableSorting: true, cell: (_, row) =>
       <span className="font-medium">{formatQuantity(row.shortage, row.stock_unit)}</span> },
     { key: "status", header: "Status", align: "center", cell: (value) => <StatusBadge status={value as AlertStatus} /> },
-    { key: "last_updated", header: "Last Updated", align: "center", enableSorting: false, cell: () =>
-      <span className="text-muted-foreground">—</span> },
+    { key: "last_updated", header: "Stock Snapshot", align: "center", enableSorting: false, cell: (value) =>
+      <span className="text-muted-foreground">{typeof value === "string" && !Number.isNaN(Date.parse(value)) ? new Intl.DateTimeFormat("en-UG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Kampala" }).format(new Date(value)) : "—"}</span> },
   ];
 
   const openRestock = (row: AlertRow) => {
@@ -127,7 +128,7 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
       <Card>
         <CardContent className="px-6 pb-6">
           <DataTable<AlertRow>
-            title="Low Stock Alerts" description="Products that need restocking."
+            title="Low Stock Alerts" description={categoryError ?? "Products that need restocking."}
             data={rows} fields={fields} actions={actions}
             enableGlobalSearch searchPlaceholder="Search stock alerts..."
             pageSize={10} onRowClick={setSelected}
@@ -151,11 +152,11 @@ export function HostedLowStockAlerts({ positions, products, error }: { positions
                 {([
                   ["Product", selected.product_name],
                   ["SKU", selected.sku],
-                  ["Category", "—"],
+                  ["Category", selected.category ?? "—"],
                   ["Current Stock", formatQuantity(selected.current_stock, selected.stock_unit)],
                   ["Minimum Stock", formatQuantity(selected.min_stock, selected.stock_unit)],
                   ["Shortage", formatQuantity(selected.shortage, selected.stock_unit)],
-                  ["Last Updated", "—"],
+                  ["Stock Snapshot", selected.last_updated && !Number.isNaN(Date.parse(selected.last_updated)) ? new Intl.DateTimeFormat("en-UG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Kampala" }).format(new Date(selected.last_updated)) : "—"],
                 ] as const).map(([label, value]) => (
                   <div key={label} className="flex justify-between gap-4">
                     <span className="text-sm text-muted-foreground">{label}</span>
