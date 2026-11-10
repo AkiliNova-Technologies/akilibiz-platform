@@ -527,11 +527,15 @@ export default function POSPage() {
                           }
                         }}
                         onClick={() => { if (!isOutOfStock) addToCart(product); }}
-                        className={`min-w-0 border-border/60 py-0 ${productView === "list" ? "" : "h-full"} transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                        className={`min-w-0 border-border/60 py-0 ${productView === "list" ? "" : productView === "compact" ? "h-[190px]" : "h-[360px]"} transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                       >
                         <CardContent className={productView === "compact" ? "flex h-full flex-col p-2.5" : productView === "list" ? "flex items-center gap-3 px-3 py-2.5" : "flex h-full flex-col p-3"}>
-                          {productView === "grid" && product.image ? (
-                            <img src={product.image} alt="" className="mb-3 aspect-[4/3] w-full rounded-md object-cover" />
+                          {productView === "grid" ? (
+                            product.image ? (
+                              <img src={product.image} alt="" className="mb-3 h-28 w-full rounded-md object-cover" />
+                            ) : (
+                              <div aria-hidden="true" className="mb-3 h-28 w-full rounded-md bg-muted/30" />
+                            )
                           ) : null}
                           <div className={productView === "compact" ? "flex min-w-0 flex-1 flex-col gap-1.5" : productView === "list" ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3" : "flex min-w-0 flex-1 flex-col gap-2"}>
                             <div>
