@@ -35,7 +35,7 @@ function clientFor(options?: { authenticated?: boolean; productError?: unknown }
     },
   ], options?.productError);
   const rpc = vi.fn().mockResolvedValue({
-    data: [{ product_id: "product-a", on_hand_milli: 2_500, is_current: true }],
+    data: [{ product_id: "product-a", on_hand_milli: 2_500, reserved_milli: 0, damaged_milli: 0, is_current: true }],
     error: null,
   });
   const from = vi.fn((table: string) =>
