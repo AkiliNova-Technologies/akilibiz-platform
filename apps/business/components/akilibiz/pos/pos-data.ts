@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export type PosProduct = { id: string; name: string; sku: string; selling_price: number | null; stock_quantity: number; stock_unit: string; inventory_available: boolean; is_active: boolean; is_taxable: boolean; tax_classification_id: number | null; tax_inclusive: boolean; category_id: string | null };
+export type PosProduct = { id: string; name: string; sku: string; selling_price: number | null; stock_quantity: number; stock_unit: string; inventory_available: boolean; is_service: boolean; is_active: boolean; is_taxable: boolean; tax_classification_id: number | null; tax_inclusive: boolean; category_id: string | null };
 export type PosCategory = { id: string; name: string };
 export type PosCustomer = { id: number; name: string; phone?: string; is_active: boolean; customer_type: string; credit_limit: number; outstanding_balance: number };
 export type PosCartItem = { product_id: string; name: string; price: number; quantity: number; sku: string; stock_unit: string };
@@ -80,14 +80,14 @@ export function usePosData(activeBusinessId: string) {
         setItems((current) => current.flatMap((item) => {
           const product = refreshed.get(item.product_id);
           if (!product?.is_active || !product.inventory_available ||
-              product.selling_price === null || product.stock_quantity <= 0) return [];
+              product.selling_price === null || (!product.is_service && product.stock_quantity <= 0)) return [];
           return [{
             ...item,
             name: product.name,
             sku: product.sku,
             price: product.selling_price,
             stock_unit: product.stock_unit,
-            quantity: Math.min(item.quantity, product.stock_quantity),
+            quantity: product.is_service ? item.quantity : Math.min(item.quantity, product.stock_quantity),
           }];
         }));
       } catch {
