@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { loadFinancialMirror } from "@/components/akilibiz/finance/financial-mirror-client";
+import { parseReceiptSettings } from "./hosted-settings-contract";
 
 export const printProfileIds = [
   "thermal-58mm",
@@ -76,6 +78,22 @@ export function useBrowserReceiptSettings() {
     defaultReceiptSettings,
   );
   const [loading, setLoading] = useState(false);
+  const [snapshotState, setSnapshotState] = useState<"loading" | "ready" | "unavailable" | "error">("loading");
+  const [snapshotDate, setSnapshotDate] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    void loadFinancialMirror("receipt_settings", { pageSize: 2 }).then((result) => {
+      if (!active) return;
+      if (result.total !== 1 || result.rows.length !== 1) { setSnapshotState("unavailable"); return; }
+      const parsed = parseReceiptSettings(result.rows[0].record);
+      if (!parsed) { setSnapshotState("unavailable"); return; }
+      setSettings(parsed);
+      setSavedSettings(parsed);
+      setSnapshotDate(result.lastSuccessfulSync);
+      setSnapshotState("ready");
+    }).catch(() => { if (active) setSnapshotState("error"); });
+    return () => { active = false; };
+  }, []);
 
   const isDirty = useMemo(
     () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
@@ -84,5 +102,5 @@ export function useBrowserReceiptSettings() {
   const save = useCallback(async (): Promise<never> => { throw new Error("Receipt settings cannot be saved until business settings persistence is connected."); }, []);
   const reset = useCallback(() => setSettings(savedSettings), [savedSettings]);
 
-  return { isDirty, loading, reset, save, setSettings, settings };
+  return { isDirty, loading, reset, save, setSettings, settings, snapshotState, snapshotDate };
 }
