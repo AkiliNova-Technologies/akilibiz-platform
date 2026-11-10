@@ -618,12 +618,12 @@ export default function POSPage() {
                                 </p>
                                 <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
                               </div>
-                              {product.isService ? (
+                              {product.price === null ? (
+                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.priceUnavailable")}</Badge>
+                              ) : product.isService ? (
                                 <Badge variant="secondary" className="max-w-full min-w-0">Service</Badge>
                               ) : !product.inventoryAvailable ? (
                                 <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inventoryUnavailable")}</Badge>
-                              ) : product.price === null ? (
-                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.priceUnavailable")}</Badge>
                               ) : isOutOfStock ? (
                                 <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.outOfStock")}</Badge>
                               ) : isLowStock ? (
