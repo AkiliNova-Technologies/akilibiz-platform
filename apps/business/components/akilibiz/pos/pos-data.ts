@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { normalizePosServiceProducts } from "@/lib/pos-service-classification";
 
 export type PosProduct = { id: string; name: string; sku: string; selling_price: number | null; stock_quantity: number; stock_unit: string; inventory_available: boolean; is_service: boolean; is_active: boolean; is_taxable: boolean; tax_classification_id: number | null; tax_inclusive: boolean; category_id: string | null };
 export type PosCategory = { id: string; name: string };
@@ -74,9 +75,12 @@ export function usePosData(activeBusinessId: string) {
         if (result.business_id !== activeBusinessId) {
           throw new Error("catalogue business changed");
         }
-        setProducts(result.products);
+        // Reconcile service category identity using the same canonical rule as the server.
+        // Services do not require an inventory position; physical products still do.
+        const mappedProducts = normalizePosServiceProducts(result.products, result.categories);
+        setProducts(mappedProducts);
         setCategories(result.categories);
-        const refreshed = new Map(result.products.map((product) => [product.id, product]));
+        const refreshed = new Map(mappedProducts.map((product) => [product.id, product]));
         setItems((current) => current.flatMap((item) => {
           const product = refreshed.get(item.product_id);
           if (!product?.is_active || !product.inventory_available ||
