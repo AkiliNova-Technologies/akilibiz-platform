@@ -651,6 +651,7 @@ export default function POSPage() {
             </CardContent>
           </Card>
 
+          {cartItems.length > 0 && (
           <div className="sticky bottom-3 z-20 -mt-1 flex justify-center @min-[1100px]/pos:hidden">
             <Button type="button" className="max-w-full gap-2 shadow-lg"
               onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
@@ -660,8 +661,9 @@ export default function POSPage() {
               <span className="font-semibold">View</span>
             </Button>
           </div>
+          )}
           {/* CART AREA */}
-          <Card id="pos-cart" className="flex h-[min(78dvh,850px)] min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[28px] border-border/60">
+          <Card id="pos-cart" className="flex h-auto min-w-0 flex-col overflow-hidden rounded-[28px] border-border/60 @min-[1100px]/pos:h-[min(78dvh,850px)] @min-[1100px]/pos:min-h-[360px]">
             <CardHeader className="border-b">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -691,9 +693,9 @@ export default function POSPage() {
               </div>
             </CardHeader>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-muted/10 p-3 sm:p-4">
+            <div className="min-h-0 max-h-[45dvh] overflow-y-auto overscroll-contain bg-muted/10 p-3 sm:p-4 @min-[1100px]/pos:max-h-none @min-[1100px]/pos:flex-1">
               {cartItems.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="flex min-h-40 flex-col items-center justify-center py-5 text-center @min-[1100px]/pos:h-full">
                   <div className="rounded-full bg-muted p-4">
                     <ShoppingCart className="size-10 text-muted-foreground" />
                   </div>
@@ -820,7 +822,7 @@ export default function POSPage() {
                         setDiscount(newDiscount);
                         applyDiscount(newDiscount);
                       }}
-                      className="h-9 w-48 text-center"
+                      className="h-9 w-28 min-w-0 text-center sm:w-40"
                     />
                     <span className="text-sm text-muted-foreground">UGX</span>
                   </div>
