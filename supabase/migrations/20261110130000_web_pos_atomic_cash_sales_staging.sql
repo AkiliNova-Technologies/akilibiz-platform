@@ -361,8 +361,12 @@ begin
       'total_ugx',line_total::bigint
     ));
   end loop;
-  if cash_received_ugx::numeric < sum_total then
-    raise exception 'Cash received is less than total' using errcode='23514';
+  -- Until the desktop consumer supports cash tender/change parity,
+  -- only exact-tender cash sales can enter the hosted reconciliation outbox.
+  -- Reject at posting time rather than producing permanently blocked events.
+  if cash_received_ugx::numeric <> sum_total then
+    raise exception 'Exact cash tender is required for web sales'
+      using errcode='23514';
   end if;
 
   insert into private.web_pos_sales (
