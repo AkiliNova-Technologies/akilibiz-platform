@@ -21,7 +21,8 @@ export function useFinanceCashFlowData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("finance_transactions");
-      const rows = mirror.rows.map(mapCashFlowTransaction);
+      const rows = mirror.rows.flatMap((row) => mapCashFlowTransaction(row) ?? []);
+      if (rows.length !== mirror.rows.length) setError(`${mirror.rows.length - rows.length} cash flow record(s) were hidden because required details were invalid.`);
       setCashFlowEntries(rows); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale);
       return rows;
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Cash-flow mirror request failed."); return []; }
