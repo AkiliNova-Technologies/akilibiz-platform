@@ -553,15 +553,15 @@ export default function POSPage() {
                                 <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
                               </div>
                               {!product.inventoryAvailable ? (
-                                <Badge variant="destructive">{t("pos.inventoryUnavailable")}</Badge>
+                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inventoryUnavailable")}</Badge>
                               ) : product.price === null ? (
-                                <Badge variant="destructive">{t("pos.priceUnavailable")}</Badge>
+                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.priceUnavailable")}</Badge>
                               ) : isOutOfStock ? (
-                                <Badge variant="destructive">{t("pos.outOfStock")}</Badge>
+                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.outOfStock")}</Badge>
                               ) : isLowStock ? (
-                                <Badge variant="outline">{t("pos.lowStock", { count: product.stock })}</Badge>
+                                <Badge variant="outline" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.lowStock", { count: product.stock })}</Badge>
                               ) : (
-                                <Badge variant="secondary">{t("pos.inStock", { count: product.stock })}</Badge>
+                                <Badge variant="secondary" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inStock", { count: product.stock })}</Badge>
                               )}
                             </div>
                             {productView === "grid" && isLowStock && !isOutOfStock ? (
