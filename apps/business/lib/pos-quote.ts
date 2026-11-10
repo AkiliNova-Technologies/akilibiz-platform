@@ -30,7 +30,7 @@ export function parseQuoteItems(input: unknown): QuoteItem[] | null {
     const data = item as Record<string, unknown>;
     if (Object.keys(data).length !== 2 ||
         typeof data.product_id !== "string" || !uuid.test(data.product_id) ||
-        !Number.isSafeInteger(data.quantity_milli) ||
+        typeof data.quantity_milli !== "number" || !Number.isSafeInteger(data.quantity_milli) ||
         (data.quantity_milli as number) < 1 ||
         (data.quantity_milli as number) > 1_000_000_000 ||
         seen.has(data.product_id)) return null;
@@ -52,7 +52,8 @@ export function calculateReadOnlyQuote(items: QuoteItem[], products: QuoteProduc
     if (product.selling_price_ugx === null ||
         !Number.isSafeInteger(product.selling_price_ugx) ||
         product.selling_price_ugx < 0) return { ok: false as const, reason: "PRICE_UNAVAILABLE" };
-    if (!position || !Number.isSafeInteger(position.on_hand_milli) ||
+    if (!position || position.on_hand_milli === null || position.reserved_milli === null || position.damaged_milli === null ||
+        !Number.isSafeInteger(position.on_hand_milli) ||
         !Number.isSafeInteger(position.reserved_milli) ||
         !Number.isSafeInteger(position.damaged_milli)) {
       return { ok: false as const, reason: "INVENTORY_UNAVAILABLE" };
