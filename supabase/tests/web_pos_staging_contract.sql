@@ -59,6 +59,20 @@ begin
   if key_count <> 2 then
     raise exception 'Expected business-scoped product foreign keys';
   end if;
+  if to_regprocedure('private.web_pos_locked_sellable_milli(uuid,uuid)') is null then
+    raise exception 'Missing locked sellable-stock function';
+  end if;
+  if has_function_privilege(
+       'authenticated',
+       'private.web_pos_locked_sellable_milli(uuid,uuid)',
+       'EXECUTE'
+     ) or has_function_privilege(
+       'anon',
+       'private.web_pos_locked_sellable_milli(uuid,uuid)',
+       'EXECUTE'
+     ) then
+    raise exception 'Locked sellable-stock helper was exposed to clients';
+  end if;
   if exists (
     select 1 from pg_proc p
     join pg_namespace n on n.oid=p.pronamespace
