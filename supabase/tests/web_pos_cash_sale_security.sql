@@ -11,7 +11,8 @@ begin
   foreach object_name in array array[
     'web_pos_posting_controls','web_pos_tax_settings',
     'web_pos_product_tax_rules','web_pos_sales','web_pos_sale_lines',
-    'web_pos_payments','web_pos_stock_holds','web_pos_reconciliation_outbox'
+    'web_pos_payments','web_pos_stock_holds','web_pos_reconciliation_outbox',
+    'web_pos_desktop_apply_receipts'
   ] loop
     if not exists (
       select 1 from pg_catalog.pg_class c
@@ -37,7 +38,7 @@ begin
     end if;
     tables_checked := tables_checked+1;
   end loop;
-  if tables_checked <> 8 then raise exception 'Unexpected POS table count'; end if;
+  if tables_checked <> 9 then raise exception 'Unexpected POS table count'; end if;
 
   if exists (select 1 from private.web_pos_posting_controls
       where cash_posting_enabled) then
@@ -51,6 +52,24 @@ begin
     'public.post_web_pos_cash_sale(uuid,uuid,jsonb,bigint)','EXECUTE'
   ) then
     raise exception 'Unexpected web POS posting RPC grants';
+  end if;
+  if not has_function_privilege(
+    'authenticated',
+    'public.ack_applied_web_pos_sale(uuid,text,uuid,uuid,bigint,uuid)','EXECUTE'
+  ) or has_function_privilege(
+    'anon',
+    'public.ack_applied_web_pos_sale(uuid,text,uuid,uuid,bigint,uuid)','EXECUTE'
+  ) then
+    raise exception 'Unexpected web POS application ACK RPC grants';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='ack_applied_web_pos_sale'
+      and p.prosecdef
+      and p.proconfig @> array['search_path=']::text[]
+  ) then
+    raise exception 'Missing fixed search path on web POS ACK RPC';
   end if;
   if not has_function_privilege(
     'authenticated',
