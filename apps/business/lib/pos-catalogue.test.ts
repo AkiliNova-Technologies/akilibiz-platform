@@ -94,6 +94,19 @@ describe("hosted POS catalogue mapping", () => {
     expect(result.products[1]).toMatchObject({ selling_price: null, is_active: false });
   });
 
+  it("treats the verified Services & Fees category as non-stock without relaxing physical inventory", () => {
+    const result = mapHostedPosCatalogue([
+      { ...products[0], id: "service-one", category_id: "service-category", name: "Phone setup" },
+      { ...products[0], id: "physical-one", category_id: "category-a" },
+    ], [...categories, { id: "service-category", name: "Services & Fees", is_active: true }], []);
+    expect(result.products[0]).toMatchObject({
+      is_service: true, inventory_available: true, stock_quantity: 0,
+    });
+    expect(result.products[1]).toMatchObject({
+      is_service: false, inventory_available: false, stock_quantity: 0,
+    });
+  });
+
   it("reflects changed effective inventory on each mapping", () => {
     const before = mapHostedPosCatalogue(products, categories, [
       { product_id: "product-a", on_hand_milli: 1_000, reserved_milli: 0, damaged_milli: 0, is_current: true },
