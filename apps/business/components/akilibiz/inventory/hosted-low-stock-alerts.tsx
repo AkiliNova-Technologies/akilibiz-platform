@@ -104,7 +104,7 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
   };
   const actions: TableAction<AlertRow>[] = [
     { type: "view", label: "View", onClick: setSelected },
-    { type: "custom", label: "Restock (unavailable)", icon: <ArrowUp className="size-4" />, onClick: openRestock, disabled: () => false },
+    { type: "custom", label: "Restock (unavailable)", icon: <ArrowUp className="size-4" />, onClick: openRestock, disabled: () => true },
   ];
 
   return (
@@ -168,7 +168,7 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
                   <StatusBadge status={selected.status} />
                 </div>
               </CardContent></Card>
-              <Button className="w-full" onClick={() => { openRestock(selected); setSelected(null); }}>
+              <Button className="w-full" disabled title="Stock posting is not connected">
                 <ArrowUp className="size-4" />Restock Product
               </Button>
             </div>
