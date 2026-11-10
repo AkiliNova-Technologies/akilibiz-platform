@@ -55,7 +55,8 @@ export function calculateReadOnlyQuote(items: QuoteItem[], products: QuoteProduc
     if (!position || position.on_hand_milli === null || position.reserved_milli === null || position.damaged_milli === null ||
         !Number.isSafeInteger(position.on_hand_milli) ||
         !Number.isSafeInteger(position.reserved_milli) ||
-        !Number.isSafeInteger(position.damaged_milli)) {
+        !Number.isSafeInteger(position.damaged_milli) ||
+        position.reserved_milli < 0 || position.damaged_milli < 0) {
       return { ok: false as const, reason: "INVENTORY_UNAVAILABLE" };
     }
     const available = BigInt(position.on_hand_milli!) -
