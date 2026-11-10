@@ -61,6 +61,7 @@ interface Product {
   stock: number;
   stockUnit: string;
   inventoryAvailable: boolean;
+  isService: boolean;
   isActive: boolean;
   isTaxable: boolean;
   taxClassificationId: number | null;
@@ -186,6 +187,7 @@ export default function POSPage() {
         stock: product.stock_quantity,
         stockUnit: product.stock_unit || "pcs",
         inventoryAvailable: product.inventory_available,
+        isService: product.is_service,
         isActive: Boolean(product.is_active),
         isTaxable: Boolean(product.is_taxable),
         taxClassificationId: product.tax_classification_id || null,
@@ -254,12 +256,12 @@ export default function POSPage() {
       return;
     }
 
-    if (!product.inventoryAvailable) {
+    if (!product.isService && !product.inventoryAvailable) {
       toast.error(t("pos.inventoryUnavailable"));
       return;
     }
 
-    if (product.stock <= 0) {
+    if (!product.isService && product.stock <= 0) {
       toast.error(t("pos.productOutOfStock"));
       return;
     }
@@ -269,7 +271,7 @@ export default function POSPage() {
     );
 
     if (existingItem) {
-      if (existingItem.quantity < product.stock) {
+      if (product.isService || existingItem.quantity < product.stock) {
         updateItemQuantity(product.id, existingItem.quantity + 1);
       } else {
         toast.error(t("pos.stockExceeded"));
@@ -296,7 +298,7 @@ export default function POSPage() {
       return;
     }
 
-    if (newQuantity > product.stock) {
+    if (!product.isService && newQuantity > product.stock) {
       toast.error(t("pos.quantityExceeded"));
       return;
     }
@@ -574,9 +576,9 @@ export default function POSPage() {
                       : "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-stretch gap-2"
                 }>
                   {filteredProducts.map((product) => {
-                    const isLowStock = product.stock > 0 && product.stock <= 10;
-                    const isUnavailable = !product.inventoryAvailable || product.price === null;
-                    const isOutOfStock = product.stock <= 0 || isUnavailable;
+                    const isLowStock = !product.isService && product.stock > 0 && product.stock <= 10;
+                    const isUnavailable = (!product.isService && !product.inventoryAvailable) || product.price === null;
+                    const isOutOfStock = (!product.isService && product.stock <= 0) || isUnavailable;
 
                     return (
                       <Card
@@ -616,7 +618,9 @@ export default function POSPage() {
                                 </p>
                                 <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
                               </div>
-                              {!product.inventoryAvailable ? (
+                              {product.isService ? (
+                                <Badge variant="secondary" className="max-w-full min-w-0">Service</Badge>
+                              ) : !product.inventoryAvailable ? (
                                 <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inventoryUnavailable")}</Badge>
                               ) : product.price === null ? (
                                 <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.priceUnavailable")}</Badge>
@@ -772,7 +776,7 @@ export default function POSPage() {
                                     item.quantity + 1,
                                   )
                                 }
-                                disabled={item.quantity >= product.stock}
+                                disabled={!product.isService && item.quantity >= product.stock}
                               >
                                 <Plus className="size-3.5" />
                               </Button>
