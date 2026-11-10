@@ -30,6 +30,7 @@ export type PosCatalogueProduct = {
   stock_quantity: number;
   stock_unit: string;
   inventory_available: boolean;
+  is_service: boolean;
   is_active: boolean;
   is_taxable: false;
   tax_classification_id: null;
@@ -39,12 +40,18 @@ export type PosCatalogueProduct = {
 
 export type PosCatalogueCategory = { id: string; name: string };
 
+/** Temporary compatibility for the existing named service category. The desktop product_type
+ * is authoritative and must be added to the hosted product snapshot in a later migration.
+ * Do not infer services from missing inventory or a product name. */
+export const isHostedServiceCategory = (name: string) => name.trim().toLocaleLowerCase("en").replace(/\s+/g, " ") === "services & fees";
+
 /** Maps the hosted catalogue and its effective inventory read model into the POS contract. */
 export function mapHostedPosCatalogue(
   products: HostedPosProductRow[],
   categories: HostedPosCategoryRow[],
   inventory: HostedPosInventoryRow[],
 ) {
+  const serviceCategoryIds = new Set(categories.filter((category) => isHostedServiceCategory(category.name)).map((category) => category.id));
   const currentInventory = new Map(
     inventory
       .filter((position) => position.is_current)
@@ -56,6 +63,7 @@ export function mapHostedPosCatalogue(
       .filter((category) => category.is_active)
       .map(({ id, name }) => ({ id, name })),
     products: products.map((product): PosCatalogueProduct => {
+      const isService = product.category_id !== null && serviceCategoryIds.has(product.category_id);
       const position = currentInventory.get(product.id);
       const hasInventory =
         position?.on_hand_milli !== null &&
@@ -88,7 +96,8 @@ export function mapHostedPosCatalogue(
         // Unknown inventory is deliberately unavailable, never positive stock.
         stock_quantity: Number.isSafeInteger(availableMilli) ? availableMilli / 1000 : 0,
         stock_unit: product.stock_unit,
-        inventory_available: hasInventory && Number.isSafeInteger(availableMilli),
+        inventory_available: isService || (hasInventory && Number.isSafeInteger(availableMilli)),
+        is_service: isService,
         is_active: product.is_active,
         is_taxable: false,
         tax_classification_id: null,
