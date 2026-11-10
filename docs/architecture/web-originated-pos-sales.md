@@ -20,10 +20,14 @@ AkiliBiz Phase 1G established desktop-to-hosted synchronization, not bidirection
 ## Delivery order
 
 - **Completed on dev:** authenticated read-only cart preflight, exact server UGX subtotal and milliquantities, business-scoped inventory access, fail-closed invalid inputs; POS stock display updated to net out reserved/damaged units.
-- **Next implementation:** additive hosted sale/line/payment/reservation/outbox schema, tenant policies and atomic commit RPC, initially disabled. Run database integration and concurrency tests before allowing writes.
-- **Then:** desktop reconciliation worker and durable applied/acknowledged state; reconcile stock and accounting.
+- **Staged on dev (not applied to the hosted database):** additive private sale/line/payment/stock-hold/reconciliation-outbox schema, restricted cash-sale posting RPC, no-client-table grants, forced RLS, per-tenant and per-desktop-source locks, idempotent receipts, verified tax rule requirements, and a default-off posting gate. The REST endpoint is present but cannot post without explicit controlled database activation.
+- **Mandatory next qualification:** apply the migration to an **isolated development PostgreSQL database** and execute syntax/security tests plus real concurrent cash sale, duplicate idempotency key, stock-exhaustion, tax calculation, tenant isolation, and error rollback tests before any production schema application. Validate that the stock read/quote models account for all pending web holds before enabling posting.
+- **Then:** desktop reconciliation worker and durable applied/acknowledged state; reconcile stock and accounting. Implement a device-authorized, idempotent outbox consumer; verify that holds are released only when the corresponding desktop movement is visibly reflected in hosted stock.
 - **Only after qualification:** connect checkout UI, permit supported payment methods and receipt printing, and run full acceptance with two concurrent cashiers and offline desktop recovery.
 
 ## Release gates
+
+**Do not manually insert a row with `cash_posting_enabled=true` in production.** No operator activation procedure exists until the isolated transactional and desktop consumer tests have passed. The new schema and endpoint are a tested TypeScript integration foundation, **not** an accepted database transaction implementation yet.
+
 
 The production synchronization switch does not authorize web-originated sales. `canSubmitSale = false` must remain until the complete posting/reconciliation contract is proven. No direct browser writes to the inventory mirror or desktop financial snapshots.
