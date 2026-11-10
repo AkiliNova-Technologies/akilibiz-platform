@@ -45,6 +45,7 @@ import {
 import { RiskBadge } from "@/components/akilibiz/risk-badge";
 import { CreateSalePayload, SalePaymentMethod, formatPosCurrency as formatCurrency, t, usePosData } from "@/components/akilibiz/pos/pos-data";
 import { toast } from "sonner";
+import { useActiveBusinessId } from "@/components/active-business-context";
 
 
 // ============================================================================
@@ -83,7 +84,8 @@ const canSubmitSale = false;
 
 export default function POSPage() {
   const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
-  const { products, loading, error, getProducts, categories, getCategories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData();
+  const activeBusinessId = useActiveBusinessId();
+  const { products, loading, error, loadCatalogue, categories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData(activeBusinessId);
 
   const [productView, setProductView] = useState<ProductView>(() => {
     if (typeof window === "undefined") return "compact";
@@ -118,15 +120,13 @@ export default function POSPage() {
 
   useEffect(() => {
     void Promise.all([
-      getProducts(),
-      getCategories(),
+      loadCatalogue(),
       getCustomers(),
       getTaxSettings(),
       getTaxClassifications(),
     ]);
   }, [
-    getProducts,
-    getCategories,
+    loadCatalogue,
     getCustomers,
     getTaxSettings,
     getTaxClassifications,
@@ -319,7 +319,7 @@ export default function POSPage() {
   };
 
   const handleRefresh = async () => {
-    await Promise.all([getProducts(), getCategories()]);
+    await loadCatalogue();
     toast.success(t("pos.refreshed"));
   };
 
