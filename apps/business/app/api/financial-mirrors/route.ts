@@ -35,12 +35,32 @@ export async function GET(request: NextRequest) {
       .maybeSingle(),
   ]);
   const { data, error, count } = pageResult;
-  if (error || publicationResult.error) {
+  if (publicationResult.error) {
     return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
   }
-  const rows = (data ?? []).map((row) => ({ localRecordId: row.local_record_id, capturedAt: row.captured_at, record: row.record }));
+
+  // PostgREST returns PGRST103 (HTTP 416) for a page beyond the final row.
+  // This is an empty page, not a failed financial mirror, but only when a
+  // tenant-scoped exact count confirms the requested offset is out of range.
+  // Never convert unrelated database errors or malformed ranges into success.
+  let total = count ?? 0;
+  if (error?.code === "PGRST103" && from > 0) {
+    const countResult = await supabase
+      .from("desktop_business_records")
+      .select("local_record_id", { count: "exact", head: true })
+      .eq("business_id", business.id)
+      .eq("entity_type", entity);
+    if (countResult.error || countResult.count === null || countResult.count === undefined ||
+        from < countResult.count) {
+      return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
+    }
+    total = countResult.count;
+  } else if (error) {
+    return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
+  }
+  const rows = (error ? [] : (data ?? [])).map((row) => ({ localRecordId: row.local_record_id, capturedAt: row.captured_at, record: row.record }));
   const lastSuccessfulSync = publicationResult.data?.captured_at ?? null;
   const syncTime = lastSuccessfulSync ? new Date(lastSuccessfulSync).getTime() : Number.NaN;
   const isStale = lastSuccessfulSync !== null && (Number.isNaN(syncTime) || Date.now() - syncTime > 24 * 60 * 60 * 1000);
-  return NextResponse.json({ entity, rows, page, pageSize, total: count ?? 0, lastSuccessfulSync, isStale, readOnly: true });
+  return NextResponse.json({ entity, rows, page, pageSize, total, lastSuccessfulSync, isStale, readOnly: true });
 }
