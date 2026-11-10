@@ -90,14 +90,21 @@ export default function POSPage() {
   // Keep server and first client render identical; restore the browser preference after hydration.
   const [productView, setProductView] = useState<ProductView>("compact");
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(POS_VIEW_STORAGE_KEY);
-      if (saved === "compact" || saved === "grid" || saved === "list") {
-        setProductView(saved);
+    // Restore the optional browser preference after the hydrated first render.
+    // Deferring avoids a synchronous cascading render inside the effect.
+    let mounted = true;
+    queueMicrotask(() => {
+      if (!mounted) return;
+      try {
+        const saved = window.localStorage.getItem(POS_VIEW_STORAGE_KEY);
+        if (saved === "compact" || saved === "grid" || saved === "list") {
+          setProductView(saved);
+        }
+      } catch {
+        // Display preferences are optional.
       }
-    } catch {
-      // Display preferences are optional.
-    }
+    });
+    return () => { mounted = false; };
   }, []);
   const changeProductView = (view: ProductView) => {
     setProductView(view);
