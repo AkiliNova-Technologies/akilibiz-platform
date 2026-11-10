@@ -25,6 +25,18 @@ AkiliBiz Phase 1G established desktop-to-hosted synchronization, not bidirection
 - **Then:** desktop reconciliation worker and durable applied/acknowledged state; reconcile stock and accounting. Implement a device-authorized, idempotent outbox consumer; verify that holds are released only when the corresponding desktop movement is visibly reflected in hosted stock.
 - **Only after qualification:** connect checkout UI, permit supported payment methods and receipt printing, and run full acceptance with two concurrent cashiers and offline desktop recovery.
 
+## Staged end-to-end reconciliation implementation (not yet deployed)
+
+- Hosted sale staging and cash-only posting RPC: `20261110130000_web_pos_atomic_cash_sales_staging.sql`.
+- Source-scoped web-sale delivery RPC: `20261110140000_web_pos_desktop_delivery_read.sql`.
+- Idempotent device-authorized desktop application acknowledgement: `20261110150000_web_pos_applied_ack.sql`.
+- Source-movement-evidence-based hold release and sale completion: `20261110160000_web_pos_stock_hold_reconciliation.sql`.
+- Optional hold-aware POS read model: `20261110170000_web_pos_hold_aware_inventory_read.sql`.
+- Desktop inbound inbox, immutable product mapping, local applied-sale receipt, acknowledgement and hosted stock-reconciliation receipts: migrations `0105`–`0109` in `akilibiz`.
+- The desktop worker retains separate default-off flags for inbound fetching, local sale application, ACK, and movement-confirmed reconciliation. The web read model selects hold-aware stock only with `AKILIBIZ_WEB_POS_HOLDS_AWARE=1`.
+- **Pilot limitations:** cash must equal the exact sale total (no change due); credit, mobile money, tax/invoice mismatches and non-matching local pricing all fail closed rather than producing partially applied financial records.
+- **Still required:** isolated PostgreSQL migration and multi-session concurrency tests, real cross-repository browser/desktop acceptance, and renewed Supabase security review for the new authenticated RPCs. Do not enable the posting gate or production pilot flags until these checks pass.
+
 ## Release gates
 
 The staged migration adds a new authenticated SECURITY DEFINER RPC. Before applying it to the hosted Supabase project, update and rerun the Phase 1G security-surface inventory (currently 17 reviewed RPCs) and audit this new function's permissions, fixed search path, caller identity, and business scope. Do not relax the original 17-function security checks merely to make the new count pass.
