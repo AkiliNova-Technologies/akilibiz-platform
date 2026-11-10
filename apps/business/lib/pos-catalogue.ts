@@ -17,6 +17,8 @@ export type HostedPosProductRow = {
 export type HostedPosInventoryRow = {
   product_id: string;
   on_hand_milli: number | null;
+  reserved_milli: number | null;
+  damaged_milli: number | null;
   is_current: boolean;
 };
 
@@ -58,7 +60,21 @@ export function mapHostedPosCatalogue(
       const hasInventory =
         position?.on_hand_milli !== null &&
         position?.on_hand_milli !== undefined &&
-        Number.isSafeInteger(position.on_hand_milli);
+        position?.reserved_milli !== null &&
+        position?.reserved_milli !== undefined &&
+        position?.damaged_milli !== null &&
+        position?.damaged_milli !== undefined &&
+        Number.isSafeInteger(position.on_hand_milli) &&
+        Number.isSafeInteger(position.reserved_milli) &&
+        Number.isSafeInteger(position.damaged_milli) &&
+        position.reserved_milli >= 0 &&
+        position.damaged_milli >= 0;
+      // Sellable stock excludes reservations and damage, consistent with
+      // /api/pos/quote. Negative availability is clamped to zero; it is never
+      // evidence of a positive sellable balance.
+      const availableMilli = hasInventory
+        ? Math.max(0, position.on_hand_milli! - position.reserved_milli! - position.damaged_milli!)
+        : 0;
 
       return {
         id: product.id,
@@ -70,9 +86,9 @@ export function mapHostedPosCatalogue(
             ? product.selling_price_ugx
             : null,
         // Unknown inventory is deliberately unavailable, never positive stock.
-        stock_quantity: hasInventory ? position.on_hand_milli! / 1000 : 0,
+        stock_quantity: Number.isSafeInteger(availableMilli) ? availableMilli / 1000 : 0,
         stock_unit: product.stock_unit,
-        inventory_available: hasInventory,
+        inventory_available: hasInventory && Number.isSafeInteger(availableMilli),
         is_active: product.is_active,
         is_taxable: false,
         tax_classification_id: null,
