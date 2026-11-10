@@ -79,7 +79,24 @@ async function authenticate(email, expectedName, expectedAmount) {
     await page.locator("#email").fill(email);
     await page.locator("#password").fill(process.env.AKILIBIZ_BROWSER_USER_PASSWORD);
     await page.getByRole("button", { name: /^Sign in$/ }).click();
-    await page.waitForURL(/\/businesses(?:\?|$)/, { timeout: 60000 });
+    try {
+      await page.waitForURL(/\\/businesses(?:\\?|$)/, { timeout: 60000 });
+    } catch {
+      // Classify only the visible outcome: never record test credentials,
+      // tokens, browser storage or raw page contents.
+      const authRejected = await page.getByText("We could not sign you in", { exact: true })
+        .isVisible().catch(() => false);
+      const submitting = await page.getByRole("button", { name: "Signing in…" })
+        .isVisible().catch(() => false);
+      const path = new URL(page.url()).pathname;
+      throw new Error(authRejected
+        ? "AkiliBiz rejected disposable test account sign-in"
+        : submitting
+          ? "AkiliBiz sign-in request exceeded the browser deadline"
+          : path === "/sign-in"
+            ? "AkiliBiz sign-in stayed on sign-in without an authentication error"
+            : "AkiliBiz sign-in navigated to an unexpected route");
+    }
     assert((await page.locator("body").innerText()).includes(expectedName),
       `business selector lists ${expectedName}`);
     await page.getByRole("button", { name: /^(Open|Continue)/ }).click();
