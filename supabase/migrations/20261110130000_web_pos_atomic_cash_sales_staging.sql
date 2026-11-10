@@ -403,6 +403,8 @@ begin
       'sale_id',new_sale_id,'receipt_number',new_receipt,
       'currency','UGX','subtotal_ugx',sum_subtotal,
       'tax_ugx',sum_tax,'total_ugx',sum_total,
+      'cash_tendered_ugx',cash_received_ugx,
+      'change_ugx',(cash_received_ugx::numeric-sum_total)::bigint,
       'payment_method','cash',
       'lines',work_lines
     )
