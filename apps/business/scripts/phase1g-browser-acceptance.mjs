@@ -80,7 +80,7 @@ async function authenticate(email, expectedName, expectedAmount) {
     await page.locator("#password").fill(process.env.AKILIBIZ_BROWSER_USER_PASSWORD);
     await page.getByRole("button", { name: /^Sign in$/ }).click();
     try {
-      await page.waitForURL(/\\/businesses(?:\\?|$)/, { timeout: 60000 });
+      await page.waitForURL(/\/businesses(?:\?|$)/, { timeout: 60000 });
     } catch {
       // Classify only the visible outcome: never record test credentials,
       // tokens, browser storage or raw page contents.
