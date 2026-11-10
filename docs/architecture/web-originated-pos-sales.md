@@ -27,6 +27,9 @@ AkiliBiz Phase 1G established desktop-to-hosted synchronization, not bidirection
 
 ## Release gates
 
+The staged migration adds a new authenticated SECURITY DEFINER RPC. Before applying it to the hosted Supabase project, update and rerun the Phase 1G security-surface inventory (currently 17 reviewed RPCs) and audit this new function's permissions, fixed search path, caller identity, and business scope. Do not relax the original 17-function security checks merely to make the new count pass.
+
+
 **Do not manually insert a row with `cash_posting_enabled=true` in production.** No operator activation procedure exists until the isolated transactional and desktop consumer tests have passed. The new schema and endpoint are a tested TypeScript integration foundation, **not** an accepted database transaction implementation yet.
 
 
