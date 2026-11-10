@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useState } from "react";
 import { loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
+import { requiredAmount, requiredEnum, requiredId } from "@/components/akilibiz/finance/mirror-field-validation";
 
 export type SupplierPaymentMethod = "Cash" | "Bank Transfer" | "Mobile Money" | "Cheque";
 export type SupplierPaymentStatus = "Pending" | "Partial" | "Paid" | "Overdue";
@@ -29,23 +30,34 @@ export function useSupplierPaymentsData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("supplier_payments");
-      const next = mirror.rows.map(({ localRecordId, record }) => ({
+      let invalidCount = 0;
+      const next = mirror.rows.flatMap(({ localRecordId, record }) => {
+        try {
+          const status = requiredEnum(record, "status", ["Pending", "Partial", "Paid", "Overdue"] as const);
+          const paymentMethod = requiredEnum(record, "payment_method", ["Cash", "Bank Transfer", "Mobile Money", "Cheque"] as const);
+          return [{
         id: localRecordId,
         payment_ref: String(mirrorValue(record, "payment_ref", "public_id") ?? localRecordId),
-        supplier_id: Number(mirrorValue(record, "supplier_id") ?? 0),
+        supplier_id: requiredId(record, "supplier_id"),
         supplier_name: String(mirrorValue(record, "supplier_name") ?? `Supplier ${mirrorValue(record, "supplier_id") ?? "—"}`),
         purchase_order_id: Number(mirrorValue(record, "purchase_order_id") ?? 0) || undefined,
         po_reference: String(mirrorValue(record, "po_reference") ?? "—"),
-        total_invoice_amount: Number(mirrorValue(record, "total_invoice_amount_ugx", "total_invoice_amount") ?? 0),
-        amount_paid: Number(mirrorValue(record, "amount_paid_ugx", "amount_paid") ?? 0),
-        balance_remaining: Number(mirrorValue(record, "balance_remaining_ugx", "balance_remaining") ?? 0),
+        total_invoice_amount: requiredAmount(record, "total_invoice_amount_ugx", "total_invoice_amount"),
+        amount_paid: requiredAmount(record, "amount_paid_ugx", "amount_paid"),
+        balance_remaining: requiredAmount(record, "balance_remaining_ugx", "balance_remaining"),
         payment_date: String(mirrorValue(record, "payment_date") ?? ""),
         due_date: String(mirrorValue(record, "due_date") ?? "") || undefined,
-        payment_method: String(mirrorValue(record, "payment_method") ?? "Cash") as SupplierPaymentMethod,
-        status: String(mirrorValue(record, "status") ?? "Pending") as SupplierPaymentStatus,
+        payment_method: paymentMethod,
+        status,
         recorded_by: String(mirrorValue(record, "recorded_by_name_snapshot") ?? "Desktop"),
         notes: String(mirrorValue(record, "notes") ?? "") || undefined,
-      }));
+      }];
+        } catch {
+          invalidCount += 1;
+          return [];
+        }
+      });
+      if (invalidCount) setError(`${invalidCount} supplier payment record(s) were hidden because required payment details were missing or invalid.`);
       setPayments(next); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale); return next;
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
     finally { setLoading(false); }
