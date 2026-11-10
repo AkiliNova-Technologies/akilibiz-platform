@@ -109,6 +109,13 @@ export default function POSPage() {
   };
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteResult, setQuoteResult] = useState<{
+    cartKey: string;
+    message: string;
+    subtotal?: number;
+    accepted: boolean;
+  } | null>(null);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>("sale");
   const [paymentMethod, setPaymentMethod] = useState<SalePaymentMethod>("cash");
@@ -304,6 +311,54 @@ export default function POSPage() {
     registerClearSale(cartItems.length, clearCart);
   }, [cartItems.length, registerClearSale, clearCart]);
   useEffect(() => () => unregisterClearSale(), [unregisterClearSale]);
+
+  // A stock-and-price verification only. It does not reserve stock, charge a
+  // customer, create a receipt, or enable hosted checkout.
+  const quoteCartKey = JSON.stringify({ business: activeBusinessId, cartItems });
+  const checkCart = async () => {
+    if (cartItems.length === 0) return;
+    setQuoteLoading(true);
+    setQuoteResult(null);
+    const requestKey = quoteCartKey;
+    try {
+      const response = await fetch("/api/pos/quote", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems.map((item) => {
+            const milli = Math.round(item.quantity * 1000);
+            return {
+              product_id: item.product_id,
+              quantity_milli: Number.isSafeInteger(milli) &&
+                Math.abs(item.quantity * 1000 - milli) < 0.000001 ? milli : null,
+            };
+          }),
+        }),
+      });
+      const result = await response.json() as {
+        subtotal_ugx?: number;
+        error?: string;
+        message?: string;
+      };
+      setQuoteResult({
+        cartKey: requestKey,
+        accepted: response.ok,
+        subtotal: result.subtotal_ugx,
+        message: response.ok
+          ? "Current stock and prices verified. This is not a completed sale."
+          : (result.error ?? "The cart could not be verified."),
+      });
+    } catch {
+      setQuoteResult({
+        cartKey: requestKey,
+        accepted: false,
+        message: "Could not check current stock and prices. Try again.",
+      });
+    } finally {
+      setQuoteLoading(false);
+    }
+  };
 
   const handleCheckout = (mode: CheckoutMode) => {
     if (cartItems.length === 0) {
@@ -795,6 +850,22 @@ export default function POSPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void checkCart()}
+                    disabled={cartItems.length === 0 || loading || quoteLoading}
+                  >
+                    {quoteLoading ? "Checking current stock…" : "Check stock and prices"}
+                  </Button>
+                  {quoteResult?.cartKey === quoteCartKey && (
+                    <div role="status" className="text-sm text-muted-foreground">
+                      <p>{quoteResult.message}</p>
+                      {quoteResult.accepted && quoteResult.subtotal !== undefined && (
+                        <p>Verified subtotal: {formatCurrency(quoteResult.subtotal)}</p>
+                      )}
+                    </div>
+                  )}
                   <Button
                     className="h-12 text-base font-semibold"
                     onClick={() => handleCheckout("sale")}
