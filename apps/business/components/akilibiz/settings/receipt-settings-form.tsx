@@ -62,7 +62,7 @@ export function ReceiptSettingsForm({ isDirty, loading, onReset, onSave, onSetti
         {[ ["Receipt Width", settings.receipt_width, "Configured print paper width"], ["Copies Per Print", String(settings.copies_per_print), "Number of copies per transaction"], ["Enabled Options", String(enabledOptions), "Receipt features enabled"], ["Header", settings.business_header || "Not Set", "Receipt title"] ].map(([title, value, description]) => <Card key={title}><CardContent className="p-4"><p className="text-sm text-muted-foreground">{title}</p><p className="mt-1 truncate text-2xl font-semibold">{value}</p><p className="mt-1 text-xs text-muted-foreground">{description}</p></CardContent></Card>)}
       </section>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)]">
-        <Card><CardContent className="px-6"><form className="space-y-6" onSubmit={submit}>
+        <Card><CardContent className="px-6"><form className="space-y-6" onSubmit={submit}><fieldset disabled className="min-w-0 space-y-6">
           <div><h2 className="text-lg font-semibold">Receipt Configuration</h2><p className="text-sm text-muted-foreground">Control receipt content, printing behavior, and display options. The preview updates before settings are saved.</p></div>
           {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : null}
           <div className="grid gap-4 py-2 md:grid-cols-2">
@@ -73,7 +73,7 @@ export function ReceiptSettingsForm({ isDirty, loading, onReset, onSave, onSetti
             <div className="grid gap-3 md:col-span-2 sm:grid-cols-2">{toggles.map(([key, label]) => <button key={key} type="button" aria-pressed={settings[key]} onClick={() => update(key, !settings[key])} className="flex items-center justify-between rounded-lg border p-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="text-sm font-medium">{label}</span><Badge variant={settings[key] ? "outline" : "secondary"}>{settings[key] ? "Enabled" : "Disabled"}</Badge></button>)}</div>
           </div>
           <Separator /><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { onReset(); setError(null); toast.info("Receipt settings reset"); }} disabled={!isDirty}>Reset changes</Button><Button type="submit" disabled title="Receipt settings saving is not yet connected">{loading ? "Saving..." : "Save Changes"}</Button></div>
-        </form></CardContent></Card>
+        </fieldset></form></CardContent></Card>
         <Card className="xl:sticky xl:top-6"><CardContent className="px-4 sm:px-6"><ReceiptSettingsPreview settings={settings} /></CardContent></Card>
       </div>
     </>
