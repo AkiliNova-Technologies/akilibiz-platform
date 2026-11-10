@@ -87,16 +87,18 @@ export default function POSPage() {
   const activeBusinessId = useActiveBusinessId();
   const { products, loading, error, loadCatalogue, categories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData(activeBusinessId);
 
-  const [productView, setProductView] = useState<ProductView>(() => {
-    if (typeof window === "undefined") return "compact";
+  // Keep server and first client render identical; restore the browser preference after hydration.
+  const [productView, setProductView] = useState<ProductView>("compact");
+  useEffect(() => {
     try {
       const saved = window.localStorage.getItem(POS_VIEW_STORAGE_KEY);
-      if (saved === "compact" || saved === "grid" || saved === "list") return saved;
+      if (saved === "compact" || saved === "grid" || saved === "list") {
+        setProductView(saved);
+      }
     } catch {
       // Display preferences are optional.
     }
-    return "compact";
-  });
+  }, []);
   const changeProductView = (view: ProductView) => {
     setProductView(view);
     try {
