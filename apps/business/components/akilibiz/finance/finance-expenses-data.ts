@@ -47,8 +47,11 @@ export function useFinanceExpensesData() {
       const next = mirror.rows.flatMap(({ localRecordId, record }) => {
         try {
         const state = requiredEnum(record, "state", ["draft", "posted", "cancelled", "voided", "corrected", "refunded"] as const);
-        const status = requiredEnum(record, "status", ["pending", "approved", "paid", "rejected"] as const);
         const paymentBasis = requiredEnum(record, "payment_basis", ["paid", "supplier_credit"] as const);
+        // Desktop authoritative_expenses has no status field. A posted paid-basis expense
+        // is paid; credit-basis settlement requires a separate payable snapshot.
+        if (paymentBasis === "supplier_credit") throw new Error("Payable snapshot required");
+        const status: ExpenseStatus = state === "posted" ? "paid" : state === "draft" ? "pending" : "rejected";
         const method = requiredEnum(record, "payment_method", ["cash", "mobile_money", "bank_transfer", "card", "cheque", "other"] as const);
         return [{
           id: localRecordId,
@@ -75,7 +78,7 @@ export function useFinanceExpensesData() {
           return [];
         }
       });
-      if (invalidCount) setError(`${invalidCount} expense record(s) were hidden because required financial details were missing or invalid.`);
+      if (invalidCount) setError(`${invalidCount} expense record(s) were hidden because required details or supplier-credit settlement evidence were unavailable.`);
       setExpenses(next); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale); return next;
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
     finally { setLoading(false); }
