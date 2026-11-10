@@ -70,6 +70,24 @@ describe("POST /api/pos/quote", () => {
     });
   });
 
+  it("selects the hold-aware RPC only when the pilot flag is enabled", async () => {
+    const old = process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE;
+    process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE = "1";
+    try {
+      const fixture = client();
+      const response = await POST(request({
+        items: [{ product_id: productId, quantity_milli: 1000 }],
+      }));
+      expect(response.status).toBe(200);
+      expect(fixture.rpc).toHaveBeenCalledWith("list_web_pos_sellable_inventory", {
+        target_business_id: "business-a",
+      });
+    } finally {
+      if (old === undefined) delete process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE;
+      else process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE = old;
+    }
+  });
+
   it("rejects invalid payloads without querying inventory", async () => {
     const fixture = client();
     expect((await POST(request({ items: [{ product_id: productId, quantity_milli: -1 }] }))).status)
