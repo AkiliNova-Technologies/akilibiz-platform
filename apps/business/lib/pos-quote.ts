@@ -8,6 +8,7 @@ export type QuoteProduct = {
   name: string;
   selling_price_ugx: number | null;
   is_active: boolean;
+  is_service?: boolean;
 };
 export type QuoteStock = {
   product_id: string;
@@ -52,16 +53,16 @@ export function calculateReadOnlyQuote(items: QuoteItem[], products: QuoteProduc
     if (product.selling_price_ugx === null ||
         !Number.isSafeInteger(product.selling_price_ugx) ||
         product.selling_price_ugx < 0) return { ok: false as const, reason: "PRICE_UNAVAILABLE" };
-    if (!position || position.on_hand_milli === null || position.reserved_milli === null || position.damaged_milli === null ||
+    if (!product.is_service && (!position || position.on_hand_milli === null || position.reserved_milli === null || position.damaged_milli === null ||
         !Number.isSafeInteger(position.on_hand_milli) ||
         !Number.isSafeInteger(position.reserved_milli) ||
         !Number.isSafeInteger(position.damaged_milli) ||
-        position.reserved_milli < 0 || position.damaged_milli < 0) {
+        position.reserved_milli < 0 || position.damaged_milli < 0)) {
       return { ok: false as const, reason: "INVENTORY_UNAVAILABLE" };
     }
-    const available = BigInt(position.on_hand_milli!) -
-      BigInt(position.reserved_milli!) - BigInt(position.damaged_milli!);
-    if (available < BigInt(item.quantity_milli)) {
+    const available = product.is_service ? null : BigInt(position!.on_hand_milli!) -
+      BigInt(position!.reserved_milli!) - BigInt(position!.damaged_milli!);
+    if (available !== null && available < BigInt(item.quantity_milli)) {
       return { ok: false as const, reason: "INSUFFICIENT_STOCK" };
     }
     const lineTotal = (BigInt(product.selling_price_ugx) * BigInt(item.quantity_milli) + 500n) / 1000n;
@@ -75,7 +76,7 @@ export function calculateReadOnlyQuote(items: QuoteItem[], products: QuoteProduc
       quantity_milli: item.quantity_milli,
       unit_price_ugx: product.selling_price_ugx,
       line_total_ugx: Number(lineTotal),
-      available_milli: Number(available),
+      available_milli: available === null ? null : Number(available),
     });
   }
   return {
