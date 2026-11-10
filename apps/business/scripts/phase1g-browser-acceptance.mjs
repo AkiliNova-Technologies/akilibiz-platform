@@ -76,6 +76,25 @@ async function authenticate(email, expectedName, expectedAmount) {
   const context = await browser.newContext(settings);
   try {
     const page = await within(context, "/sign-in");
+    let tokenStatus = "not-observed";
+    const observedPaths = new Set([new URL(page.url()).pathname]);
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) observedPaths.add(new URL(frame.url()).pathname);
+    });
+    page.on("response", (response) => {
+      const responseUrl = new URL(response.url());
+      if (responseUrl.hostname.endsWith(".supabase.co") &&
+          responseUrl.pathname.endsWith("/auth/v1/token")) {
+        tokenStatus = String(response.status());
+      }
+    });
+    // `domcontentloaded` can precede React hydration on a cold preview. Wait
+    // until React has attached the form props so clicking cannot fall back to
+    // a native GET submission that never calls Supabase Auth.
+    await page.waitForFunction(() => {
+      const form = document.querySelector("form");
+      return Boolean(form && Object.keys(form).some((key) => key.startsWith("__reactProps$")));
+    }, undefined, { timeout: 60000 });
     await page.locator("#email").fill(email);
     await page.locator("#password").fill(process.env.AKILIBIZ_BROWSER_USER_PASSWORD);
     await page.getByRole("button", { name: /^Sign in$/ }).click();
@@ -89,13 +108,14 @@ async function authenticate(email, expectedName, expectedAmount) {
       const submitting = await page.getByRole("button", { name: "Signing in…" })
         .isVisible().catch(() => false);
       const path = new URL(page.url()).pathname;
-      throw new Error(authRejected
+      const diagnostic = ` (token HTTP ${tokenStatus}; routes ${[...observedPaths].join(" -> ")})`;
+      throw new Error((authRejected
         ? "AkiliBiz rejected disposable test account sign-in"
         : submitting
           ? "AkiliBiz sign-in request exceeded the browser deadline"
           : path === "/sign-in"
             ? "AkiliBiz sign-in stayed on sign-in without an authentication error"
-            : "AkiliBiz sign-in navigated to an unexpected route");
+            : "AkiliBiz sign-in navigated to an unexpected route") + diagnostic);
     }
     assert((await page.locator("body").innerText()).includes(expectedName),
       `business selector lists ${expectedName}`);
