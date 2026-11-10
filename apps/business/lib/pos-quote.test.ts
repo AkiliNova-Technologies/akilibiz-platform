@@ -36,6 +36,13 @@ describe("POS hosted checkout preflight", () => {
       .toMatchObject({ ok: false, reason: "INVENTORY_UNAVAILABLE" });
   });
 
+  it("does not turn negative reserved or damaged balances into sellable stock", () => {
+    expect(calculateReadOnlyQuote(items, products, [{ ...stock[0], reserved_milli: -1000 }]))
+      .toMatchObject({ ok: false, reason: "INVENTORY_UNAVAILABLE" });
+    expect(calculateReadOnlyQuote(items, products, [{ ...stock[0], damaged_milli: -500 }]))
+      .toMatchObject({ ok: false, reason: "INVENTORY_UNAVAILABLE" });
+  });
+
   it("rejects inactive, missing-price and missing products", () => {
     expect(calculateReadOnlyQuote(items, [{ ...products[0], is_active: false }], stock))
       .toMatchObject({ ok: false, reason: "PRODUCT_UNAVAILABLE" });
