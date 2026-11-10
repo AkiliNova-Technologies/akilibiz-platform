@@ -28,7 +28,8 @@ create table private.web_pos_sales (
   unique (business_id,idempotency_key),
   unique (business_id,receipt_number),
   check (discount_ugx<=subtotal_ugx),
-  check ((state='committed')=(committed_at is not null)),
+  check ((state='pending' and committed_at is null) or
+         (state in ('committed','voided') and committed_at is not null)),
   check (receipt_number is null or char_length(receipt_number) between 1 and 80)
 );
 create index web_pos_sales_business_time_idx
@@ -135,11 +136,11 @@ alter table private.web_pos_reconciliation_outbox force row level security;
 alter table private.web_pos_payment_events enable row level security;
 alter table private.web_pos_payment_events force row level security;
 
-revoke all on private.web_pos_sales from public,anon,authenticated;
-revoke all on private.web_pos_sale_lines from public,anon,authenticated;
-revoke all on private.web_pos_stock_reservations from public,anon,authenticated;
-revoke all on private.web_pos_reconciliation_outbox from public,anon,authenticated;
-revoke all on private.web_pos_payment_events from public,anon,authenticated;
+revoke all on private.web_pos_sales from public,anon,authenticated,service_role;
+revoke all on private.web_pos_sale_lines from public,anon,authenticated,service_role;
+revoke all on private.web_pos_stock_reservations from public,anon,authenticated,service_role;
+revoke all on private.web_pos_reconciliation_outbox from public,anon,authenticated,service_role;
+revoke all on private.web_pos_payment_events from public,anon,authenticated,service_role;
 
 comment on table private.web_pos_sales is
   'Staged web-originated sales: no client writing or checkout authorization until reconciliation qualification';
