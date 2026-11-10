@@ -17,6 +17,16 @@ export default function TaxSettingsPage() {
             Tax details are based on your business records. Confirm your registration and VAT treatment with URA.
           </p>
         </div>
+        <div role="status" className="text-sm text-muted-foreground">
+          {tax.snapshotState === "loading" ? "Loading desktop settings…" :
+            tax.snapshotState === "error" ? "Could not load the desktop settings. Check the connection and your account access." :
+            tax.snapshotState === "unavailable" ? "No verified desktop settings snapshot is available for this business." :
+            "Read-only settings synchronized from desktop. Changes must be made in the desktop app."}
+          {tax.snapshotState === "ready" && tax.snapshotDate ? (
+            <span className="ml-1">Last synchronized: {new Date(tax.snapshotDate).toLocaleString("en-UG", { timeZone: "Africa/Kampala" })}</span>
+          ) : null}
+        </div>
+        {tax.snapshotState === "ready" ? (
         <TaxSettingsForm
           isDirty={tax.isDirty}
           loading={tax.loading}
@@ -25,6 +35,7 @@ export default function TaxSettingsPage() {
           onSettingsChange={tax.setSettings}
           settings={tax.settings}
         />
+        ) : null
       </div>
     </main>
   );
