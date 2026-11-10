@@ -32,7 +32,8 @@ export function TaxSettingsForm({
   return (
     <div className="flex min-w-0 flex-col gap-4 md:gap-6">
       <Card>
-        <CardContent className="min-w-0 space-y-6 px-3 sm:px-4 md:px-6">
+        <CardContent className="min-w-0 px-3 sm:px-4 md:px-6">
+          <fieldset disabled className="min-w-0 space-y-6">
           <section className="space-y-3">
             <h3 className="text-lg font-semibold">VAT Registration</h3>
             <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
@@ -126,6 +127,7 @@ export function TaxSettingsForm({
               Save changes
             </Button>
           </div>
+                  </fieldset>
         </CardContent>
       </Card>
 
