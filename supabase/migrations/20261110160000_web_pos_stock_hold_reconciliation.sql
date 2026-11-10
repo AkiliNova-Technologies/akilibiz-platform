@@ -113,15 +113,10 @@ begin
   where h.business_id=target_business_id
     and h.sale_id=outbound.sale_id and h.state<>'released';
   if remaining=0 then
-    -- All holds were previously released; close the event idempotently.
-    update private.web_pos_reconciliation_outbox
-      set status='reconciled'
-      where id=target_event_id and business_id=target_business_id;
-    update private.web_pos_sales
-      set status='reconciled'
-      where business_id=target_business_id and id=outbound.sale_id
-        and status='desktop_applied';
-    return true;
+    -- A properly committed first reconciliation always has source stock
+    -- holds. A completed retry was already handled by the status check above.
+    -- Never declare success for missing/corrupt hold records.
+    return false;
   end if;
 
   -- Do not tolerate unmapped / cross-source outstanding holds.
