@@ -41,12 +41,18 @@ export type ProductSummary = {
   sku: string;
   stock_unit: string;
   is_active: boolean;
+  category_id: string | null;
+};
+
+export type CategorySummary = {
+  id: string;
+  name: string;
 };
 
 type InventoryRow = Position & {
   product_name: string;
   sku: string;
-  category: null;
+  category: string | null;
   current_stock: number | null;
   min_stock: number | null;
   max_stock: number | null;
@@ -82,16 +88,21 @@ function StatusBadge({status}:{status:InventoryRow["status"]}) {
 export function HostedInventory({
   positions,
   products,
+  categories,
   businessName: _businessName,
   error,
+  categoryError,
 }: {
   positions: Position[];
   products: ProductSummary[];
+  categories: CategorySummary[];
   businessName: string;
   error?: string | null;
+  categoryError?: string | null;
 }) {
   const [selectedPosition, setSelectedPosition] = useState<InventoryRow | null>(null);
   const productNames = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+  const categoryNames = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
   const rows = useMemo<InventoryRow[]>(() => (
     positions.filter((position) => position.is_current).map((position) => {
       const product = productNames.get(position.product_id);
@@ -99,7 +110,7 @@ export function HostedInventory({
         ...position,
         product_name: product?.name ?? position.product_name ?? "Unknown product",
         sku: product?.sku ?? position.sku ?? "",
-        category: null,
+        category: product?.category_id ? categoryNames.get(product.category_id) ?? null : null,
         current_stock: position.on_hand_milli,
         min_stock: position.minimum_milli,
         max_stock: position.maximum_milli,
@@ -107,7 +118,7 @@ export function HostedInventory({
         status: stockStatus(position),
       };
     })
-  ), [positions, productNames]);
+  ), [positions, productNames, categoryNames]);
 
   // Missing thresholds or quantities must not be mistaken for healthy stock.
   const hasVerifiedQuantities = rows.every((row) => row.on_hand_milli !== null && Number.isSafeInteger(row.on_hand_milli));
@@ -134,7 +145,7 @@ export function HostedInventory({
       header: "Category",
       align: "center",
       enableSorting: false,
-      cell: () => <span className="text-muted-foreground">—</span>,
+      cell: (value) => value ? <span>{String(value)}</span> : <span className="text-muted-foreground">—</span>,
     },
     {
       key: "current_stock",
@@ -207,7 +218,7 @@ export function HostedInventory({
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<InventoryRow>
             title="Inventory Overview"
-            description="Current inventory quantities and stock status."
+            description={categoryError ?? "Current inventory quantities and stock status."}
             data={rows}
             fields={fields}
             actions={actions}
@@ -239,7 +250,7 @@ export function HostedInventory({
                   {([
                     ["Product", selectedPosition.product_name],
                     ["SKU", selectedPosition.sku],
-                    ["Category", "—"],
+                    ["Category", selectedPosition.category ?? "—"],
                     ["Current Stock", exactQuantity(selectedPosition.on_hand_milli, unitFor(selectedPosition.product_id))],
                     ["Minimum Stock", exactQuantity(selectedPosition.minimum_milli, unitFor(selectedPosition.product_id))],
                     ["Maximum Stock", exactQuantity(selectedPosition.maximum_milli, unitFor(selectedPosition.product_id))],
