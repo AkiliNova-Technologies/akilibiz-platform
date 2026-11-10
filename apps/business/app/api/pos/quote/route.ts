@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 import { calculateReadOnlyQuote, parseQuoteItems } from "@/lib/pos-quote";
+import { isHostedServiceCategory } from "@/lib/pos-catalogue";
 
 const noStore = { "Cache-Control": "private, no-store" };
 const reply = (body: unknown, status: number) =>
@@ -19,11 +20,13 @@ export async function POST(request: NextRequest) {
 
   // Verify prices against hosted catalogue, stock against the effective
   // desktop replay model, and never use client-submitted pricing or totals.
-  const [products, stock] = await Promise.all([
+  const [products, categories, stock] = await Promise.all([
     supabase.from("desktop_products")
-      .select("id,name,selling_price_ugx,is_active")
+      .select("id,name,category_id,selling_price_ugx,is_active")
       .eq("business_id", business.id)
       .in("id", items.map((item) => item.product_id)),
+    supabase.from("desktop_categories")
+      .select("id,name").eq("business_id", business.id),
     supabase.rpc(
       process.env.AKILIBIZ_WEB_POS_HOLDS_AWARE === "1"
         ? "list_web_pos_sellable_inventory"
@@ -31,10 +34,17 @@ export async function POST(request: NextRequest) {
       target_business_id: business.id,
     }),
   ]);
-  if (products.error || stock.error) {
+  if (products.error || categories.error || stock.error) {
     return reply({ error: "Current products and stock could not be verified." }, 503);
   }
-  const quote = calculateReadOnlyQuote(items, products.data ?? [], stock.data ?? []);
+  const serviceCategories = new Set((categories.data ?? [])
+    .filter((category) => isHostedServiceCategory(category.name))
+    .map((category) => category.id));
+  const quoteProducts = (products.data ?? []).map((product) => ({
+    ...product,
+    is_service: product.category_id !== null && serviceCategories.has(product.category_id),
+  }));
+  const quote = calculateReadOnlyQuote(items, quoteProducts, stock.data ?? []);
   if (!quote.ok) return reply({
     error: "The cart requires review before a sale can be processed.",
     reason: quote.reason,
