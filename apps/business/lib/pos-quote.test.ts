@@ -52,6 +52,22 @@ describe("POS hosted checkout preflight", () => {
       .toMatchObject({ ok: false, reason: "PRODUCT_UNAVAILABLE" });
   });
 
+  it("quotes non-stock services without inventing stock while retaining server-side prices", () => {
+    const service = { ...products[0], is_service: true };
+    expect(calculateReadOnlyQuote(items, [service], [])).toMatchObject({
+      ok: true,
+      subtotal_ugx: 11250,
+      lines: [{ available_milli: null }],
+      checkout_enabled: false,
+    });
+    expect(calculateReadOnlyQuote(items, [products[0]], [])).toMatchObject({
+      ok: false, reason: "INVENTORY_UNAVAILABLE",
+    });
+    expect(calculateReadOnlyQuote(items, [{ ...service, selling_price_ugx: null }], [])).toMatchObject({
+      ok: false, reason: "PRICE_UNAVAILABLE",
+    });
+  });
+
   it("rounds fractional UGX at line level using integers", () => {
     expect(calculateReadOnlyQuote(
       [{ ...items[0], quantity_milli: 333 }],
