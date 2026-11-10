@@ -52,6 +52,24 @@ begin
   ) then
     raise exception 'Unexpected web POS posting RPC grants';
   end if;
+  if not has_function_privilege(
+    'authenticated',
+    'public.list_pending_web_pos_sales(uuid,text,uuid,integer)','EXECUTE'
+  ) or has_function_privilege(
+    'anon',
+    'public.list_pending_web_pos_sales(uuid,text,uuid,integer)','EXECUTE'
+  ) then
+    raise exception 'Unexpected web POS delivery inbox RPC grants';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='list_pending_web_pos_sales'
+      and p.prosecdef
+      and p.proconfig @> array['search_path=']::text[]
+  ) then
+    raise exception 'Missing fixed search path on web POS inbox RPC';
+  end if;
   if not exists (
     select 1 from pg_catalog.pg_proc p
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
