@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { FinancePaymentMethod } from "@/components/akilibiz/finance/finance-overview-data";
 import { loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
+import { requiredAmount, requiredEnum } from "@/components/akilibiz/finance/mirror-field-validation";
 
 export type ExpenseStatus = "pending" | "approved" | "paid" | "rejected";
 export type ExpenseState = "draft" | "posted" | "cancelled" | "voided" | "corrected" | "refunded";
@@ -42,29 +43,39 @@ export function useFinanceExpensesData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("authoritative_expenses");
-      const next = mirror.rows.map(({ localRecordId, record }) => {
-        const state = String(mirrorValue(record, "state") ?? "posted") as ExpenseState;
-        return {
+      let invalidCount = 0;
+      const next = mirror.rows.flatMap(({ localRecordId, record }) => {
+        try {
+        const state = requiredEnum(record, "state", ["draft", "posted", "cancelled", "voided", "corrected", "refunded"] as const);
+        const status = requiredEnum(record, "status", ["pending", "approved", "paid", "rejected"] as const);
+        const paymentBasis = requiredEnum(record, "payment_basis", ["paid", "supplier_credit"] as const);
+        const method = requiredEnum(record, "payment_method", ["cash", "mobile_money", "bank_transfer", "card", "other"] as const);
+        return [{
           id: localRecordId,
           reference: String(mirrorValue(record, "reference", "public_id") ?? localRecordId),
           category: String(mirrorValue(record, "category_name_snapshot") ?? "Unclassified"),
-          category_id: Number(mirrorValue(record, "category_id") ?? 0),
+          category_id: requiredAmount(record, "category_id"),
           payee: String(mirrorValue(record, "payee_name") ?? "—"),
           supplier_id: Number(mirrorValue(record, "supplier_id") ?? 0) || undefined,
-          net_ugx: Number(mirrorValue(record, "net_ugx") ?? 0),
-          tax_ugx: Number(mirrorValue(record, "tax_ugx") ?? 0),
-          gross_ugx: Number(mirrorValue(record, "gross_ugx") ?? 0),
+          net_ugx: requiredAmount(record, "net_ugx"),
+          tax_ugx: requiredAmount(record, "tax_ugx"),
+          gross_ugx: requiredAmount(record, "gross_ugx"),
           effective_date: String(mirrorValue(record, "effective_date") ?? ""),
-          method: String(mirrorValue(record, "payment_method") ?? "other") as FinancePaymentMethod,
-          status: (state === "draft" ? "pending" : state === "posted" ? "paid" : "rejected") as ExpenseStatus,
+          method: method as FinancePaymentMethod,
+          status,
           state,
-          payment_basis: String(mirrorValue(record, "payment_basis") ?? "paid") as "paid" | "supplier_credit",
+          payment_basis: paymentBasis,
           invoice_reference: String(mirrorValue(record, "invoice_reference") ?? "") || undefined,
           invoice_issuer: String(mirrorValue(record, "invoice_issuer") ?? "") || undefined,
           document_date: String(mirrorValue(record, "invoice_document_date", "source_document_date") ?? "") || undefined,
           description: String(mirrorValue(record, "description") ?? "") || undefined,
-        };
+        }];
+        } catch {
+          invalidCount += 1;
+          return [];
+        }
       });
+      if (invalidCount) setError(`${invalidCount} expense record(s) were hidden because required financial details were missing or invalid.`);
       setExpenses(next); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale); return next;
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
     finally { setLoading(false); }
