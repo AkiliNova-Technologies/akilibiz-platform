@@ -23,11 +23,10 @@ export interface BalanceSheetSummary {
   assets_ugx: number; liabilities_ugx: number; equity_ugx: number;
   liabilities_and_equity_ugx: number; balances_equal: boolean;
 }
-const tabs: FinancialReportTab[] = [
-  "receivables","payables","tax","gross-profit","profit-loss",
-  "journals","trial","detailed-trial","balance-sheet",
-];
-const empty = () => Object.fromEntries(tabs.map(tab => [tab, []])) as Record<FinancialReportTab, FinancialReportEntry[]>;
+const empty = (): Record<FinancialReportTab, FinancialReportEntry[]> => ({
+  receivables:[],payables:[],tax:[],"gross-profit":[],"profit-loss":[],
+  journals:[],trial:[],"detailed-trial":[],"balance-sheet":[],
+});
 const positiveId = (v: unknown): v is number =>
   typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 const ugx = (v: unknown): v is number =>
