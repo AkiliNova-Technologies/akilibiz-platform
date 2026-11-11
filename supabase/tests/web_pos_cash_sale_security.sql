@@ -67,7 +67,10 @@ begin
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='list_web_pos_sellable_inventory'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]
+      and exists (
+        select 1 from unnest(p.proconfig) setting
+        where setting in ('search_path=','search_path=""')
+      )
   ) then
     raise exception 'Missing fixed search path on hold-aware inventory RPC';
   end if;
@@ -85,7 +88,10 @@ begin
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='reconcile_web_pos_stock_holds'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]
+      and exists (
+        select 1 from unnest(p.proconfig) setting
+        where setting in ('search_path=','search_path=""')
+      )
   ) then
     raise exception 'Missing fixed search path on stock reconciliation RPC';
   end if;
@@ -103,7 +109,10 @@ begin
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='ack_applied_web_pos_sale'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]
+      and exists (
+        select 1 from unnest(p.proconfig) setting
+        where setting in ('search_path=','search_path=""')
+      )
   ) then
     raise exception 'Missing fixed search path on web POS ACK RPC';
   end if;
@@ -121,7 +130,10 @@ begin
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='list_pending_web_pos_sales'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]
+      and exists (
+        select 1 from unnest(p.proconfig) setting
+        where setting in ('search_path=','search_path=""')
+      )
   ) then
     raise exception 'Missing fixed search path on web POS inbox RPC';
   end if;
@@ -130,7 +142,10 @@ begin
     join pg_catalog.pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='post_web_pos_cash_sale'
       and p.prosecdef
-      and p.proconfig @> array['search_path=']::text[]
+      and exists (
+        select 1 from unnest(p.proconfig) setting
+        where setting in ('search_path=','search_path=""')
+      )
   ) then
     raise exception 'Missing fixed search path on POS posting RPC';
   end if;
