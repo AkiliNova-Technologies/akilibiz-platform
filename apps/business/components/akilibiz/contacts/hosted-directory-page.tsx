@@ -7,8 +7,8 @@ export async function HostedDirectoryPage({ view }: { view: "customers" | "suppl
   const supabase = await createClient();
   const table = view === "customers" ? "desktop_customers" : "desktop_suppliers";
   const fields = view === "customers"
-    ? "id,name,email,phone,address,customer_type,loyalty_points,is_active"
-    : "id,name,contact_person,phone,email,address,payment_terms,is_active";
+    ? "id,name,email,phone,address,customer_type,loyalty_points,is_active,updated_at"
+    : "id,name,contact_person,phone,email,address,payment_terms,is_active,updated_at";
   const records: Record<string, unknown>[] = [];
   let error: string | null = null;
 
@@ -30,6 +30,7 @@ export async function HostedDirectoryPage({ view }: { view: "customers" | "suppl
   return <HostedDirectory
     businessName={business.name}
     view={view}
+    canEditContacts={business.role==="owner" && process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS==="1"}
     error={error}
     customers={view === "customers" ? records as unknown as HostedCustomer[] : []}
     suppliers={view === "suppliers" ? records as unknown as HostedSupplier[] : []}
