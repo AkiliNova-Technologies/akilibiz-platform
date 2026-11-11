@@ -7,6 +7,7 @@ export const FINANCIAL_MIRROR_ENTITIES = new Set([
   "product_vat_reviews", "supplier_purchase_vat_evidence",
   "supplier_input_vat_reviews", "supplier_input_vat_reversals",
   "import_vat_documents", "vat_credit_evidence_events",
+  "vat_credit_evidence_corrections",
 ]);
 
 export const canReadFinancialMirrors = (role: string) => role === "owner";
