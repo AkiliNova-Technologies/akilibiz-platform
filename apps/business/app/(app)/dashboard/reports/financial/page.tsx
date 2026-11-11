@@ -64,21 +64,18 @@ export default function ReportsFinancialPage() {
   const [to, setTo] = useState("");
   const [draftFrom, setDraftFrom] = useState("");
   const [draftTo, setDraftTo] = useState("");
-  const [asOf, setAsOf] = useState("");
   const [draftAsOf, setDraftAsOf] = useState("");
   const [detail, setDetail] = useState<Row | null>(null);
   const rows = useMemo<Row[]>(
     () =>
-      entries[tab].map((entry) => ({
-        ...entry,
-        date:
-          entry.date === "Selected period"
-            ? `${from || "All"} to ${to || "All"} UTC`
-            : asOfTabs.includes(tab) && asOf
-              ? asOf
-              : entry.date,
-      })),
-    [asOf, entries, from, tab, to],
+      entries[tab]
+        .filter((entry) => tab !== "journals" ||
+          ((!from || entry.date.slice(0, 10) >= from) &&
+           (!to || entry.date.slice(0, 10) <= to)))
+        .map((entry) => ({ ...entry,
+          date: entry.date === "Selected period" ? "All synchronized entries" : entry.date,
+        })),
+    [entries, from, tab, to],
   );
   const fields: TableField<Row>[] = [
     { key: "label", header: "Reference" },
@@ -113,8 +110,9 @@ export default function ReportsFinancialPage() {
   const usesAsOf = asOfTabs.includes(tab);
   const currentTitle =
     tabs.find(([key]) => key === tab)?.[1] ?? "Financial report";
-  const apply = () =>
-    usesAsOf ? setAsOf(draftAsOf) : (setFrom(draftFrom), setTo(draftTo));
+  const apply = () => {
+    if (!usesAsOf) { setFrom(draftFrom); setTo(draftTo); }
+  };
   return (
     <>
       <div className="flex flex-1 flex-col">
@@ -180,10 +178,10 @@ export default function ReportsFinancialPage() {
                         className="h-11 w-full md:w-auto"
                         onClick={apply}
                         disabled={
-                          asOfTabs.includes(key)
-                            ? !draftAsOf
-                            : !draftFrom || !draftTo
-                        }>
+                          asOfTabs.includes(key) ||
+                          !draftFrom || !draftTo
+                        }
+                        title={asOfTabs.includes(key) ? "As-of balances are not yet supported. The trial balance covers all synchronized journals." : undefined}>
                         {loading ? (
                           <LoaderCircle className="mr-2 size-4 animate-spin" />
                         ) : null}
