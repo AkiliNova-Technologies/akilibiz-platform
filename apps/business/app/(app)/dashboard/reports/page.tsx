@@ -111,20 +111,20 @@ export default function ReportsOverviewPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <MetricCard
             title="Sales Reports"
-            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_sales_value) : "—"}
-            description="Current reported sales value"
+            value={overviewSummary?.total_sales_value != null ? formatFinanceCurrency(overviewSummary.total_sales_value) : "—"}
+            description="Completed desktop sales received through synchronization"
             icon={<BarChart3 className="size-5" />}
           />
           <MetricCard
             title="Inventory Reports"
-            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_inventory_value) : "—"}
-            description="Reported inventory value"
+            value={overviewSummary?.total_inventory_value != null ? formatFinanceCurrency(overviewSummary.total_inventory_value) : "—"}
+            description="Inventory valuation is not yet verified"
             icon={<Package className="size-5" />}
           />
           <MetricCard
             title="Financial Reports"
-            value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_financial_value) : "—"}
-            description="Reported financial activity"
+            value={overviewSummary?.total_financial_value != null ? formatFinanceCurrency(overviewSummary.total_financial_value) : "—"}
+            description="Total recorded income and expense activity, not net profit"
             icon={<Banknote className="size-5" />}
           />
         </section>
