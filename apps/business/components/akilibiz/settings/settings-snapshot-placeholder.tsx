@@ -91,7 +91,7 @@ export function SettingsSnapshotPlaceholder({ kind, state }: { kind: Kind; state
       </CardContent></Card>
       <Card><CardContent className="space-y-3 px-4 sm:px-6">
         <h2 className="text-lg font-semibold">Live receipt preview</h2>
-        <p className="text-sm text-muted-foreground">Preview available after synchronization.</p>
+        <p className="text-sm text-muted-foreground">Receipt preview unavailable.</p>
         <div className="flex min-h-[34rem] justify-center bg-muted/20 p-5">
           <div className="w-full max-w-[302px] space-y-4 rounded-sm border bg-card p-5">
             {Array.from({ length: 10 }, (_, index) => state === "loading"
