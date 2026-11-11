@@ -59,14 +59,32 @@ export function useReportsSalesData() {
     const original = rawSales.find(s => s.sale.id === saleId);
     if (!original) return null;
     try {
-      const rows = await loadAllFinancialMirrorRows("sale_items");
+      const [rows, paymentsMirror] = await Promise.all([
+        loadAllFinancialMirrorRows("sale_items"),
+        loadAllFinancialMirrorRows("sale_payments"),
+      ]);
       const detail = saleDetailFromRows(original.sale, rows);
       if (!detail) { setError("Full sale item details have not synchronized."); return null; }
+      const payments = paymentsMirror.filter(row => row.record.sale_id === saleId).map(row => {
+        const r = row.record;
+        const amount = r.amount_ugx ?? r.amount;
+        if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount < 0 ||
+            typeof r.payment_method !== "string" || !r.payment_method.trim()) return null;
+        return {
+          method: r.payment_method, amount_ugx: amount,
+          reference: typeof r.payment_reference === "string" ? r.payment_reference : "",
+        };
+      });
+      if (payments.some(p => p === null) ||
+          payments.reduce((sum,p) => sum + (p?.amount_ugx ?? 0),0) !== original.register.amount_paid_ugx) {
+        setError("Synchronized sale payment details are incomplete or do not reconcile.");
+        return null;
+      }
       return {
         sale: original.register,
         items: detail.items.map(item => ({ name: item.name, quantity: item.quantity,
           unit_price_ugx: item.unit_price, line_total_ugx: item.line_total })),
-        payments: [],
+        payments: payments.filter((p): p is NonNullable<typeof p> => p !== null),
         tax_amount_ugx: detail.tax_amount,
       };
     } catch (reason) {
