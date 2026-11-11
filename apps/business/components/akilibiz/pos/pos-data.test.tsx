@@ -15,6 +15,7 @@ const product: PosProduct = {
   stock_unit: "kg",
   inventory_available: true,
   is_active: true,
+  is_service: false,
   is_taxable: false,
   tax_classification_id: null,
   tax_inclusive: false,
