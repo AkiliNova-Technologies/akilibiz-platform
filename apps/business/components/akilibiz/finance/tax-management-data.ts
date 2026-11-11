@@ -125,6 +125,7 @@ export function mapTaxEvidence(entity: string, row: FinancialMirrorRow): TaxEvid
   }
   return {id:`${entity}:${row.localRecordId}`, source:labels[entity],
     title,detail,date:when,status,amountUgx:amount,
+    ...(typeof row.localBusinessPublicId==="string" ? {localBusinessPublicId:row.localBusinessPublicId}:{}),
     ...(entity==="product_vat_reviews" && typeof r.product_id==="number" &&
        Number.isSafeInteger(r.product_id) && r.product_id>0 ? {productId:r.product_id}:{}),
   };
