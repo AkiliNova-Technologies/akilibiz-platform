@@ -58,7 +58,7 @@ export function useBrowserAccountingPeriods() {
       setError(cause instanceof Error ? cause.message : "Accounting periods could not be loaded.");
     } finally { setLoading(false); }
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void Promise.resolve().then(refresh); }, [refresh]);
   const create = useCallback(async (_dateFrom: string, _dateTo: string): Promise<never> => unavailable(), []);
   const setState = useCallback(async (_id: string, _state: AccountingPeriod["state"], _reason: string): Promise<never> => unavailable(), []);
   const closed = useMemo(() => periods.filter(p => p.state === "closed").length, [periods]);
