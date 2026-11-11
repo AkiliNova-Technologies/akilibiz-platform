@@ -19,6 +19,7 @@ export type TaxEvidence = {
   status: string | null;
   amountUgx: number | null;
   productId?: number;
+  localBusinessPublicId?: string;
 };
 export type TaxView = {
   rows: TaxEvidence[];
