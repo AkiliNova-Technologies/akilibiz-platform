@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapCashFlowTransaction, mapIncomeTransaction, mapJournalLines } from "./financial-mirror-mappers";
+import { mapCashFlowTransaction, mapIncomeTransaction, mapJournalLines, journalActorName } from "./financial-mirror-mappers";
 import type { FinancialMirrorRow } from "./financial-mirror-client";
 
 const row = (id: number, record: Record<string, unknown>): FinancialMirrorRow => ({ localRecordId: id, capturedAt: "2026-11-09T10:00:00Z", record });
@@ -15,6 +15,15 @@ describe("financial mirror presentation", () => {
     expect(mapIncomeTransaction(row(1, {transaction_type: "income", amount_ugx: 0, category_id: 1, payment_method: "cash", transaction_date: "2026-11-09"}))).toBeNull();
     expect(mapCashFlowTransaction(row(2, {transaction_type: "income", payment_method: "cash", transaction_date: "2026-11-09"}))).toBeNull();
     expect(mapCashFlowTransaction(row(3, {transaction_type: "unknown", amount_ugx: 100, payment_method: "cash", transaction_date: "2026-11-09"}))).toBeNull();
+  });
+
+  it("uses the business-scoped actor name, not the device or cloud account", () => {
+    expect(journalActorName({ created_by_user_id: 2, created_by_name_snapshot: "Local Cashier" }))
+      .toBe("Local Cashier");
+    expect(journalActorName({ created_by_user_id: 2, created_by_name_snapshot: null }))
+      .toBe("Staff user #2 · name awaiting sync");
+    expect(journalActorName({ created_by_user_id: null }))
+      .toBe("Staff member not recorded");
   });
 
   it("joins mirrored journal lines only to matching authoritative entry and account records", () => {
