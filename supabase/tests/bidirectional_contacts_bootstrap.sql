@@ -7,6 +7,9 @@ create table public.desktop_customers (
   local_business_public_id text not null,
   source_public_id uuid not null,
   name text not null,
+  email text,
+  phone text,
+  address text,
   updated_at timestamptz not null default now(),
   is_active boolean not null default true
 );
@@ -16,6 +19,11 @@ create table public.desktop_suppliers (
   local_business_public_id text not null,
   source_public_id uuid not null,
   name text not null,
+  contact_person text,
+  payment_terms text,
+  email text,
+  phone text,
+  address text,
   updated_at timestamptz not null default now(),
   is_active boolean not null default true
 );
