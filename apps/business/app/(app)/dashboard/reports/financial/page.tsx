@@ -59,7 +59,7 @@ export default function ReportsFinancialPage() {
     refresh,
   } = useReportsFinancialData();
   const [tab, setTab] = useState<FinancialReportTab>("journals");
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void Promise.resolve().then(refresh); }, [refresh]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [draftFrom, setDraftFrom] = useState("");
