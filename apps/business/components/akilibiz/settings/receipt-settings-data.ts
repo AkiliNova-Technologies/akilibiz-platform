@@ -80,6 +80,8 @@ export function useBrowserReceiptSettings() {
   const [loading, setLoading] = useState(false);
   const [snapshotState, setSnapshotState] = useState<"loading" | "ready" | "unavailable" | "error">("loading");
   const [snapshotDate, setSnapshotDate] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const retry = useCallback(() => { setSnapshotState("loading"); setReloadKey((value) => value + 1); }, []);
   useEffect(() => {
     let active = true;
     void loadFinancialMirror("receipt_settings", { pageSize: 2 }).then((result) => {
@@ -93,7 +95,7 @@ export function useBrowserReceiptSettings() {
       setSnapshotState("ready");
     }).catch(() => { if (active) setSnapshotState("error"); });
     return () => { active = false; };
-  }, []);
+  }, [reloadKey]);
 
   const isDirty = useMemo(
     () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
@@ -102,5 +104,5 @@ export function useBrowserReceiptSettings() {
   const save = useCallback(async (): Promise<never> => { throw new Error("Receipt settings cannot be saved until business settings persistence is connected."); }, []);
   const reset = useCallback(() => setSettings(savedSettings), [savedSettings]);
 
-  return { isDirty, loading, reset, save, setSettings, settings, snapshotState, snapshotDate };
+  return { isDirty, loading, reset, save, setSettings, settings, snapshotState, snapshotDate, retry };
 }
