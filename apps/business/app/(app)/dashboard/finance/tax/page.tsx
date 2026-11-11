@@ -34,6 +34,23 @@ const guidance = [
     copy:"The desktop reference catalogue identifies this threshold effective 1 July 2026. Confirm current registration requirements and business eligibility with URA."},
 ] as const;
 
+const guidanceSources: Record<string, {publisher:string;url:string}[]> = {
+  "Standard VAT rate": [{publisher:"Uganda Revenue Authority",url:"https://ura.go.ug/en/value-added-tax-vat/"}],
+  "Zero-rated supplies": [
+    {publisher:"Uganda Legal Information Institute",url:"https://ulii.org/en/akn/ug/act/statute/1996/8/eng%402024-12-23"},
+    {publisher:"Uganda Revenue Authority",url:"https://ura.go.ug/en/value-added-tax-vat/"},
+  ],
+  "Exempt supplies": [
+    {publisher:"Uganda Legal Information Institute",url:"https://ulii.org/en/akn/ug/act/statute/1996/8/eng%402024-12-23"},
+    {publisher:"Uganda Revenue Authority",url:"https://ura.go.ug/en/value-added-tax-vat/"},
+  ],
+  "Outside the scope of VAT": [{publisher:"Uganda Revenue Authority",url:"https://ura.go.ug/en/value-added-tax-vat/"}],
+  "Annual VAT registration threshold": [
+    {publisher:"Uganda Gazette (republished by ULII)",url:"https://ulii.org/en/akn/ug/act/2026/14/eng%402026-06-05"},
+    {publisher:"Uganda Revenue Authority",url:"https://ura.go.ug/en/revised-value-added-tax-registration-threshold/"},
+  ],
+};
+
 const money = (value:number) => `UGX ${value.toLocaleString("en-UG")}`;
 
 function EvidenceRegister({rows,empty}:{rows:TaxEvidence[];empty:string}) {
@@ -149,6 +166,12 @@ export default function FinanceTaxManagementPage(){
                 <Badge variant="outline">{item.value}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">{item.copy}</p>
+              {item.title==="Annual VAT registration threshold"&&<p className="text-xs text-muted-foreground">Effective from 2026-07-01</p>}
+              <div className="flex flex-wrap gap-3">
+                {(guidanceSources[item.title]??[]).map(source=>
+                  <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-primary underline underline-offset-2">{source.publisher}</a>)}
+              </div>
             </div>)}
           </div>
           <p className="text-xs text-muted-foreground">AkiliBiz does not automatically submit tax returns, verify URA balances or grant refunds. Consult current URA and Uganda legislation before filing.</p>
