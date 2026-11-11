@@ -10,13 +10,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { HostedSupplier } from "@/components/akilibiz/contacts/hosted-directory";
+import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
 
 function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
 }
 
-export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];error?:string|null}) {
+export function HostedSuppliers({suppliers,error,canEditContacts}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean}) {
   const [selected, setSelected] = useState<HostedSupplier | null>(null);
+  const [editing,setEditing]=useState<HostedSupplier|null>(null);
   const activeCount = useMemo(() => suppliers.filter((supplier) => supplier.is_active).length, [suppliers]);
 
   // The contact-directory query cannot establish purchases, payables or product counts.
@@ -43,7 +45,7 @@ export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];er
 
   const actions: TableAction<HostedSupplier>[] = [
     { type: "view", label: "View supplier", onClick: setSelected },
-    { type: "edit", label: "Edit supplier", onClick: () => {}, disabled: () => true },
+    { type: "edit", label: "Edit supplier", onClick: setEditing, disabled: row => !canEditContacts || !row.is_active },
     { type: "custom", label: "View purchases", icon: <ShoppingBag className="size-4" />,
       onClick: () => {}, disabled: () => true },
   ];
@@ -95,6 +97,8 @@ export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];er
         </CardContent>
       </Card>
 
+      {editing&&<ContactEditDialog key={editing.id} contact={editing} entity="supplier"
+        onClose={()=>setEditing(null)}/>}
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -126,7 +130,8 @@ export function HostedSuppliers({suppliers,error}:{suppliers:HostedSupplier[];er
               </CardContent></Card>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setSelected(null)}>Close</Button>
-                <Button className="flex-1" disabled title="Supplier editing is unavailable">Edit Supplier</Button>
+                <Button className="flex-1" disabled={!canEditContacts||!selected.is_active}
+                  onClick={()=>{setEditing(selected);setSelected(null);}}>Edit Supplier</Button>
               </div>
             </div>
           )}
