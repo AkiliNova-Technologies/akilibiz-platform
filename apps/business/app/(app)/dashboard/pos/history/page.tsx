@@ -153,6 +153,7 @@ export default function SalesHistoryPage() {
     selectedSale,
     summary,
     loading,
+    error,
     getSales,
     getSale,
     getSalesSummary,
@@ -164,8 +165,9 @@ export default function SalesHistoryPage() {
     getTaxSettings,
   } = useSalesHistoryData();
 
-  // Hosted transaction reads, receipts, and cancellation are not yet connected.
-  const salesHistoryAvailable = false;
+  // Synchronized sales are read-only until payment, receipt and cancellation
+  // services are qualified. Viewing sale details never posts a transaction.
+  const salesHistoryAvailable = true;
 
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -388,14 +390,14 @@ export default function SalesHistoryPage() {
       label: t("sales.printReceipt"),
       icon: <Printer className="size-4" />,
       onClick: (row) => void handleReceipt(row.id),
-      disabled: () => !salesHistoryAvailable,
+      disabled: () => true,
     },
     {
       type: "custom",
       label: t("sales.cancelSale"),
       icon: <Ban className="size-4" />,
       onClick: handleOpenCancellation,
-      disabled: (row) => !salesHistoryAvailable || row.status !== "completed",
+      disabled: () => true,
     },
   ];
 
@@ -412,6 +414,13 @@ export default function SalesHistoryPage() {
           </p>
         </div>
 
+        {error && (
+          <p role="alert" className="text-sm text-destructive">{error}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Synchronized desktop sales are available for viewing. Receipt printing,
+          cancellation and web sale edits are not yet enabled.
+        </p>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <MetricCard
             title={t("sales.totalSales")}
@@ -724,7 +733,7 @@ export default function SalesHistoryPage() {
               </Card>
 
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" disabled={!salesHistoryAvailable || receiptLoading} onClick={() => void handleReceipt(selectedSale.id)}>
+                <Button variant="outline" className="flex-1" disabled onClick={() => void handleReceipt(selectedSale.id)}>
                   <Printer className="mr-2 size-4" />
                   {t("sales.printReceipt")}
                 </Button>
