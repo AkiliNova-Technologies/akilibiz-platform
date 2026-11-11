@@ -19,6 +19,7 @@ export type TaxEvidence = {
   date: string | null;
   status: string | null;
   amountUgx: number | null;
+  productId?: number;
 };
 export type TaxView = {
   rows: TaxEvidence[];
@@ -123,7 +124,10 @@ export function mapTaxEvidence(entity: string, row: FinancialMirrorRow): TaxEvid
     throw new Error(`A synchronized ${labels[entity]} record is incomplete. The section cannot be shown reliably.`);
   }
   return {id:`${entity}:${row.localRecordId}`, source:labels[entity],
-    title,detail,date:when,status,amountUgx:amount};
+    title,detail,date:when,status,amountUgx:amount,
+    ...(entity==="product_vat_reviews" && typeof r.product_id==="number" &&
+       Number.isSafeInteger(r.product_id) && r.product_id>0 ? {productId:r.product_id}:{}),
+  };
 }
 
 export async function loadTaxSection(section: TaxSection): Promise<TaxView> {
