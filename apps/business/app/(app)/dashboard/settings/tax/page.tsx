@@ -1,9 +1,9 @@
 "use client";
 
 import { SettingsSnapshotPlaceholder } from "@/components/akilibiz/settings/settings-snapshot-placeholder";
-import { SettingsSnapshotStatus } from "@/components/akilibiz/settings/settings-snapshot-status";
 import { TaxSettingsForm } from "@/components/akilibiz/settings/tax-settings-form";
 import { useBrowserTaxSettings } from "@/components/akilibiz/settings/tax-settings-data";
+import { Button } from "@/components/ui/button";
 
 export default function TaxSettingsPage() {
   const tax = useBrowserTaxSettings();
@@ -19,7 +19,11 @@ export default function TaxSettingsPage() {
             Tax details are based on your business records. Confirm your registration and VAT treatment with URA.
           </p>
         </div>
-        <SettingsSnapshotStatus state={tax.snapshotState} lastSync={tax.snapshotDate} onRetry={tax.retry} />
+        {tax.snapshotState === "error" && <div role="alert" className="flex flex-wrap items-center gap-3 text-sm text-destructive">
+          <span>VAT settings could not be loaded.</span>
+          <Button variant="outline" size="sm" onClick={tax.retry}>Try again</Button>
+        </div>}
+        {tax.snapshotState === "loading" && <p role="status" className="text-sm text-muted-foreground">Loading VAT settings…</p>}
         {tax.snapshotState === "ready" ? (
           <TaxSettingsForm
             isDirty={tax.isDirty}
