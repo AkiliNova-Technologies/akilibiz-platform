@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 import { LinkedAccounts } from "@/components/akilibiz/auth/linked-accounts";
+import { AccountPasswordForm } from "@/components/akilibiz/auth/account-password-form";
 
 export default async function AccountProfilePage() {
   const business = await requireActiveBusiness();
@@ -55,6 +56,8 @@ export default async function AccountProfilePage() {
             </section>
             <Separator />
             <LinkedAccounts googleConnected={googleConnected} />
+            <Separator />
+            <AccountPasswordForm />
             <Separator />
             <div className="flex flex-wrap gap-2">
               <Button disabled title="Hosted account editing is not yet connected">Edit profile</Button>
