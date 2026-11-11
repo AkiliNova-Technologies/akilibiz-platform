@@ -25,7 +25,7 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
   const [search,setSearch]=useState("");
   const [includeReviewed,setIncludeReviewed]=useState(false);
   const [offset,setOffset]=useState(0);
-  const [selected,setSelected]=useState<number|null>(null);
+  const [selected,setSelected]=useState<string|null>(null);
   useEffect(()=>{
     const controller=new AbortController();
     void fetch("/api/tax/product-review-catalogue",{
@@ -42,22 +42,23 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
     return ()=>controller.abort();
   },[]);
   const latest=useMemo(()=>{
-    const map=new Map<number,TaxEvidence>();
-    for(const review of reviews) if(review.productId!==undefined){
-      const previous=map.get(review.productId);
+    const map=new Map<string,TaxEvidence>();
+    for(const review of reviews) if(review.productId!==undefined && review.localBusinessPublicId){
+      const key=`${review.localBusinessPublicId}:${review.productId}`;
+      const previous=map.get(key);
       if(!previous || (review.date??"")>(previous.date??""))
-        map.set(review.productId,review);
+        map.set(key,review);
     }
     return map;
   },[reviews]);
   const filtered=useMemo(()=>products.filter(p=>{
-    if(!includeReviewed && latest.has(p.local_product_id))return false;
+    if(!includeReviewed && latest.has(`${p.local_business_public_id}:${p.local_product_id}`))return false;
     const term=search.toLocaleLowerCase();
     return !term||p.name.toLocaleLowerCase().includes(term)||p.sku.toLocaleLowerCase().includes(term);
   }),[includeReviewed,latest,products,search]);
   const items=filtered.slice(offset,offset+PAGE_SIZE);
-  const selectedProduct=products.find(p=>p.local_product_id===selected);
-  const selectedReview=selected!==null?latest.get(selected):null;
+  const selectedProduct=products.find(p=>p.id===selected);
+  const selectedReview=selectedProduct?latest.get(`${selectedProduct.local_business_public_id}:${selectedProduct.local_product_id}`):null;
   return <div className="space-y-4">
     <div>
       <h2 className="text-lg font-semibold">Review product VAT treatments</h2>
@@ -93,7 +94,7 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
     </p>}
     <div className="space-y-2">
       {items.map(p=>{
-        const review=latest.get(p.local_product_id);
+        const review=latest.get(`${p.local_business_public_id}:${p.local_product_id}`);
         return <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3" key={p.id}>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">{p.name}</p>
@@ -105,7 +106,7 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
               <span className="text-muted-foreground">{review?.title??"Current treatment cannot be verified on the web"}</span>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={()=>setSelected(p.local_product_id)}>
+          <Button variant="outline" size="sm" onClick={()=>setSelected(p.id)}>
             {review?"View review":"View details"}
           </Button>
         </div>;
