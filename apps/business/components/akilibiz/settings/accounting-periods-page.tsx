@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { CalendarDays, CircleCheck, History, LockKeyhole } from "lucide-react";
+import { History, RefreshCw } from "lucide-react";
 
 import {
   type AccountingPeriod,
@@ -41,6 +41,7 @@ const defaults = () => {
 
 export function AccountingPeriodsPage() {
   const store = useBrowserAccountingPeriods();
+  const periodEnd = (period: AccountingPeriod) => period.dateTo === "9999-12-31" && period.state === "open" ? "Ongoing" : date(period.dateTo);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [target, setTarget] = React.useState<AccountingPeriod | null>(null);
   const [detail, setDetail] = React.useState<AccountingPeriod | null>(null);
@@ -93,13 +94,17 @@ export function AccountingPeriodsPage() {
             corrections in an open period.
           </p>
         </div>
+        {store.error && <p role="alert" className="text-sm text-destructive">{store.error}</p>}
+        <p className="text-xs text-muted-foreground">Accounting periods are synchronized from the desktop. Changes must currently be made in the desktop application.</p>
         <Card>
           <CardHeader>
             <CardTitle>Accounting periods</CardTitle>
             <CardDescription>Dates use UTC calendar dates.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={openCreate} disabled title="Accounting period creation is not connected">Create period</Button>
+            <Button variant="outline" onClick={() => void store.refresh()} disabled={store.loading}>
+              <RefreshCw className="mr-2 size-4" /> Refresh periods
+            </Button>
           </CardContent>
         </Card>
         <Card>
@@ -116,7 +121,7 @@ export function AccountingPeriodsPage() {
               </p>
             ) : store.periods.length === 0 ? (
               <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                Accounting period records are unavailable until accounting data is connected.
+                No accounting periods have been synchronized for this business.
               </p>
             ) : (
               <div className="space-y-3">
@@ -125,7 +130,7 @@ export function AccountingPeriodsPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">
-                          {date(period.dateFrom)} to {date(period.dateTo)}
+                          {date(period.dateFrom)} to {periodEnd(period)}
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {period.state === "closed"
@@ -155,7 +160,9 @@ export function AccountingPeriodsPage() {
                           onClick={() => {
                             setReason("");
                             setTarget(period);
-                          }}>
+                          }}
+                          disabled
+                          title="Change accounting periods in the desktop application">
                           {period.state === "open"
                             ? "Close period"
                             : "Reopen period"}
@@ -257,7 +264,7 @@ export function AccountingPeriodsPage() {
           <DialogHeader>
             <DialogTitle>Period details</DialogTitle>
             <DialogDescription>
-              {detail && `${date(detail.dateFrom)} to ${date(detail.dateTo)}`}
+              {detail && `${date(detail.dateFrom)} to ${periodEnd(detail)}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
