@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, RefreshCw } from "lucide-react";
 import {
   DataTable,
@@ -45,7 +45,8 @@ const ugx = (value: number) =>
   }).format(value);
 
 export default function ReportsSalesPage() {
-  const { sales, getSalesRegister, getSaleReportDrillDown } = useReportsSalesData();
+  const { sales, getSalesRegister, getSaleReportDrillDown, loading, error } = useReportsSalesData();
+  useEffect(() => { void getSalesRegister({ skip: 0, limit: 100 }); }, [getSalesRegister]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [draftFrom, setDraftFrom] = useState("");
