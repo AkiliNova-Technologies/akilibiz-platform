@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { TaxEvidence } from "./tax-management-data";
+import { indexLatestProductVatReviews, productVatReviewKey } from "./tax-review-matching";
 
 type Product = {
   id:string;
@@ -41,24 +42,15 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
     }).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
     return ()=>controller.abort();
   },[]);
-  const latest=useMemo(()=>{
-    const map=new Map<string,TaxEvidence>();
-    for(const review of reviews) if(review.productId!==undefined && review.localBusinessPublicId){
-      const key=`${review.localBusinessPublicId}:${review.productId}`;
-      const previous=map.get(key);
-      if(!previous || (review.date??"")>(previous.date??""))
-        map.set(key,review);
-    }
-    return map;
-  },[reviews]);
+  const latest=useMemo(()=>indexLatestProductVatReviews(reviews),[reviews]);
   const filtered=useMemo(()=>products.filter(p=>{
-    if(!includeReviewed && latest.has(`${p.local_business_public_id}:${p.local_product_id}`))return false;
+    if(!includeReviewed && latest.has(productVatReviewKey(p.local_business_public_id,p.local_product_id)))return false;
     const term=search.toLocaleLowerCase();
     return !term||p.name.toLocaleLowerCase().includes(term)||p.sku.toLocaleLowerCase().includes(term);
   }),[includeReviewed,latest,products,search]);
   const items=filtered.slice(offset,offset+PAGE_SIZE);
   const selectedProduct=products.find(p=>p.id===selected);
-  const selectedReview=selectedProduct?latest.get(`${selectedProduct.local_business_public_id}:${selectedProduct.local_product_id}`):null;
+  const selectedReview=selectedProduct?latest.get(productVatReviewKey(selectedProduct.local_business_public_id,selectedProduct.local_product_id)):null;
   return <div className="space-y-4">
     <div>
       <h2 className="text-lg font-semibold">Review product VAT treatments</h2>
@@ -94,7 +86,7 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
     </p>}
     <div className="space-y-2">
       {items.map(p=>{
-        const review=latest.get(`${p.local_business_public_id}:${p.local_product_id}`);
+        const review=latest.get(productVatReviewKey(p.local_business_public_id,p.local_product_id));
         return <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3" key={p.id}>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">{p.name}</p>
