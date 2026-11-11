@@ -16,6 +16,7 @@ create table private.desktop_inbound_commands (
   operation text not null check(operation='update'),
   source_public_id uuid not null,
   base_updated_at timestamptz not null,
+  base_record jsonb not null check(jsonb_typeof(base_record)='object'),
   changes jsonb not null check(jsonb_typeof(changes)='object'),
   requested_by uuid not null,
   requested_at timestamptz not null default now(),
@@ -105,11 +106,15 @@ begin
     'akilibiz-inbound:'||target_business_id::text||':'||
     target_entity_type||':'||target_record_id::text,0));
   if target_entity_type='customer' then
-    select c.local_business_public_id,c.source_public_id,c.updated_at
+    select c.local_business_public_id,c.source_public_id,c.updated_at,
+      jsonb_build_object('name',c.name,'email',c.email,'phone',c.phone,'address',c.address) base_record
       into source_record from public.desktop_customers c
     where c.business_id=target_business_id and c.id=target_record_id and c.is_active;
   else
-    select s.local_business_public_id,s.source_public_id,s.updated_at
+    select s.local_business_public_id,s.source_public_id,s.updated_at,
+      jsonb_build_object('name',s.name,'contact_person',s.contact_person,
+        'email',s.email,'phone',s.phone,'address',s.address,
+        'payment_terms',s.payment_terms) base_record
       into source_record from public.desktop_suppliers s
     where s.business_id=target_business_id and s.id=target_record_id and s.is_active;
   end if;
@@ -129,11 +134,11 @@ begin
   end if;
   insert into private.desktop_inbound_commands(
     business_id,source_business_public_id,source_device_public_id,
-    entity_type,operation,source_public_id,base_updated_at,changes,requested_by
+    entity_type,operation,source_public_id,base_updated_at,base_record,changes,requested_by
   ) values (
     target_business_id,source_record.local_business_public_id,paired_device,
     target_entity_type,'update',source_record.source_public_id,
-    expected_updated_at,requested_changes,actor
+    expected_updated_at,source_record.base_record,requested_changes,actor
   ) returning id into next_id;
   return next_id;
 end $$;
@@ -145,7 +150,7 @@ create function public.list_pending_desktop_contact_updates(
   batch_limit integer default 50
 ) returns table(
   command_id uuid,entity_type text,operation text,source_public_id uuid,
-  base_updated_at timestamptz,changes jsonb,requested_at timestamptz
+  base_updated_at timestamptz,base_record jsonb,changes jsonb,requested_at timestamptz
 ) language plpgsql security definer set search_path='' as $$
 begin
   perform private.require_desktop_inventory_source(
@@ -159,7 +164,7 @@ begin
   end if;
   return query
     select q.id,q.entity_type,q.operation,q.source_public_id,
-           q.base_updated_at,q.changes,q.requested_at
+           q.base_updated_at,q.base_record,q.changes,q.requested_at
     from private.desktop_inbound_commands q
     where q.business_id=target_business_id
       and q.source_business_public_id=list_pending_desktop_contact_updates.source_business_public_id
