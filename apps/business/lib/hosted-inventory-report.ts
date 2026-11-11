@@ -29,7 +29,7 @@ const milli = (v: unknown): v is number =>
 export function mapHostedStockReport(
   products: HostedStockProduct[], categories: HostedStockCategory[],
   inventory: HostedStockPosition[],
-): HostedStockReportRow[] {
+): { rows: HostedStockReportRow[]; skipped: number } {
   const cat = new Map(categories.map(row => [row.id,row]));
   const positions = new Map<string, HostedStockPosition>();
   for (const row of inventory) {
@@ -38,6 +38,7 @@ export function mapHostedStockReport(
     positions.set(row.product_id,row);
   }
   const rows: HostedStockReportRow[]=[];
+  let skipped=0;
   for (const product of products) {
     const position=positions.get(product.id);
     if (!position) continue; // A product without an authoritative position is not stock on hand.
@@ -45,7 +46,8 @@ export function mapHostedStockReport(
         !milli(position.on_hand_milli) || !milli(position.reserved_milli) ||
         !milli(position.damaged_milli) || !milli(position.minimum_milli) ||
         !milli(position.maximum_milli)) {
-      throw new Error("Some stock positions have invalid or missing exact quantities.");
+      skipped++;
+      continue; // Never interpret unknown inventory as zero stock.
     }
     const available=Math.max(0,position.on_hand_milli-position.reserved_milli-position.damaged_milli);
     if (!Number.isSafeInteger(available)) throw new Error("Stock position exceeds supported exact quantity.");
@@ -62,5 +64,5 @@ export function mapHostedStockReport(
       stock_status:available===0?"Out of stock":available<=position.minimum_milli?"Low stock":"In stock",
     });
   }
-  return rows;
+  return {rows,skipped};
 }
