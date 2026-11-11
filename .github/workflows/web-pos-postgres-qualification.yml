@@ -1,0 +1,89 @@
+name: Web POS isolated PostgreSQL qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "supabase/migrations/20261110130000_web_pos_atomic_cash_sales_staging.sql"
+      - "supabase/migrations/20261110140000_web_pos_desktop_delivery_read.sql"
+      - "supabase/migrations/20261110150000_web_pos_applied_ack.sql"
+      - "supabase/migrations/20261110160000_web_pos_stock_hold_reconciliation.sql"
+      - "supabase/migrations/20261110170000_web_pos_hold_aware_inventory_read.sql"
+      - "supabase/tests/web_pos_*.sql"
+      - ".github/workflows/web-pos-postgres-qualification.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: akilibiz_pos_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local_ci_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d akilibiz_pos_ci"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: local_ci_only
+      PGDATABASE: akilibiz_pos_ci
+      PGOPTIONS: "-c client_min_messages=warning"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Bootstrap isolated Phase 1G contracts
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/web_pos_isolated_bootstrap.sql
+      - name: Parse and install all staged POS migrations
+        run: |
+          set -euo pipefail
+          for migration in \
+            supabase/migrations/20261110130000_web_pos_atomic_cash_sales_staging.sql \
+            supabase/migrations/20261110140000_web_pos_desktop_delivery_read.sql \
+            supabase/migrations/20261110150000_web_pos_applied_ack.sql \
+            supabase/migrations/20261110160000_web_pos_stock_hold_reconciliation.sql \
+            supabase/migrations/20261110170000_web_pos_hold_aware_inventory_read.sql; do
+            echo "Checking $migration"
+            psql -v ON_ERROR_STOP=1 -1 -f "$migration"
+          done
+      - name: Verify private table grants and definer RPC security
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/web_pos_cash_sale_security.sql
+      - name: Test gate, cash posting, retries, permissions, and hold safety
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/web_pos_isolated_qualification.sql
+      - name: Competing same-product cash checkout
+        run: |
+          set -euo pipefail
+          cat > /tmp/web-pos-compete.sql <<'SQL'
+          \set ON_ERROR_STOP on
+          select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+          select * from public.post_web_pos_cash_sale(
+            'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            :'request_key'::uuid,
+            '[{"product_id":"55555555-5555-4555-8555-555555555555","quantity_milli":1500}]'::jsonb,
+            6000
+          );
+          SQL
+          set +e
+          psql -v request_key=aaaaaaaa-aaaa-4aaa-8aaa-000000000001 -f /tmp/web-pos-compete.sql > /tmp/sale-a.log 2>&1 &
+          a=$!
+          psql -v request_key=aaaaaaaa-aaaa-4aaa-8aaa-000000000002 -f /tmp/web-pos-compete.sql > /tmp/sale-b.log 2>&1 &
+          b=$!
+          wait "$a"; first=$?
+          wait "$b"; second=$?
+          set -e
+          if [[ $((first + second)) -ne 3 && ! ( $first -eq 0 && $second -ne 0 ) && ! ( $second -eq 0 && $first -ne 0 ) ]]; then
+            echo "Expected one successful sale and one rejected competing sale"
+            cat /tmp/sale-a.log /tmp/sale-b.log
+            exit 1
+          fi
+          count=$(psql -Atqc "select count(*) from private.web_pos_sales where business_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'")
+          test "$count" = "2" || { echo "Expected initial + one competing sale, got $count"; exit 1; }
+          echo "Competing checkout passed (one accepted; one rejected)"
