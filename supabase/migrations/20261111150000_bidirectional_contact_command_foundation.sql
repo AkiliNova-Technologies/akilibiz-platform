@@ -123,7 +123,7 @@ begin
     where d.business_id=target_business_id
       and d.local_business_public_id=source_record.local_business_public_id
       and d.paired_by=actor and d.revoked_at is null
-    order by d.created_at,d.id limit 1;
+    order by d.paired_at,d.id limit 1;
   if paired_device is null then
     raise exception 'No authorized desktop source is available' using errcode='42501';
   end if;
