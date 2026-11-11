@@ -9,6 +9,7 @@ import { AkiliFormField } from "@/components/akilibiz/akili-form-field";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleSignInButton } from "@/components/akilibiz/auth/google-sign-in-button";
 
 export function SignInForm() {
   const router = useRouter();
@@ -63,6 +64,8 @@ export function SignInForm() {
       <AkiliButton className="mt-2 h-11 w-full rounded-full" disabled={isSubmitting} loading={isSubmitting} type="submit">
         {isSubmitting ? "Signing in…" : "Sign in"}
       </AkiliButton>
+      <div className="relative flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+      <GoogleSignInButton />
       <p className="text-center text-sm text-muted-foreground">New to AkiliBiz? <Link href="/sign-up" className="font-medium text-primary hover:underline">Create account</Link></p>
     </form>
   );

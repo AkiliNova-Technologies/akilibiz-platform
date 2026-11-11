@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AkiliFormField } from "@/components/akilibiz/akili-form-field";
 import { OnboardingStepper } from "@/components/akilibiz/onboarding-stepper";
 import { createClient } from "@/lib/supabase/client";
+import { GoogleSignInButton } from "@/components/akilibiz/auth/google-sign-in-button";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -63,6 +64,8 @@ export function SignUpForm() {
       {error?<p role="alert" className="text-sm text-destructive">{error}</p>:null}
       {message?<p role="status" className="text-sm text-muted-foreground">{message}</p>:null}
       <Button type="submit" disabled={busy} className="h-11 w-full rounded-full">{busy?"Creating account…":"Create account"}</Button>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+      <GoogleSignInButton />
       <p className="text-center text-sm text-muted-foreground">Already have an account? <Link className="font-medium text-primary hover:underline" href="/sign-in">Sign in</Link></p>
     </form>
   </div>;

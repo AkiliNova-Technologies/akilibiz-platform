@@ -6,12 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
+import { LinkedAccounts } from "@/components/akilibiz/auth/linked-accounts";
 
 export default async function AccountProfilePage() {
   const business = await requireActiveBusiness();
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (!user || error) redirect("/sign-in");
+  const { data: identityData } = await supabase.auth.getUserIdentities();
+  const googleConnected = identityData?.identities?.some((identity) => identity.provider === "google") ?? false;
   const displayName = typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
     ? user.user_metadata.full_name.trim() : user.email ?? "Account";
   const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
@@ -50,6 +53,8 @@ export default async function AccountProfilePage() {
                 <div className="space-y-1"><dt className="text-muted-foreground">Account created</dt><dd className="font-medium">{joined}</dd></div>
               </dl>
             </section>
+            <Separator />
+            <LinkedAccounts googleConnected={googleConnected} />
             <Separator />
             <div className="flex flex-wrap gap-2">
               <Button disabled title="Hosted account editing is not yet connected">Edit profile</Button>
