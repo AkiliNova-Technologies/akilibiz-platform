@@ -23,7 +23,10 @@ describe("POS service eligibility", () => {
       { category_id: "goods", is_service: true, inventory_available: false, selling_price: 5000 },
       { category_id: null, is_service: true, inventory_available: false, selling_price: null },
     ], categories);
-    expect(result.every((item) => item.is_service === false && item.inventory_available === false)).toBe(true);
+    expect(result.map((item) => ({ is_service: item.is_service, inventory_available: item.inventory_available }))).toEqual([
+      { is_service: false, inventory_available: false },
+      { is_service: false, inventory_available: false },
+    ]);
     expect(result[1].selling_price).toBeNull();
   });
 
