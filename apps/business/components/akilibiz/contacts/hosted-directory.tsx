@@ -13,6 +13,7 @@ export interface HostedCustomer extends TableData {
   customer_type: string;
   loyalty_points: number;
   is_active: boolean;
+  updated_at: string;
 }
 
 export interface HostedSupplier extends TableData {
@@ -24,6 +25,7 @@ export interface HostedSupplier extends TableData {
   address: string | null;
   payment_terms: string;
   is_active: boolean;
+  updated_at: string;
   products_supplied?: null;
   total_purchases?: null;
   outstanding_balance?: null;
@@ -35,14 +37,16 @@ export function HostedDirectory({
   customers,
   suppliers,
   error,
+  canEditContacts,
 }: {
   view: "customers" | "suppliers";
   businessName: string;
   customers: HostedCustomer[];
   suppliers: HostedSupplier[];
   error?: string | null;
+  canEditContacts: boolean;
 }) {
   return view === "customers"
-    ? <HostedCustomers customers={customers} error={error} />
-    : <HostedSuppliers suppliers={suppliers} error={error} />;
+    ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} />
+    : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} />;
 }
