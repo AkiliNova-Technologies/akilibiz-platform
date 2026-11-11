@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { HostedCustomer } from "@/components/akilibiz/contacts/hosted-directory";
+import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
 
 type CustomerRow = HostedCustomer & {
   total_purchases: null;
@@ -22,9 +23,10 @@ type CustomerRow = HostedCustomer & {
 
 function Missing() { return <span className="text-muted-foreground">—</span>; }
 
-export function HostedCustomers({ customers, error }: { customers: HostedCustomer[]; error?: string | null }) {
+export function HostedCustomers({ customers, error, canEditContacts }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean }) {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
   const [historyCustomer, setHistoryCustomer] = useState<CustomerRow | null>(null);
+  const [editing, setEditing] = useState<CustomerRow | null>(null);
   const rows = useMemo<CustomerRow[]>(() => customers.map((customer) => ({
     ...customer,
     total_purchases: null,
@@ -55,7 +57,7 @@ export function HostedCustomers({ customers, error }: { customers: HostedCustome
 
   const actions: TableAction<CustomerRow>[] = [
     { type: "view", label: "View Profile", onClick: setSelectedCustomer },
-    { type: "edit", label: "Edit Customer", onClick: () => {}, disabled: () => true },
+    { type: "edit", label: "Edit Customer", onClick: setEditing, disabled: (row) => !canEditContacts || !row.is_active },
     { type: "custom", label: "Purchase History", icon: <ShoppingBag className="size-4" />,
       onClick: setHistoryCustomer },
   ];
@@ -152,7 +154,8 @@ export function HostedCustomers({ customers, error }: { customers: HostedCustome
                 </div>
                 <Separator />
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" className="flex-1" disabled>Edit Customer</Button>
+                  <Button variant="outline" className="flex-1" disabled={!canEditContacts||!selectedCustomer.is_active}
+                    onClick={()=>{setEditing(selectedCustomer);setSelectedCustomer(null);}}>Edit Customer</Button>
                   <Button className="flex-1" onClick={() => { setHistoryCustomer(selectedCustomer); setSelectedCustomer(null); }}>
                     <ShoppingBag className="size-4" /> Purchase History
                   </Button>
@@ -163,6 +166,8 @@ export function HostedCustomers({ customers, error }: { customers: HostedCustome
         </DialogContent>
       </Dialog>
 
+      {editing&&<ContactEditDialog key={editing.id} contact={editing} entity="customer"
+        onClose={()=>setEditing(null)}/>}
       <Dialog open={historyCustomer !== null} onOpenChange={(open) => { if (!open) setHistoryCustomer(null); }}>
         <DialogContent className="sm:max-w-5xl">
           <DialogHeader>
