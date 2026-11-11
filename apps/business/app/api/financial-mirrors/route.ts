@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
   } else if (error) {
     return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
   }
-  const rows = (error ? [] : (data ?? [])).map((row) => ({ localRecordId: row.local_record_id, capturedAt: row.captured_at, record: row.record }));
+  const rows = (error ? [] : (data ?? [])).map((row) => ({ localRecordId: row.local_record_id, localBusinessPublicId: row.local_business_public_id, capturedAt: row.captured_at, record: row.record }));
   const lastSuccessfulSync = publicationResult.data?.captured_at ?? null;
   const syncTime = lastSuccessfulSync ? new Date(lastSuccessfulSync).getTime() : Number.NaN;
   const isStale = lastSuccessfulSync !== null && (Number.isNaN(syncTime) || Date.now() - syncTime > 24 * 60 * 60 * 1000);
