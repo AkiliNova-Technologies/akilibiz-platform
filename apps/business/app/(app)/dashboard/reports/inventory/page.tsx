@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, RefreshCw } from "lucide-react";
 import {
   DataTable,
@@ -74,7 +74,9 @@ export default function ReportsInventoryPage() {
     getInventoryMovementHistory,
     getInventoryValuationSummary,
     getInventoryProductDrillDown,
+    loading,error,unavailablePositions,
   } = useReportsInventoryData();
+  useEffect(() => { void Promise.resolve().then(getInventoryStockOnHand); }, [getInventoryStockOnHand]);
   const [tab, setTab] = useState("stock");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -218,6 +220,11 @@ export default function ReportsInventoryPage() {
               Stock, movement and valuation information for your inventory.
             </p>
           </div>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <p className="text-xs text-muted-foreground">
+            Stock overview uses the latest synchronized desktop inventory positions.
+            Movement history and cost valuation remain unavailable until independently verified.
+          </p>
           <Tabs value={tab} onValueChange={setTab}>
             <div className="min-w-0 overflow-x-auto pb-1" aria-label="Inventory report sections">
               <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full bg-card p-1.5">
@@ -230,13 +237,13 @@ export default function ReportsInventoryPage() {
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
                   title="Products shown"
-                  value="—"
+                  value={loading ? "—" : String(stock.length)}
                   description="On-hand stock in current register"
                   icon={<Eye className="size-5" />}
                 />
                 <MetricCard
                   title="Low or out of stock"
-                  value="—"
+                  value={loading ? "—" : String(stock.filter(row => row.status === "Low stock" || row.status === "Out of stock").length)}
                   description="Current stock status"
                   icon={<Eye className="size-5" />}
                 />
@@ -250,7 +257,7 @@ export default function ReportsInventoryPage() {
                     actions={action((row: StockRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
                         <RefreshCw className="size-4" />
                         
                       </Button>
@@ -258,8 +265,8 @@ export default function ReportsInventoryPage() {
                     enableSelection={false}
                     enableGlobalSearch
                     enableSorting={false}
-                    loading={false}
-                    emptyMessage="Inventory reporting is unavailable until verified stock data is connected."
+                    loading={loading}
+                    emptyMessage="No verified stock positions have synchronized for this business."
                   />
                 </CardContent>
               </Card>
@@ -380,7 +387,7 @@ export default function ReportsInventoryPage() {
           <DialogHeader>
             <DialogTitle>Product position</DialogTitle>
             <DialogDescription>
-              Review current stock, movements, and valuation information.
+              Current synchronized product stock. Cost valuation is not verified.
             </DialogDescription>
           </DialogHeader>
           {productDetail ? (
@@ -402,7 +409,7 @@ export default function ReportsInventoryPage() {
               <span className="text-muted-foreground">Stock value</span>
               <span>
                 {productDetail.inventory_cost_value === null
-                  ? "Unvalued"
+                  ? "Not verified"
                   : ugx(productDetail.inventory_cost_value)}
               </span>
             </div>
