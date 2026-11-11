@@ -1,5 +1,7 @@
 "use client";
 
+import { SettingsSnapshotPlaceholder } from "@/components/akilibiz/settings/settings-snapshot-placeholder";
+import { SettingsSnapshotStatus } from "@/components/akilibiz/settings/settings-snapshot-status";
 import { ReceiptSettingsForm } from "@/components/akilibiz/settings/receipt-settings-form";
 import { useBrowserReceiptSettings } from "@/components/akilibiz/settings/receipt-settings-data";
 
@@ -13,25 +15,19 @@ export default function ReceiptSettingsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Receipt Settings</h1>
           <p className="text-sm text-muted-foreground">Configure how receipts are displayed and printed.</p>
         </div>
-        <div role="status" className="text-sm text-muted-foreground">
-          {receipt.snapshotState === "loading" ? "Loading desktop settings…" :
-            receipt.snapshotState === "error" ? "Could not load the desktop settings. Check the connection and your account access." :
-            receipt.snapshotState === "unavailable" ? "No verified desktop settings snapshot is available for this business." :
-            "Read-only settings synchronized from desktop. Changes must be made in the desktop app."}
-          {receipt.snapshotState === "ready" && receipt.snapshotDate ? (
-            <span className="ml-1">Last synchronized: {new Date(receipt.snapshotDate).toLocaleString("en-UG", { timeZone: "Africa/Kampala" })}</span>
-          ) : null}
-        </div>
+        <SettingsSnapshotStatus state={receipt.snapshotState} lastSync={receipt.snapshotDate} onRetry={receipt.retry} />
         {receipt.snapshotState === "ready" ? (
-        <ReceiptSettingsForm
-          isDirty={receipt.isDirty}
-          loading={receipt.loading}
-          onReset={receipt.reset}
-          onSave={receipt.save}
-          onSettingsChange={receipt.setSettings}
-          settings={receipt.settings}
-        />
-        ) : null}
+          <ReceiptSettingsForm
+            isDirty={receipt.isDirty}
+            loading={receipt.loading}
+            onReset={receipt.reset}
+            onSave={receipt.save}
+            onSettingsChange={receipt.setSettings}
+            settings={receipt.settings}
+          />
+        ) : (
+          <SettingsSnapshotPlaceholder kind="receipt" state={receipt.snapshotState} />
+        )}
       </div>
     </main>
   );
