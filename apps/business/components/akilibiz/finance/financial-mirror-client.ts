@@ -18,3 +18,23 @@ export function mirrorValue(record: Record<string, unknown>, ...keys: string[]) 
   }
   return undefined;
 }
+
+/**
+ * Fetch a complete bounded snapshot for cross-entity read-only reports.
+ * A partial result is never silently treated as a complete ledger.
+ */
+export async function loadAllFinancialMirrorRows(entity: string, maxRows = 5000): Promise<FinancialMirrorRow[]> {
+  const rows: FinancialMirrorRow[] = [];
+  for (let page = 1; page <= Math.ceil(maxRows / 100); page++) {
+    const result = await loadFinancialMirror(entity, { page, pageSize: 100 });
+    if (result.total > maxRows) throw new Error(
+      "This business has more synchronized records than this report can display safely. Narrow the report or use a paginated view."
+    );
+    rows.push(...result.rows);
+    if (rows.length >= result.total) return rows;
+    if (result.rows.length === 0) throw new Error(
+      "The synchronized records changed while this report was loading. Refresh to retry."
+    );
+  }
+  throw new Error("The complete synchronized report could not be loaded.");
+}
