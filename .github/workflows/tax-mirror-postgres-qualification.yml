@@ -1,0 +1,46 @@
+name: Tax mirror isolated PostgreSQL qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "supabase/migrations/20261111112000_tax_evidence_business_mirror_entities.sql"
+      - "supabase/tests/tax_mirror_isolated_*.sql"
+      - ".github/workflows/tax-mirror-postgres-qualification.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tax-evidence-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: akilibiz_tax_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local_ci_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d akilibiz_tax_ci"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: local_ci_only
+      PGDATABASE: akilibiz_tax_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Bootstrap isolated business and device contracts
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/web_pos_isolated_bootstrap.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/tax_mirror_isolated_qualification.sql
+      - name: Install original qualified mirror and additive tax extension
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261108195000_desktop_business_mirror.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261111112000_tax_evidence_business_mirror_entities.sql
+      - name: Test authenticated tenant and device isolation and VAT replay
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/tax_mirror_isolated_acceptance.sql
