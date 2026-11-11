@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { loadAllFinancialMirrorRows } from "@/components/akilibiz/finance/financial-mirror-client";
+import { mapHostedSale, saleDetailFromRows } from "./hosted-sales-mapper";
 
 export type SalePaymentMethod = "cash" | "card" | "mobile_money" | "split";
 export type SaleStatus = "completed" | "cancelled" | "refunded" | "pending";
@@ -64,7 +66,7 @@ const salesLabels: Record<string, string> = {
   "sales.cancelSale": "Cancel sale",
   "sales.tableDescription": "Sales transactions and their payment details",
   "sales.search": "Search sales",
-  "sales.empty": "Sales history is unavailable until sales synchronization is connected.",
+  "sales.empty": "No synchronized sales have been received for this business yet.",
   "sales.details": "Sale details",
   "sales.detailsDescription": "Review the sale details.",
   "sales.total": "Total",
@@ -101,28 +103,61 @@ export const t = (key: string, values?: TranslationValues) => {
 export const formatSalesCurrency = (value: number, _currency?: string) =>
   new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(value);
 
-export function useSalesHistoryData(): SalesHistoryData {
+export function useSalesHistoryData(): SalesHistoryData & { error: string | null } {
   const [sales, setSales] = useState<SaleListResponse[]>([]);
   const [selectedSale, setSelectedSale] = useState<SaleDetail | null>(null);
-  const summary: SalesSummary | null = null;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const summary: SalesSummary = {
+    total_sales_value: sales.filter(s => s.status === "completed").reduce((n, s) => n + s.total_amount, 0),
+    transaction_count: sales.filter(s => s.status === "completed").length,
+    average_sale_value: 0,
+    refunded_count: sales.filter(s => s.status === "refunded").length,
+  };
+  summary.average_sale_value = summary.transaction_count ? summary.total_sales_value / summary.transaction_count : 0;
+
   const user: SalesHistoryUser | null = null;
   const settings: SalesHistoryTaxSettings | null = null;
   const taxSettings: SalesHistoryTaxSettings | null = null;
-  const getSales = useCallback(async (): Promise<void> => {}, []);
+  const getSales = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const mirror = await loadAllFinancialMirrorRows("sales");
+      const mapped = mirror.map(mapHostedSale);
+      const invalid = mapped.filter(s => s === null).length;
+      setSales(mapped.filter((s): s is SaleListResponse => s !== null));
+      if (invalid) setError(`${invalid} synchronized sales could not be displayed because their financial details were incomplete.`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Synchronized sales could not be loaded.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   const getSale = useCallback(async (id: number, _options?: unknown): Promise<SaleDetail | null> => {
-    const sale = sales.find((row) => row.id === id);
-    const detail = sale ? { ...sale, items: [] } : null;
-    setSelectedSale(detail);
-    return detail;
+    const sale = sales.find(s => s.id === id);
+    if (!sale) return null;
+    try {
+      const lines = await loadAllFinancialMirrorRows("sale_items");
+      const detail = saleDetailFromRows(sale, lines);
+      if (!detail) {
+        setError("The sale's complete item details are not available in the synchronized records.");
+        return null;
+      }
+      setSelectedSale(detail);
+      return detail;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Sale details could not be loaded.");
+      return null;
+    }
   }, [sales]);
   const getSalesSummary = useCallback(async (): Promise<void> => {}, []);
-  const refreshSales = useCallback(async (): Promise<void> => {}, []);
+  const refreshSales = getSales;
   const clearSale = useCallback((): void => setSelectedSale(null), []);
-  // Hosted cancellation is unavailable; never mutate local state as if the sale was cancelled.
-  const cancelExistingSale = useCallback(async (_id: number, _payload: CancelSalePayload): Promise<SaleDetail | null> => {
+  const cancelExistingSale = useCallback(async (_id: number, _payload: CancelSalePayload): Promise<never> => {
     throw new Error("Sale cancellation is unavailable until hosted transactions are connected.");
   }, []);
   const getTaxSettings = useCallback(async (): Promise<void> => {}, []);
-
-  return { sales, selectedSale, summary, loading: false, getSales, getSale, getSalesSummary, refreshSales, clearSale, cancelExistingSale, user, settings, taxSettings, getTaxSettings };
+  return { sales, selectedSale, summary, loading, error, getSales, getSale, getSalesSummary,
+    refreshSales, clearSale, cancelExistingSale, user, settings, taxSettings, getTaxSettings };
 }
