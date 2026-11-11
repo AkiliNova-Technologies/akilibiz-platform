@@ -7,10 +7,10 @@ const numericId = (v: unknown): number | null =>
   typeof v === "number" && Number.isSafeInteger(v) && v > 0 ? v : null;
 const name = (v: unknown, fallback: string): string =>
   typeof v === "string" && v.trim() ? v : fallback;
-const paymentMethod = (v: unknown): SalePaymentMethod =>
-  v === "mobile_money" || v === "card" || v === "split" ? v : "cash";
-const status = (v: unknown): SaleStatus =>
-  v === "cancelled" || v === "refunded" || v === "pending" ? v : "completed";
+const paymentMethod = (v: unknown): SalePaymentMethod | null =>
+  v === "cash" || v === "mobile_money" || v === "card" || v === "split" ? v : null;
+const status = (v: unknown): SaleStatus | null =>
+  v === "completed" || v === "cancelled" || v === "refunded" || v === "pending" ? v : null;
 const money = (r: Record<string, unknown>, exact: string, legacy: string) =>
   amount(r[exact]) ?? amount(r[legacy]);
 const dateValue = (value: unknown): string | null =>
@@ -25,7 +25,9 @@ export function mapHostedSale(row: FinancialMirrorRow): SaleListResponse | null 
   const tax = money(r, "tax_amount_ugx", "tax_amount");
   const createdAt = dateValue(r.created_at);
   const saleId = numericId(row.localRecordId);
-  if (saleId === null || total === null || subtotal === null ||
+  const method = paymentMethod(r.payment_method);
+  const saleStatus = status(r.status);
+  if (saleId === null || method === null || saleStatus === null || total === null || subtotal === null ||
       discount === null || tax === null || createdAt === null ||
       typeof r.sale_number !== "string" || !r.sale_number.trim()) return null;
   const itemCount = amount(r.items_count);
@@ -38,8 +40,8 @@ export function mapHostedSale(row: FinancialMirrorRow): SaleListResponse | null 
     items_count: itemCount, subtotal, discount_amount: discount, tax_amount: tax,
     tax_classification: typeof r.tax_classification === "string" ? r.tax_classification : null,
     tax_rate: typeof r.tax_rate === "number" && Number.isFinite(r.tax_rate) ? r.tax_rate : null,
-    total_amount: total, payment_method: paymentMethod(r.payment_method),
-    status: status(r.status), created_at: createdAt,
+    total_amount: total, payment_method: method,
+    status: saleStatus, created_at: createdAt,
     staff_id: numericId(r.cashier_user_id) ?? undefined,
   };
 }
