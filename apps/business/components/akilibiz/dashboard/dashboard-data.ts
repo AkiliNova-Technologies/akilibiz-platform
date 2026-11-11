@@ -71,8 +71,12 @@ export async function getDashboardOverview({
     // Unexpected failures also leave financial values unknown, never zero.
     void reason;
   }
-  const completed = financial === null ? null : financial.map(mapHostedSale)
-    .filter((sale): sale is NonNullable<typeof sale> => sale !== null && sale.status === "completed");
+  const mappedSales = financial?.map(mapHostedSale) ?? null;
+  // Partial or malformed financial snapshots must not produce understated KPIs.
+  const completed = mappedSales === null || mappedSales.some(sale => sale === null)
+    ? null
+    : mappedSales.filter((sale): sale is NonNullable<typeof sale> =>
+        sale !== null && sale.status === "completed");
   const within = (day: string, first: string, last: string) => day.slice(0,10) >= first && day.slice(0,10) <= last;
   const inPeriod = completed?.filter(sale => within(sale.created_at,date_from,date_to)) ?? [];
   const salesTotal = completed === null ? null : inPeriod.reduce((total,sale) => total+sale.total_amount,0);
