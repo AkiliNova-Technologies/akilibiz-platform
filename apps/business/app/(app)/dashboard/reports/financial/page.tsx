@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import {
   DataTable,
@@ -55,9 +55,11 @@ export default function ReportsFinancialPage() {
   const {
     entries,
     loading,
+    error,
     refresh,
   } = useReportsFinancialData();
-  const [tab, setTab] = useState<FinancialReportTab>("receivables");
+  const [tab, setTab] = useState<FinancialReportTab>("journals");
+  useEffect(() => { void refresh(); }, [refresh]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [draftFrom, setDraftFrom] = useState("");
@@ -124,6 +126,8 @@ export default function ReportsFinancialPage() {
               information.
             </p>
           </div>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <p className="text-xs text-muted-foreground">Posted journals and trial balances are read-only synchronized desktop records. Other financial statements require separate accounting qualification.</p>
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as FinancialReportTab)}>
@@ -220,7 +224,7 @@ export default function ReportsFinancialPage() {
                         <Button
                           variant="outline"
                           onClick={() => void refresh()}
-                          disabled size="icon" aria-label="Refresh" title="Refresh">
+                          disabled={loading} size="icon" aria-label="Refresh" title="Refresh">
                           {loading ? (
                             <LoaderCircle className="size-4 animate-spin" />
                           ) : (
@@ -233,10 +237,10 @@ export default function ReportsFinancialPage() {
                       enableGlobalSearch
                       enableSorting={false}
                       loading={loading}
-                      emptyMessage="Financial reports are unavailable until the hosted accounting ledger is connected."
+                      emptyMessage={["journals","trial","detailed-trial"].includes(key) ? "No synchronized posted journal records are available." : "This financial statement is not yet available on the web."}
                     />
                     <p className="px-4 pb-4 text-sm text-muted-foreground">
-                      Financial report totals are unavailable until the hosted accounting ledger is connected.
+                      Only synchronized posted journals and their verified trial balance are available. Other financial statements are not yet supported.
                     </p>
                   </CardContent>
                 </Card>
