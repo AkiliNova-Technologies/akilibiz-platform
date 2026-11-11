@@ -1,6 +1,6 @@
 "use client";
 
-export type FinancialMirrorRow = { localRecordId: number; capturedAt: string; record: Record<string, unknown> };
+export type FinancialMirrorRow = { localRecordId: number; localBusinessPublicId?: string; capturedAt: string; record: Record<string, unknown> };
 export type FinancialMirrorResponse = { entity: string; rows: FinancialMirrorRow[]; page: number; pageSize: number; total: number; lastSuccessfulSync: string | null; isStale: boolean; readOnly: true };
 
 export async function loadFinancialMirror(entity: string, options: { page?: number; pageSize?: number; signal?: AbortSignal } = {}): Promise<FinancialMirrorResponse> {
