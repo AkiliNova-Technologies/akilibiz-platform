@@ -6,11 +6,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <main className="grid min-h-svh bg-background lg:grid-cols-2">
       <section className="flex min-w-0 flex-col px-6 py-8 sm:px-10 lg:px-12 xl:px-20">
-        <div className="mx-auto w-full max-w-md">
-          <Image src={images.logo} alt="AkiliBiz" width={160} height={54}
-            className="h-12 w-auto max-w-[170px] object-contain object-left" priority />
-        </div>
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+<div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
           {children}
         </div>
       </section>
