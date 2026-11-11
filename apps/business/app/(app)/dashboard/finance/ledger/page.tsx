@@ -104,6 +104,11 @@ export default function FinanceLedgerPage() {
           </p>
         </div>
         <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
+        <p className="text-xs text-muted-foreground">
+          This register shows individual debit and credit journal lines. The desktop finance
+          register shows operational payments and transactions, so their row counts differ.
+          Staff names are taken from business-scoped desktop journal attribution.
+        </p>
         {error ? (
           <Card className="border-destructive/40">
             <CardContent className="flex items-center gap-2 p-4 text-sm text-destructive">
@@ -126,9 +131,9 @@ export default function FinanceLedgerPage() {
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
-            title="Net Position"
+            title="Debit / credit difference"
             value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.net_position) : "—"}
-            description="Credit less debit balance"
+            description="Journal entries should balance to zero"
             icon={<CircleDollarSign className="size-5" />}
           />
           <MetricCard
@@ -152,13 +157,13 @@ export default function FinanceLedgerPage() {
               emptyMessage={
                 loading
                   ? "Loading ledger entries..."
-                  : "Ledger entries are unavailable until the hosted accounting ledger is connected."
+                  : error ? "Ledger could not be loaded." : "No synchronized journal entries found."
               }
               toolbarActions={
                 <Button
                   variant="outline"
                   onClick={() => void refreshLedger()}
-                  disabled size="icon" aria-label="Refresh" title="Refresh">
+                  disabled={loading} size="icon" aria-label="Refresh" title="Refresh">
                   {loading ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (
