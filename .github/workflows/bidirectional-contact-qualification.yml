@@ -1,0 +1,44 @@
+name: Bidirectional contact pilot qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "supabase/migrations/20261111150000_bidirectional_contact_command_foundation.sql"
+      - "supabase/tests/bidirectional_contacts_*.sql"
+      - ".github/workflows/bidirectional-contact-qualification.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inbound-contacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: akilibiz_inbound_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local_test_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d akilibiz_inbound_test"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: akilibiz_inbound_test
+      PGUSER: postgres
+      PGPASSWORD: local_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Bootstrap throwaway owner and device records
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/web_pos_isolated_bootstrap.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/bidirectional_contacts_bootstrap.sql
+      - name: Install staged inbound protocol with all gates off
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261111150000_bidirectional_contact_command_foundation.sql
+      - name: Verify versioning, idempotency, isolation, revocation and closed defaults
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/bidirectional_contacts_acceptance.sql
