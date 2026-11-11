@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const [pageResult, publicationResult] = await Promise.all([
     supabase
       .from("desktop_business_records")
-      .select("local_record_id,record,captured_at", { count: "exact" })
+      .select("local_record_id,local_business_public_id,record,captured_at", { count: "exact" })
       .eq("business_id", business.id)
       .eq("entity_type", entity)
       .order("local_record_id", { ascending: false })
