@@ -30,6 +30,10 @@ begin
       '55555555-5555-4555-8555-555555555555',version_at,
       '{"name":"Updated Customer"}');
   if command is null then raise exception 'Command ID missing'; end if;
+  if (select base_record->>'name' from private.desktop_inbound_commands
+      where id=command)<>'Original Customer' then
+    raise exception 'Queued update lost the source baseline';
+  end if;
   if (select state from public.desktop_contact_update_status(
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',command))<>'pending' then
     raise exception 'Owner command status not pending';
