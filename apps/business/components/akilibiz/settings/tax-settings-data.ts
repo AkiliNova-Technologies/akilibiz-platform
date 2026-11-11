@@ -27,6 +27,8 @@ export function useBrowserTaxSettings() {
   const [savedSettings, setSavedSettings] = useState<TaxSettingsFormData>(defaultTaxSettings);
   const [snapshotState, setSnapshotState] = useState<"loading" | "ready" | "unavailable" | "error">("loading");
   const [snapshotDate, setSnapshotDate] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const retry = useCallback(() => { setSnapshotState("loading"); setReloadKey((value) => value + 1); }, []);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -47,7 +49,7 @@ export function useBrowserTaxSettings() {
       setSnapshotState("ready");
     }).catch(() => { if (active) setSnapshotState("error"); });
     return () => { active = false; };
-  }, []);
+  }, [reloadKey]);
   const isDirty = useMemo(
     () => JSON.stringify(settings) !== JSON.stringify(savedSettings),
     [settings, savedSettings],
@@ -56,5 +58,5 @@ export function useBrowserTaxSettings() {
     throw new Error("Tax settings cannot be saved until business tax preferences are connected.");
   }, []);
   const reset = useCallback(() => setSettings(savedSettings), [savedSettings]);
-  return { isDirty, loading: false, reset, save, setSettings, settings, snapshotState, snapshotDate };
+  return { isDirty, loading: false, reset, save, setSettings, settings, snapshotState, snapshotDate, retry };
 }
