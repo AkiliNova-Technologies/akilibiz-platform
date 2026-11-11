@@ -21,10 +21,10 @@ export async function GET() {
     return NextResponse.json({error:"Synchronized stock positions could not be loaded."},{status:502,headers});
   }
   try {
-    const rows=mapHostedStockReport(
+    const {rows,skipped}=mapHostedStockReport(
       products.data??[],categories.data??[],inventory.data??[]
     );
-    return NextResponse.json({rows,readOnly:true},{headers});
+    return NextResponse.json({rows,skipped,readOnly:true},{headers});
   } catch {
     return NextResponse.json({error:"Some stock positions are incomplete and cannot be reported reliably."},{status:422,headers});
   }
