@@ -264,7 +264,7 @@ export default function StaffRolesPermissionsPage() {
             <MetricCard
               title="Access Control"
               value="—"
-              description="Hosted role definitions unavailable"
+              description="Role details unavailable"
               icon={<LockKeyhole className="size-5" />}
             />
           </section>
@@ -280,7 +280,7 @@ export default function StaffRolesPermissionsPage() {
                 searchPlaceholder="Search roles..."
                 pageSize={10}
                 onRowClick={(row) => void view(row)}
-                emptyMessage={loading ? "Loading roles..." : "Role definitions are unavailable until hosted role management is connected."}
+                emptyMessage={loading ? "Loading roles..." : "No roles available."}
                 toolbarActions={
                   <div className="flex gap-2">
                     <Button
@@ -290,7 +290,7 @@ export default function StaffRolesPermissionsPage() {
                       
                     </Button>
                     <Button
-                      disabled title="Hosted role creation is not connected"
+                      disabled title="Role creation unavailable"
                       onClick={() => {
                         setForm({
                           role_name: "",
@@ -403,7 +403,7 @@ export default function StaffRolesPermissionsPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
               Cancel
             </Button>
-            <Button disabled title="Hosted role creation is not connected" onClick={() => void create()}>Create Role</Button>
+            <Button disabled title="Role creation unavailable" onClick={() => void create()}>Create Role</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -561,7 +561,7 @@ export default function StaffRolesPermissionsPage() {
                 </Button>
                 <Button
                   onClick={() => void savePermissions()}
-                  disabled title="Hosted permissions updates are not connected">
+                  disabled title="Permission editing unavailable">
                   Save Permissions
                 </Button>
               </DialogFooter>

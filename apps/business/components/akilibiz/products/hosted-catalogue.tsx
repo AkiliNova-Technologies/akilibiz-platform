@@ -277,19 +277,19 @@ export function HostedCatalogue({
               onRowClick={setSelectedCategory}
               toolbarActions={
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button type="button" variant="outline" disabled title="Category import is unavailable on web">
+                  <Button type="button" variant="outline" disabled title="Category import unavailable">
                     <Upload className="size-4" />Import
                   </Button>
-                  <Button type="button" variant="outline" disabled title="Import history is unavailable on web">
+                  <Button type="button" variant="outline" disabled title="Import history unavailable">
                     <History className="size-4" />Import History
                   </Button>
-                  <Button type="button" variant="outline" disabled title="Category export is unavailable on web">
+                  <Button type="button" variant="outline" disabled title="Category export unavailable">
                     <Download className="size-4" />Export
                   </Button>
-                  <Button type="button" variant="outline" size="icon" disabled aria-label="Refresh" title="Category refresh is unavailable">
+                  <Button type="button" variant="outline" size="icon" disabled aria-label="Refresh" title="Category refresh unavailable">
                     <RefreshCw className="size-4" />
                   </Button>
-                  <Button type="button" disabled title="Category creation is unavailable on web">
+                  <Button type="button" disabled title="Category creation unavailable">
                     <Plus className="size-4" />Add Category
                   </Button>
                 </div>
@@ -404,27 +404,27 @@ export function HostedCatalogue({
             onRowClick={setSelectedProduct}
             toolbarActions={
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <Button type="button" variant="outline" disabled title="Import is unavailable on web">
+                <Button type="button" variant="outline" disabled title="Import unavailable">
                   <Upload className="size-4" />
                   Import
                 </Button>
-                <Button type="button" variant="outline" disabled title="Import history is unavailable on web">
+                <Button type="button" variant="outline" disabled title="Import history unavailable">
                   <History className="size-4" />
                   Import History
                 </Button>
-                <Button type="button" variant="outline" disabled title="Export is not connected on web">
+                <Button type="button" variant="outline" disabled title="Export unavailable">
                   <Download className="size-4" />
                   Export
                 </Button>
-                <Button type="button" variant="outline" size="icon" disabled title="Catalogue refresh is not connected">
+                <Button type="button" variant="outline" size="icon" disabled title="Catalogue refresh unavailable">
                   <RefreshCw className="size-4" />
                   <span className="sr-only">Refresh</span>
                 </Button>
-                <Button type="button" variant="outline" disabled title="Variants management is unavailable on web">
+                <Button type="button" variant="outline" disabled title="Variants management unavailable">
                   <Layers className="size-4" />
                   Variants
                 </Button>
-                <Button type="button" disabled title="Product creation is unavailable on web">
+                <Button type="button" disabled title="Product creation unavailable">
                   <Plus className="size-4" />
                   Add Product
                 </Button>

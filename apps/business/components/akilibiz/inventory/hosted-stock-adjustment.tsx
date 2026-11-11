@@ -213,7 +213,7 @@ export function HostedStockAdjustment({ positions, products, error }: {
                   </div>
                 </div>
               )}
-              <Button type="submit" className="w-full" disabled title="Stock adjustments are unavailable until posting is connected">
+              <Button type="submit" className="w-full" disabled title="Stock adjustments unavailable">
                 Save Adjustment
               </Button>
             </form>
@@ -227,7 +227,7 @@ export function HostedStockAdjustment({ positions, products, error }: {
               data={movements} fields={fields} actions={actions}
               enableGlobalSearch searchPlaceholder="Search adjustment history..."
               pageSize={5} onRowClick={undefined}
-              emptyMessage={error ?? "Adjustment history is unavailable until stock movements are connected."}
+              emptyMessage={error ?? "No adjustment history available."}
               onRefresh={() => {}} refreshDisabled
             />
           </CardContent>

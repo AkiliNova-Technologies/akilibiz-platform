@@ -167,7 +167,7 @@ export function HostedCustomers({ customers, error }: { customers: HostedCustome
         <DialogContent className="sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>Purchase History — {historyCustomer?.name}</DialogTitle>
-            <DialogDescription>Purchase records are not yet available from the hosted sales service.</DialogDescription>
+            <DialogDescription>No purchase records available.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-3">
             <MetricCard title="Total Purchases" value="—" description="Purchase records unavailable" icon={<ShoppingBag className="size-5" />} />
@@ -175,7 +175,7 @@ export function HostedCustomers({ customers, error }: { customers: HostedCustome
             <MetricCard title="Average Purchase" value="—" description="Sales records unavailable" icon={<Star className="size-5" />} />
           </div>
           <Card><CardContent className="p-4 text-sm text-muted-foreground">
-            Purchase history is unavailable until the hosted sales records are connected.
+            No purchase history available.
           </CardContent></Card>
         </DialogContent>
       </Dialog>

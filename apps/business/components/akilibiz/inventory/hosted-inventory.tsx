@@ -229,7 +229,7 @@ export function HostedInventory({
             emptyMessage={error ?? "No current inventory positions are available."}
             toolbarActions={
               <Button type="button" variant="outline" size="icon" disabled
-                aria-label="Refresh inventory" title={error ? "Inventory data could not be loaded" : "Refreshing hosted inventory is not connected"}>
+                aria-label="Refresh inventory" title={error ? "Inventory data could not be loaded" : "Refresh unavailable"}>
                 <RefreshCw className="size-4" />
               </Button>
             }
