@@ -156,7 +156,7 @@ export default function FinanceCashFlowPage() {
               pageSize={10}
               loading={loading}
               emptyMessage={
-                loading ? "Loading cash flow..." : "Cash flow records are unavailable until the hosted finance ledger is connected."
+                loading ? "Loading cash flow..." : "No cash flow records available."
               }
               toolbarActions={
                 <Button

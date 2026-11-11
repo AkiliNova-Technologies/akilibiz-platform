@@ -150,7 +150,7 @@ export default function StaffActivityLogsPage() {
                 emptyMessage={
                   loading
                     ? "Loading activity logs..."
-                    : "Staff activity history is unavailable until the hosted audit log is connected."
+                    : "No staff activity recorded."
                 }
                 searchPlaceholder="Search logs by user, action, module, or target..."
                 pageSize={10}

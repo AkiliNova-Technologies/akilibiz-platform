@@ -179,7 +179,7 @@ export default function InventoryStockHistoryPage() {
                 searchPlaceholder="Search stock history..."
                 pageSize={10}
                 onRowClick={setDetail}
-                emptyMessage="Stock movement history is unavailable until the hosted movement ledger is connected."
+                emptyMessage="No stock movements available."
                 onRefresh={() => {}}
                 refreshDisabled
               />

@@ -199,7 +199,7 @@ export default function SupplierPurchaseOrdersPage() {
                 emptyMessage={
                   loading
                     ? "Loading purchase orders..."
-                     : "Purchase orders are unavailable until the hosted purchasing service is connected."
+                     : "No purchase orders available."
                 }
                 toolbarActions={
                   <Button disabled title="Purchase order creation is not connected">

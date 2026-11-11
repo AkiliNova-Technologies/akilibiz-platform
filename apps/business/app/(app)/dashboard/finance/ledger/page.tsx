@@ -157,7 +157,7 @@ export default function FinanceLedgerPage() {
               emptyMessage={
                 loading
                   ? "Loading ledger entries..."
-                  : error ? "Ledger could not be loaded." : "No synchronized journal entries found."
+                  : error ? "Ledger could not be loaded." : "No journal entries available."
               }
               toolbarActions={
                 <Button

@@ -201,7 +201,7 @@ export default function ReportsPurchasingPage() {
                 enableSorting={false}
                 pageSize={10}
                 loading={false}
-                emptyMessage="Purchasing reports are unavailable until hosted goods-received records are connected."
+                emptyMessage="No purchasing records available."
               />
             </CardContent>
           </Card>

@@ -353,7 +353,7 @@ export default function CreditOrdersPage() {
                 searchPlaceholder="Search by invoice or customer..."
                 enableColumnVisibility={true}
                 enableSorting={true}
-                emptyMessage="Credit orders are unavailable until sales synchronization is connected."
+                emptyMessage="No credit orders available."
                 onRefresh={handleRefresh}
                 refreshing={loading}
                 refreshDisabled={!creditDataAvailable}

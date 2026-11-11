@@ -30,7 +30,7 @@ export function useReportsOverviewData() {
       const sales = salesRows.map(mapHostedSale);
       const transactions = financeRows.map(mapFinanceTransaction);
       if (sales.some(s => s === null) || transactions.some(t => t === null)) {
-        throw new Error("Some synchronized financial records are incomplete. Report totals cannot be verified.");
+        throw new Error("Some financial records are incomplete. Report totals cannot be verified.");
       }
       const completed = sales.filter((sale): sale is NonNullable<typeof sale> =>
         sale !== null && sale.status === "completed");
@@ -40,12 +40,12 @@ export function useReportsOverviewData() {
       const updatedAt = [...salesRows, ...financeRows]
         .map(row => row.capturedAt).filter(Boolean).sort().at(-1) ?? new Date().toISOString();
       const rows: ReportsOverviewRow[] = [
-        { id: 1, report_name: "Synchronized sales", category: "Sales",
+        { id: 1, report_name: "Sales", category: "Sales",
           period: "All available records", total_value: salesValue,
-          entries: completed.length, status: "Read-only", updated_at: updatedAt },
+          entries: completed.length, status: "Available", updated_at: updatedAt },
         { id: 2, report_name: "Recorded financial activity", category: "Finance",
           period: "All available records", total_value: financeValue,
-          entries: posted.length, status: "Read-only", updated_at: updatedAt },
+          entries: posted.length, status: "Available", updated_at: updatedAt },
       ];
       setOverviewRows(rows);
       setOverviewSummary({
@@ -57,7 +57,7 @@ export function useReportsOverviewData() {
     } catch (reason) {
       setOverviewRows([]);
       setOverviewSummary(null);
-      setError(reason instanceof Error ? reason.message : "Synchronized reports could not be loaded.");
+      setError(reason instanceof Error ? reason.message : "Reports could not be loaded.");
       return [];
     } finally { setLoading(false); }
   }, []);

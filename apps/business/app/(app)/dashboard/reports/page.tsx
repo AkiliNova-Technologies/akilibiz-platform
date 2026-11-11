@@ -18,7 +18,6 @@ import {
 import MetricCard from "@/components/akilibiz/metric-card";
 import {
   formatFinanceCurrency,
-  formatFinanceDate,
 } from "@/components/akilibiz/finance/finance-overview-data";
 import {
   type ReportsOverviewRow,
@@ -71,24 +70,6 @@ export default function ReportsOverviewPage() {
       enableSorting: true,
       cell: (value) => <Badge variant="secondary">{Number(value)}</Badge>,
     },
-    {
-      key: "status",
-      header: "Status",
-      align: "center",
-      cell: (value) =>
-        String(value) === "Up to Date" ? (
-          <Badge variant="outline">Up to Date</Badge>
-        ) : (
-          <Badge variant="secondary">{String(value)}</Badge>
-        ),
-    },
-    {
-      key: "updated_at",
-      header: "Last Updated",
-      align: "center",
-      enableSorting: true,
-      cell: (value) => formatFinanceDate(String(value)),
-    },
   ];
   return (
     <div className="flex flex-1 flex-col">
@@ -112,7 +93,7 @@ export default function ReportsOverviewPage() {
           <MetricCard
             title="Sales Reports"
             value={overviewSummary?.total_sales_value != null ? formatFinanceCurrency(overviewSummary.total_sales_value) : "—"}
-            description="Completed desktop sales received through synchronization"
+            description="Completed sales"
             icon={<BarChart3 className="size-5" />}
           />
           <MetricCard
@@ -174,7 +155,7 @@ export default function ReportsOverviewPage() {
               pageSize={10}
               loading={loading}
               emptyMessage={
-                loading ? "Loading reports..." : "Reporting summaries are unavailable until the hosted reporting service is connected."
+                loading ? "Loading reports..." : "No report summaries available."
               }
             />
           </CardContent>

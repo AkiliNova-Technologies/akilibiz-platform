@@ -373,8 +373,7 @@ export default function AnalyticsPage() {
           <div>
             <h2 className="text-2xl font-semibold">Business Insights</h2>
             <p className="text-sm text-muted-foreground">
-              Read-only summaries from completed sales and recorded operational
-              data.
+              Sales performance and business activity.
             </p>
           </div>
 

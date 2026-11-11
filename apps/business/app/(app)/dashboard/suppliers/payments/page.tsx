@@ -376,7 +376,7 @@ export default function SupplierPaymentsPage() {
                 emptyMessage={
                   loading
                     ? "Loading supplier payments..."
-                    : "Supplier payments are unavailable until hosted payment records are connected."
+                    : "No supplier payments available."
                 }
                 toolbarFilters={
                   <div className="flex flex-wrap gap-2">

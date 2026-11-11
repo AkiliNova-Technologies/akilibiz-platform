@@ -146,7 +146,7 @@ export default function FinanceOverviewPage() {
               emptyMessage={
                 loading
                   ? "Loading recent transactions..."
-                  : "No desktop-synchronized finance transactions are available."
+                  : "No finance transactions available."
               }
             />
           </CardContent>

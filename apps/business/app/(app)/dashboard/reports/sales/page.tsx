@@ -113,7 +113,7 @@ export default function ReportsSalesPage() {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
-          {loading && <p role="status" className="text-sm text-muted-foreground">Loading synchronized sales…</p>}
+          {loading && <p role="status" className="text-sm text-muted-foreground">Loading sales…</p>}
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div>
             <h2 className="text-2xl font-semibold">Sales Reports</h2>
