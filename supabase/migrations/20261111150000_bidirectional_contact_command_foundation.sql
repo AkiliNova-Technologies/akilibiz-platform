@@ -210,6 +210,31 @@ begin
   return outcome;
 end $$;
 
+-- Owner-visible status is separate from the immutable desktop mirror. A
+-- pending command is NOT a completed contact edit.
+create function public.desktop_contact_update_status(
+  target_business_id uuid, target_command_id uuid
+) returns table(
+  command_id uuid,entity_type text,operation text,source_public_id uuid,
+  state text,requested_at timestamptz,applied_at timestamptz,
+  conflict_reason text
+) language plpgsql security definer set search_path='' as $
+begin
+  if not private.is_active_business_owner(target_business_id) then
+    raise exception 'Business owner access required' using errcode='42501';
+  end if;
+  return query
+    select c.id,c.entity_type,c.operation,c.source_public_id,c.state,
+           c.requested_at,c.applied_at,c.conflict_reason
+    from private.desktop_inbound_commands c
+    where c.business_id=target_business_id and c.id=target_command_id
+      and c.requested_by=(select auth.uid());
+end $;
+revoke all on function public.desktop_contact_update_status(uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.desktop_contact_update_status(uuid,uuid)
+  to authenticated;
+
 revoke all on function public.request_desktop_contact_update(uuid,text,uuid,timestamptz,jsonb)
  from public,anon,authenticated,service_role;
 revoke all on function public.list_pending_desktop_contact_updates(uuid,text,uuid,integer)
