@@ -389,8 +389,9 @@ begin
   insert into private.web_pos_sale_lines (
     business_id,sale_id,product_id,line_number,quantity_milli,
     unit_price_ugx,subtotal_ugx,tax_ugx,total_ugx
-  ) select target_business_id,new_sale_id,product_id,line_number,
-    quantity_milli,unit_price_ugx,subtotal_ugx,tax_ugx,total_ugx
+  ) select target_business_id,new_sale_id,lines.product_id,lines.line_number,
+    lines.quantity_milli,lines.unit_price_ugx,lines.subtotal_ugx,
+    lines.tax_ugx,lines.total_ugx
     from jsonb_to_recordset(work_lines) as lines(
       line_number integer, product_id uuid, quantity_milli bigint,
       unit_price_ugx bigint, subtotal_ugx bigint, tax_ugx bigint, total_ugx bigint
@@ -398,7 +399,7 @@ begin
 
   insert into private.web_pos_stock_holds (
     business_id,sale_id,product_id,quantity_milli
-  ) select target_business_id,new_sale_id,product_id,quantity_milli
+  ) select target_business_id,new_sale_id,lines.product_id,lines.quantity_milli
     from jsonb_to_recordset(work_lines) as lines(
       line_number integer, product_id uuid, quantity_milli bigint,
       unit_price_ugx bigint, subtotal_ugx bigint, tax_ugx bigint, total_ugx bigint
