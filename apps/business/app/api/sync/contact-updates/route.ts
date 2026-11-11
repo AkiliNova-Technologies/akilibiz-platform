@@ -67,3 +67,40 @@ export async function POST(request: NextRequest) {
     message: "Change queued for the paired desktop. It is not applied until the desktop confirms it.",
   }, { status: 202, headers });
 }
+
+/** Explicitly report queued, applied, or conflicted state.
+ * An accepted 202 enqueue response does not mean SQLite was updated. */
+export async function GET(request: NextRequest) {
+  const headers = { "Cache-Control": "private, no-store" };
+  if (process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS !== "1") {
+    return NextResponse.json({ error: "Two-way contact editing is not enabled." },
+      { status: 503, headers });
+  }
+  const commandId = request.nextUrl.searchParams.get("id");
+  if (!commandId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(commandId)) {
+    return NextResponse.json({ error: "Invalid contact command ID." }, { status: 400, headers });
+  }
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json(
+    { error: "Sign in required." }, { status: 401, headers });
+  const business = await requireActiveBusiness();
+  if (business.role !== "owner") return NextResponse.json(
+    { error: "Owner access required." }, { status: 403, headers });
+  const { data, error } = await supabase.rpc("desktop_contact_update_status", {
+    target_business_id: business.id,
+    target_command_id: commandId,
+  });
+  if (error) return NextResponse.json(
+    { error: "Contact update status could not be loaded." }, { status: 502, headers });
+  const command = Array.isArray(data) ? data[0] : null;
+  if (!command) return NextResponse.json(
+    { error: "Contact update not found." }, { status: 404, headers });
+  return NextResponse.json({
+    commandId: command.command_id,
+    state: command.state,
+    requestedAt: command.requested_at,
+    appliedAt: command.applied_at,
+    conflictReason: command.conflict_reason,
+  }, { headers });
+}
