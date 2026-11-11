@@ -211,3 +211,35 @@ begin
  if (select count(*) from private.web_pos_sales where status='reconciled')<>1
  then raise exception 'Hosted cash sale not marked reconciled'; end if;
 end $$;
+
+-- Revoking a device must immediately block reads and ACK/reconciliation
+-- regardless of any existing local sale or previously successful ACK.
+do $$
+declare evt uuid;
+begin
+ select id into evt from private.web_pos_reconciliation_outbox limit 1;
+ update private.desktop_devices set revoked_at=now()
+ where device_public_id='33333333-3333-4333-8333-333333333333';
+ begin
+  perform * from public.list_pending_web_pos_sales(
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+   '33333333-3333-4333-8333-333333333333',25);
+  raise exception 'Revoked device read was accepted';
+ exception when insufficient_privilege then null;
+ end;
+ begin
+  perform public.ack_applied_web_pos_sale(
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+   '33333333-3333-4333-8333-333333333333',
+   evt,91,'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa');
+  raise exception 'Revoked device ACK was accepted';
+ exception when insufficient_privilege then null;
+ end;
+ begin
+  perform public.reconcile_web_pos_stock_holds(
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+   '33333333-3333-4333-8333-333333333333',evt);
+  raise exception 'Revoked device reconciliation was accepted';
+ exception when insufficient_privilege then null;
+ end;
+end $$;
