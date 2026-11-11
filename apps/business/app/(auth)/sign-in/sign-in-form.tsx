@@ -3,6 +3,7 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { AkiliButton } from "@/components/akilibiz/akili-button";
 import { AkiliFormField } from "@/components/akilibiz/akili-form-field";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
@@ -55,10 +56,14 @@ export function SignInForm() {
           </button>
         </div>
       </AkiliFormField>
+      <div className="flex justify-end">
+        <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">Forgot password?</Link>
+      </div>
       {error ? <StatusBanner title="We could not sign you in" tone="error">{error}</StatusBanner> : null}
       <AkiliButton className="mt-2 h-11 w-full rounded-full" disabled={isSubmitting} loading={isSubmitting} type="submit">
         {isSubmitting ? "Signing in…" : "Sign in"}
       </AkiliButton>
+      <p className="text-center text-sm text-muted-foreground">New to AkiliBiz? <Link href="/sign-up" className="font-medium text-primary hover:underline">Create account</Link></p>
     </form>
   );
 }
