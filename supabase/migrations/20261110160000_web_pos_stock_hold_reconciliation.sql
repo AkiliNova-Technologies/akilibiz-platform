@@ -27,13 +27,13 @@ begin
     raise exception 'Current business owner required' using errcode='42501';
   end if;
   if target_event_id is null or source_device_public_id is null
-    or source_business_public_id is null or btrim(source_business_public_id)='' then
+    or reconcile_web_pos_stock_holds.source_business_public_id is null or btrim(reconcile_web_pos_stock_holds.source_business_public_id)='' then
     raise exception 'Invalid reconciliation request' using errcode='22023';
   end if;
   if not exists (
     select 1 from private.desktop_devices d
     where d.business_id=target_business_id
-      and d.local_business_public_id=source_business_public_id
+      and d.local_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
       and d.device_public_id=source_device_public_id
       and d.paired_by=actor and d.revoked_at is null
   ) then
@@ -46,12 +46,12 @@ begin
   ));
   perform pg_advisory_xact_lock(hashtextextended(
     'akilibiz-stock:' || target_business_id::text ||
-    ':' || source_business_public_id,0
+    ':' || reconcile_web_pos_stock_holds.source_business_public_id,0
   ));
 
   select * into ack from private.web_pos_desktop_apply_receipts a
     where a.event_id=target_event_id and a.business_id=target_business_id
-      and a.source_business_public_id=source_business_public_id
+      and a.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
       and a.device_public_id=source_device_public_id;
   if not found then
     raise exception 'Committed desktop sale acknowledgement required'
@@ -79,7 +79,7 @@ begin
     where h.business_id=target_business_id
       and h.sale_id=outbound.sale_id
       and h.state<>'released'
-      and p.local_business_public_id=source_business_public_id
+      and p.local_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
     order by p.local_product_id for update of h
   loop
     select min(r.source_movement_id),count(*)
@@ -88,12 +88,12 @@ begin
     join private.desktop_inventory_checkpoints c
       on c.id=r.checkpoint_id
        and c.business_id=target_business_id
-       and c.source_business_public_id=source_business_public_id
+       and c.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
        and c.source_device_public_id=source_device_public_id
     join private.desktop_inventory_movement_cursors cursor
       on cursor.checkpoint_id=c.id
     where r.business_id=target_business_id
-      and r.source_business_public_id=source_business_public_id
+      and r.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
       and r.source_device_public_id=source_device_public_id
       and r.local_product_id=hold_record.local_product_id
       and r.source_movement_id>c.movement_watermark
@@ -126,7 +126,7 @@ begin
       on p.business_id=h.business_id and p.id=h.product_id
     where h.business_id=target_business_id and h.sale_id=outbound.sale_id
       and h.state<>'released'
-      and p.local_business_public_id=source_business_public_id
+      and p.local_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
   ) then
     return false;
   end if;
@@ -138,17 +138,17 @@ begin
       on p.business_id=h.business_id and p.id=h.product_id
     where h.business_id=target_business_id
       and h.sale_id=outbound.sale_id and h.state<>'released'
-      and p.local_business_public_id=source_business_public_id
+      and p.local_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
     order by p.local_product_id for update of h
   loop
     select r.source_movement_id into accepted_movement_id
     from private.desktop_inventory_movement_receipts r
     join private.desktop_inventory_checkpoints c on c.id=r.checkpoint_id
     where r.business_id=target_business_id
-      and r.source_business_public_id=source_business_public_id
+      and r.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
       and r.source_device_public_id=source_device_public_id
       and c.business_id=target_business_id
-      and c.source_business_public_id=source_business_public_id
+      and c.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
       and c.source_device_public_id=source_device_public_id
       and r.local_product_id=hold_record.local_product_id
       and r.delta_milli= -hold_record.quantity_milli
