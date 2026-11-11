@@ -31,8 +31,8 @@ export function BackupRestorePage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled title="Cloud backup creation is not connected">Create backup</Button>
-                <Button type="button" variant="outline" disabled title="Backup scheduling is not connected">Schedule backup</Button>
+                <Button type="button" disabled title="Backup creation unavailable">Create backup</Button>
+                <Button type="button" variant="outline" disabled title="Backup scheduling unavailable">Schedule backup</Button>
               </div>
             </CardContent>
           </Card>
@@ -60,7 +60,7 @@ export function BackupRestorePage() {
                     size="sm"
                     variant="outline"
                     className="shrink-0"
-                    disabled title="Backup verification is not connected"
+                    disabled title="Backup verification unavailable"
                     onClick={() => filePickerRef.current?.click()}
                   >
                     <FolderOpen className="size-4" />
@@ -71,7 +71,7 @@ export function BackupRestorePage() {
                   Verify file
                 </Button>
               </div>
-              <Button type="button" disabled title="The hosted backup restore service is not connected">
+              <Button type="button" disabled title="Backup restoration unavailable">
                 Restore backup
               </Button>
             </CardContent>

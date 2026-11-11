@@ -17,7 +17,7 @@ export default async function DesktopSyncPage() {
         <p className="text-muted-foreground">Only the business owner can link a desktop device.</p>
       )}
       <p className="text-sm text-muted-foreground">
-        Desktop businesses can now register directly from Backup & Restore and upload a manual category and product snapshot. Stock and transactions are not synchronized yet.
+        Manage device connections and data transfers from Backup & Restore.
       </p>
     </main>
   );

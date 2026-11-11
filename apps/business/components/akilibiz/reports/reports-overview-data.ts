@@ -40,12 +40,12 @@ export function useReportsOverviewData() {
       const updatedAt = [...salesRows, ...financeRows]
         .map(row => row.capturedAt).filter(Boolean).sort().at(-1) ?? new Date().toISOString();
       const rows: ReportsOverviewRow[] = [
-        { id: 1, report_name: "Sales", category: "Sales",
+        { id: 1, report_name: "Synchronized sales", category: "Sales",
           period: "All available records", total_value: salesValue,
-          entries: completed.length, status: "Available", updated_at: updatedAt },
+          entries: completed.length, status: "Read-only", updated_at: updatedAt },
         { id: 2, report_name: "Recorded financial activity", category: "Finance",
           period: "All available records", total_value: financeValue,
-          entries: posted.length, status: "Available", updated_at: updatedAt },
+          entries: posted.length, status: "Read-only", updated_at: updatedAt },
       ];
       setOverviewRows(rows);
       setOverviewSummary({
