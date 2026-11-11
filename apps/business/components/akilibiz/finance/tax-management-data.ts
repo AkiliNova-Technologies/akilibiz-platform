@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  loadFinancialMirror, loadAllFinancialMirrorRows,
+  loadAllFinancialMirrorRows,
   type FinancialMirrorRow,
 } from "@/components/akilibiz/finance/financial-mirror-client";
-import { parseTaxSettings } from "@/components/akilibiz/settings/hosted-settings-contract";
 import type { TaxSettingsFormData } from "@/components/akilibiz/settings/tax-settings-data";
 
 /** Read-only evidence categories; not live URA balances or a tax filing API. */
@@ -135,19 +134,9 @@ export async function loadTaxSection(section: TaxSection): Promise<TaxView> {
     return { rows: [], settings: null, lastSync: null, sourceCounts: {} };
   }
   if (section === "overview") {
-    const [settings, configuration] = await Promise.all([
-      loadFinancialMirror("tax_settings", {page:1,pageSize:2}),
-      loadFinancialMirror("tax_configurations", {page:1,pageSize:2}),
-    ]);
-    if (settings.total !== 1 || configuration.total !== 1 ||
-        settings.rows.length !== 1 || configuration.rows.length !== 1) {
-      throw new Error("The business VAT settings snapshot is incomplete or has not synchronized.");
-    }
-    const parsed = parseTaxSettings(settings.rows[0].record,configuration.rows[0].record);
-    if (!parsed) throw new Error("The synchronized VAT registration settings are invalid.");
-    const synced = [settings.lastSuccessfulSync,configuration.lastSuccessfulSync]
-      .filter((x):x is string=>Boolean(x)).sort();
-    return {rows:[],settings:parsed,lastSync:synced[0]??null,sourceCounts:{}};
+    // The reference catalogue is independent of business sync. Snapshot state
+    // and timestamps belong to Settings > Backup & Restore > Desktop sync.
+    return {rows:[],settings:null,lastSync:null,sourceCounts:{}};
   }
   const selected=sources[section]??[];
   const groups=await Promise.all(selected.map(async entity => ({
