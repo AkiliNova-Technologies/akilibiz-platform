@@ -62,6 +62,17 @@ export function mapCashFlowTransaction(row: FinancialMirrorRow): CashFlowRow | n
   } catch { return null; }
 }
 
+/** Never substitute a device name or cloud account for the local journal actor. */
+export function journalActorName(entry: Record<string, unknown>): string {
+  const snapshot = entry.created_by_name_snapshot;
+  if (typeof snapshot === "string" && snapshot.trim()) return snapshot.trim();
+  const actorId = entry.created_by_user_id;
+  if (typeof actorId === "number" && Number.isSafeInteger(actorId) && actorId > 0) {
+    return `Staff user #${actorId} · name awaiting sync`;
+  }
+  return "Staff member not recorded";
+}
+
 export function mapJournalLines(
   lines: FinancialMirrorRow[],
   entries: FinancialMirrorRow[],
@@ -89,7 +100,7 @@ export function mapJournalLines(
         category: text(account, "account_type", "category_id") || "Unclassified",
         amount: credit > 0 ? credit : debit,
         account: [text(account, "code"), text(account, "name")].filter(Boolean).join(" · ") || String(accountId),
-        recorded_by: text(entry, "created_by_name_snapshot") || "Desktop",
+        recorded_by: journalActorName(entry),
         date, description: text(row.record, "memo") || text(entry, "description") || null,
       }];
     } catch { return []; }
