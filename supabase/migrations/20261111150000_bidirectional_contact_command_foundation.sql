@@ -223,7 +223,7 @@ create function public.desktop_contact_update_status(
   command_id uuid,entity_type text,operation text,source_public_id uuid,
   state text,requested_at timestamptz,applied_at timestamptz,
   conflict_reason text
-) language plpgsql security definer set search_path='' as $
+) language plpgsql security definer set search_path='' as $contact_status$
 begin
   if not private.is_active_business_owner(target_business_id) then
     raise exception 'Business owner access required' using errcode='42501';
@@ -234,7 +234,7 @@ begin
     from private.desktop_inbound_commands c
     where c.business_id=target_business_id and c.id=target_command_id
       and c.requested_by=(select auth.uid());
-end $;
+end $contact_status$;
 revoke all on function public.desktop_contact_update_status(uuid,uuid)
   from public,anon,authenticated,service_role;
 grant execute on function public.desktop_contact_update_status(uuid,uuid)
