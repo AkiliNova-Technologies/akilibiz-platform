@@ -6,7 +6,7 @@
 create function public.reconcile_web_pos_stock_holds(
   target_business_id uuid,
   source_business_public_id text,
-  source_device_public_id uuid,
+  reconcile_web_pos_stock_holds.source_device_public_id uuid,
   target_event_id uuid
 )
 returns boolean
@@ -26,7 +26,7 @@ begin
   if actor is null or not private.is_active_business_owner(target_business_id) then
     raise exception 'Current business owner required' using errcode='42501';
   end if;
-  if target_event_id is null or source_device_public_id is null
+  if target_event_id is null or reconcile_web_pos_stock_holds.source_device_public_id is null
     or reconcile_web_pos_stock_holds.source_business_public_id is null or btrim(reconcile_web_pos_stock_holds.source_business_public_id)='' then
     raise exception 'Invalid reconciliation request' using errcode='22023';
   end if;
@@ -34,7 +34,7 @@ begin
     select 1 from private.desktop_devices d
     where d.business_id=target_business_id
       and d.local_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-      and d.device_public_id=source_device_public_id
+      and d.device_public_id=reconcile_web_pos_stock_holds.source_device_public_id
       and d.paired_by=actor and d.revoked_at is null
   ) then
     raise exception 'Unrecognized or revoked desktop source' using errcode='42501';
@@ -52,7 +52,7 @@ begin
   select * into ack from private.web_pos_desktop_apply_receipts a
     where a.event_id=target_event_id and a.business_id=target_business_id
       and a.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-      and a.device_public_id=source_device_public_id;
+      and a.device_public_id=reconcile_web_pos_stock_holds.source_device_public_id;
   if not found then
     raise exception 'Committed desktop sale acknowledgement required'
       using errcode='23503';
@@ -89,12 +89,12 @@ begin
       on c.id=r.checkpoint_id
        and c.business_id=target_business_id
        and c.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-       and c.source_device_public_id=source_device_public_id
+       and c.source_device_public_id=reconcile_web_pos_stock_holds.source_device_public_id
     join private.desktop_inventory_movement_cursors cursor
       on cursor.checkpoint_id=c.id
     where r.business_id=target_business_id
       and r.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-      and r.source_device_public_id=source_device_public_id
+      and r.source_device_public_id=reconcile_web_pos_stock_holds.source_device_public_id
       and r.local_product_id=hold_record.local_product_id
       and r.source_movement_id>c.movement_watermark
       and r.source_movement_id<=cursor.latest_movement_id
@@ -146,10 +146,10 @@ begin
     join private.desktop_inventory_checkpoints c on c.id=r.checkpoint_id
     where r.business_id=target_business_id
       and r.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-      and r.source_device_public_id=source_device_public_id
+      and r.source_device_public_id=reconcile_web_pos_stock_holds.source_device_public_id
       and c.business_id=target_business_id
       and c.source_business_public_id=reconcile_web_pos_stock_holds.source_business_public_id
-      and c.source_device_public_id=source_device_public_id
+      and c.source_device_public_id=reconcile_web_pos_stock_holds.source_device_public_id
       and r.local_product_id=hold_record.local_product_id
       and r.delta_milli= -hold_record.quantity_milli
       and r.payload->>'reference_type'='sale'
