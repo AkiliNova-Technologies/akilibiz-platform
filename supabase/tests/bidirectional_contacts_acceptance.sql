@@ -30,6 +30,10 @@ begin
       '55555555-5555-4555-8555-555555555555',version_at,
       '{"name":"Updated Customer"}');
   if command is null then raise exception 'Command ID missing'; end if;
+  if (select state from public.desktop_contact_update_status(
+       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',command))<>'pending' then
+    raise exception 'Owner command status not pending';
+  end if;
   if (select name from public.desktop_customers where
        id='55555555-5555-4555-8555-555555555555')<>'Original Customer' then
     raise exception 'Enqueue illegally changed source mirror';
@@ -89,6 +93,10 @@ begin
     '33333333-3333-4333-8333-333333333333',
     command,receipt,'applied')<>'applied' then
     raise exception 'ACK replay failed';
+  end if;
+  if (select state from public.desktop_contact_update_status(
+       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',command))<>'applied' then
+    raise exception 'Owner command status not applied';
   end if;
   if (select count(*) from private.desktop_inbound_receipts)<>1 or
      (select count(*) from public.list_pending_desktop_contact_updates(
