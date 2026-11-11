@@ -141,3 +141,73 @@ begin
    raise exception 'Pending hold released prematurely';
  end if;
 end $$;
+
+-- Positive hold reconciliation: an unrelated movement never releases a hold;
+-- the exact local sale 91 stock_out must be accepted in the source cursor.
+do $$
+declare
+  sale_event uuid;
+  checkpoint uuid := 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  ready boolean;
+  available bigint;
+  reflected bigint;
+begin
+ select id into sale_event from private.web_pos_reconciliation_outbox limit 1;
+ insert into private.desktop_inventory_checkpoints(
+  id,business_id,source_business_public_id,source_device_public_id,movement_watermark)
+ values(checkpoint,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+ '33333333-3333-4333-8333-333333333333',0);
+ insert into private.desktop_inventory_movement_cursors(checkpoint_id,latest_movement_id)
+ values(checkpoint,1);
+ insert into private.desktop_inventory_movement_receipts(
+  checkpoint_id,business_id,source_business_public_id,source_device_public_id,
+  source_movement_id,local_product_id,delta_milli,payload)
+ values(checkpoint,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+ '33333333-3333-4333-8333-333333333333',
+ 1,10,-1000,
+ '{"reference_type":"sale","reference_id":"92","movement_type":"stock_out","reason":"Sale completed"}');
+ select public.reconcile_web_pos_stock_holds(
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+  '33333333-3333-4333-8333-333333333333',sale_event) into ready;
+ if ready then raise exception 'Unrelated source movement released stock'; end if;
+
+ insert into private.desktop_inventory_movement_receipts(
+  checkpoint_id,business_id,source_business_public_id,source_device_public_id,
+  source_movement_id,local_product_id,delta_milli,payload)
+ values(checkpoint,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+ '33333333-3333-4333-8333-333333333333',
+ 2,10,-1000,
+ '{"reference_type":"sale","reference_id":"91","movement_type":"stock_out","reason":"Sale completed"}');
+ update private.desktop_inventory_movement_cursors set latest_movement_id=2
+ where checkpoint_id=checkpoint;
+ -- Simulate the qualified Phase 1G effective stock projection observing the
+ -- accepted original desktop sale movement before releasing the web hold.
+ update public.test_inventory_positions set on_hand_milli=2000
+ where business_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ select i.on_hand_milli-i.reserved_milli-i.damaged_milli
+ into available
+ from public.list_web_pos_sellable_inventory(
+ 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') i;
+ if available<>1000 then
+   raise exception 'Pending web hold was not excluded before reconciliation: %',available;
+ end if;
+ select public.reconcile_web_pos_stock_holds(
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+  '33333333-3333-4333-8333-333333333333',sale_event) into ready;
+ if not ready then raise exception 'Valid desktop replay movement was not reconciled'; end if;
+ select reflected_movement_id into reflected
+ from private.web_pos_stock_holds where state='released';
+ if reflected<>2 then raise exception 'Unexpected source movement receipt: %',reflected; end if;
+ select i.on_hand_milli-i.reserved_milli-i.damaged_milli into available
+ from public.list_web_pos_sellable_inventory(
+ 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') i;
+ if available<>2000 then
+   raise exception 'Released hold did not restore sellable stock projection: %',available;
+ end if;
+ select public.reconcile_web_pos_stock_holds(
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','source-a',
+  '33333333-3333-4333-8333-333333333333',sale_event) into ready;
+ if not ready then raise exception 'Reconciliation retry is not idempotent'; end if;
+ if (select count(*) from private.web_pos_sales where status='reconciled')<>1
+ then raise exception 'Hosted cash sale not marked reconciled'; end if;
+end $$;
