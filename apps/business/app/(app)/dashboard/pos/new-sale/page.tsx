@@ -520,7 +520,7 @@ export default function POSPage() {
                     </SelectContent>
                   </Select>
 
-                  <div role="group" aria-label="Product display" className="flex w-fit items-center gap-1 rounded-md border p-1">
+                  <div role="group" aria-label="Product display" className="flex w-fit max-w-full items-center gap-1 rounded-full border p-1">
                     {([
                       ["compact", PanelsTopLeft, "Compact"],
                       ["grid", LayoutGrid, "Grid"],
