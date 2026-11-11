@@ -24,7 +24,7 @@ create table private.desktop_inbound_commands (
   local_receipt_id uuid,
   conflict_reason text,
   check (char_length(source_business_public_id) between 1 and 200),
-  check ((state='applied')=(local_receipt_id is not null)),
+  check ((state='pending')=(local_receipt_id is null)),
   check (state<>'conflict' or conflict_reason is not null)
 );
 create unique index desktop_inbound_one_unresolved_contact
@@ -203,7 +203,7 @@ begin
   ) values(target_command_id,target_business_id,source_device_public_id,receipt_id,outcome);
   update private.desktop_inbound_commands c
     set state=outcome,applied_at=case when outcome='applied' then now() else null end,
-      local_receipt_id=case when outcome='applied' then receipt_id else null end,
+      local_receipt_id=receipt_id,
       conflict_reason=case when outcome='conflict' then 'Local record version changed'
         else null end
     where c.id=target_command_id;
