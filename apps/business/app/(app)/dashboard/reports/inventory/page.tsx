@@ -221,10 +221,6 @@ export default function ReportsInventoryPage() {
             </p>
           </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-          <p className="text-xs text-muted-foreground">
-            Stock overview uses the latest synchronized desktop inventory positions.
-            Movement history and cost valuation remain unavailable until independently verified.
-          </p>
           <Tabs value={tab} onValueChange={setTab}>
             <div className="min-w-0 overflow-x-auto pb-1" aria-label="Inventory report sections">
               <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full bg-card p-1.5">
@@ -266,7 +262,7 @@ export default function ReportsInventoryPage() {
                     enableGlobalSearch
                     enableSorting={false}
                     loading={loading}
-                    emptyMessage="No verified stock positions have synchronized for this business."
+                    emptyMessage="No stock positions available."
                   />
                 </CardContent>
               </Card>
@@ -387,7 +383,7 @@ export default function ReportsInventoryPage() {
           <DialogHeader>
             <DialogTitle>Product position</DialogTitle>
             <DialogDescription>
-              Current synchronized product stock. Cost valuation is not verified.
+              Current product stock.
             </DialogDescription>
           </DialogHeader>
           {productDetail ? (

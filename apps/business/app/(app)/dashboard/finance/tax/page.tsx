@@ -67,7 +67,6 @@ function TaxSectionContent({section,viewRows}:{section:TaxSection;viewRows:TaxEv
       </p>
     </div>
     <EvidenceRegister rows={viewRows} empty="No supplier VAT documents or review decisions have been received for this business."/>
-    <p className="text-xs text-muted-foreground">Approve, defer or reverse input VAT using the desktop review workflow.</p>
   </>;
   if(section==="imports")return <>
     <div>
@@ -77,7 +76,6 @@ function TaxSectionContent({section,viewRows}:{section:TaxSection;viewRows:TaxEv
     <div className="space-y-2 border-t pt-4">
       <h3 className="text-sm font-semibold">Recorded customs documents</h3>
       <EvidenceRegister rows={viewRows} empty="No customs VAT documents have been received for this business."/>
-      <p className="text-xs text-muted-foreground">New customs evidence can currently be recorded only on the desktop.</p>
     </div>
   </>;
   if(section==="credits") {
@@ -99,7 +97,6 @@ function TaxSectionContent({section,viewRows}:{section:TaxSection;viewRows:TaxEv
         <h3 className="text-sm font-semibold">Recorded supporting documents and corrections</h3>
         <EvidenceRegister rows={viewRows} empty="No URA credit evidence has been recorded for this business."/>
       </div>
-      <p className="text-xs text-muted-foreground">Document corrections and new entries are available in the desktop application.</p>
     </>;
   }
   if(section==="reconciliation")return <>
@@ -108,17 +105,15 @@ function TaxSectionContent({section,viewRows}:{section:TaxSection;viewRows:TaxEv
       <p className="mt-1 text-sm text-muted-foreground">Review the available purchase VAT evidence, input VAT approvals, reversals and documented URA credit history.</p>
     </div>
     <EvidenceRegister rows={viewRows} empty="No VAT supporting records have been received for reconciliation."/>
-    <p className="rounded-lg border p-3 text-xs text-muted-foreground">These are supporting records, not a calculated VAT payable or an approved tax return. Use the desktop reconciliation report for verified month-specific calculations.</p>
+    <p className="rounded-lg border p-3 text-xs text-muted-foreground">These are supporting records, not a calculated VAT payable or an approved tax return. </p>
   </>;
   if(section==="preparation")return <>
     <h2 className="text-lg font-semibold">VAT return working paper</h2>
     <p className="text-sm text-muted-foreground">Prepare an internal monthly summary for comparison with URA records. This is not a URA return template, filing, tax assessment or verified credit claim.</p>
-    <p className="rounded-lg border p-4 text-sm text-muted-foreground">Month-specific working papers and CSV exports are currently available on desktop only. The web does not display unverified tax totals.</p>
   </>;
   return <>
     <h2 className="text-lg font-semibold">EFRIS integration readiness</h2>
-    <p className="text-sm text-muted-foreground">Review integration requirements using the desktop readiness checks. AkiliBiz Web has not been connected to a live URA EFRIS service.</p>
-    <p className="rounded-lg border p-4 text-sm text-muted-foreground">No EFRIS credentials, fiscal receipt submissions, invoice validation or URA connection status can currently be verified on the web.</p>
+    <p className="text-sm text-muted-foreground">Review integration requirements and readiness.</p>
   </>;
 }
 

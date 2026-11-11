@@ -417,10 +417,6 @@ export default function SalesHistoryPage() {
         {error && (
           <p role="alert" className="text-sm text-destructive">{error}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Synchronized desktop sales are available for viewing. Receipt printing,
-          cancellation and web sale edits are not yet enabled.
-        </p>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <MetricCard
             title={t("sales.totalSales")}

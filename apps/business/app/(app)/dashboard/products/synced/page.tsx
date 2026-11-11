@@ -40,7 +40,7 @@ export default async function SyncedDesktopCataloguePage() {
       <main className="space-y-4">
         <h1 className="text-2xl font-semibold">Desktop catalogue</h1>
         <p role="alert" className="text-sm text-destructive">
-          Could not load the cloud catalogue. Check your connection and business access.
+          Could not load products. Please try again.
         </p>
         <Link href="/dashboard/products" className="text-sm underline">Back to products</Link>
       </main>
@@ -65,9 +65,7 @@ export default async function SyncedDesktopCataloguePage() {
       </div>
       {products.length === 0 ? (
         <div className="rounded-xl border bg-card px-5 py-8 text-sm text-muted-foreground">
-          No desktop products have been uploaded yet. In AkiliBiz Desktop, open
-          Settings → Backup & Restore → Cloud connection, sign in and choose
-          Upload categories and products.
+          No products available.
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-card">
@@ -95,10 +93,6 @@ export default async function SyncedDesktopCataloguePage() {
           </table>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">
-        Desktop catalogue uploads currently require an explicit action on the desktop.
-        Nothing here represents an inventory reconciliation or live stock balance.
-      </p>
     </main>
   );
 }

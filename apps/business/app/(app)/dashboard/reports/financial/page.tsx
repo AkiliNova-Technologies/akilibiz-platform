@@ -73,7 +73,7 @@ export default function ReportsFinancialPage() {
           ((!from || entry.date.slice(0, 10) >= from) &&
            (!to || entry.date.slice(0, 10) <= to)))
         .map((entry) => ({ ...entry,
-          date: entry.date === "Selected period" ? "All synchronized entries" : entry.date,
+          date: entry.date === "Selected period" ? "All entries" : entry.date,
         })),
     [entries, from, tab, to],
   );
@@ -125,7 +125,6 @@ export default function ReportsFinancialPage() {
             </p>
           </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-          <p className="text-xs text-muted-foreground">Posted journals and trial balances are read-only synchronized desktop records. Other financial statements require separate accounting qualification.</p>
           <Tabs
             value={tab}
             onValueChange={(value) => setTab(value as FinancialReportTab)}>
@@ -181,7 +180,7 @@ export default function ReportsFinancialPage() {
                           asOfTabs.includes(key) ||
                           !draftFrom || !draftTo
                         }
-                        title={asOfTabs.includes(key) ? "As-of balances are not yet supported. The trial balance covers all synchronized journals." : undefined}>
+                        title={asOfTabs.includes(key) ? "As-of balances are not yet supported. The trial balance covers all available journals." : undefined}>
                         {loading ? (
                           <LoaderCircle className="mr-2 size-4 animate-spin" />
                         ) : null}
@@ -235,11 +234,8 @@ export default function ReportsFinancialPage() {
                       enableGlobalSearch
                       enableSorting={false}
                       loading={loading}
-                      emptyMessage={["journals","trial","detailed-trial"].includes(key) ? "No synchronized posted journal records are available." : "This financial statement is not yet available on the web."}
+                      emptyMessage={["journals","trial","detailed-trial"].includes(key) ? "No posted journal records available." : "No records available."}
                     />
-                    <p className="px-4 pb-4 text-sm text-muted-foreground">
-                      Only synchronized posted journals and their verified trial balance are available. Other financial statements are not yet supported.
-                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
