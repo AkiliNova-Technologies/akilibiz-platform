@@ -6,7 +6,7 @@
 create function public.reconcile_web_pos_stock_holds(
   target_business_id uuid,
   source_business_public_id text,
-  reconcile_web_pos_stock_holds.source_device_public_id uuid,
+  source_device_public_id uuid,
   target_event_id uuid
 )
 returns boolean
