@@ -27,7 +27,14 @@ function client(options: { user?: boolean; productError?: boolean; inventoryErro
   };
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
-  const from = vi.fn().mockReturnValue(query);
+  const categoryQuery = {
+    select: vi.fn(),
+    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+  };
+  categoryQuery.select.mockReturnValue(categoryQuery);
+  const from = vi.fn().mockImplementation((table: string) =>
+    table === "desktop_categories" ? categoryQuery : query
+  );
   const rpc = vi.fn().mockResolvedValue({
     data: [{ product_id: productId, on_hand_milli: 4000, reserved_milli: 0,
       damaged_milli: 0, is_current: true }],
@@ -99,7 +106,7 @@ describe("POST /api/pos/quote", () => {
     const fixture = client({ inventoryError: true });
     expect((await POST(request({ items: [{ product_id: productId, quantity_milli: 1000 }] }))).status)
       .toBe(503);
-    expect(fixture.from).toHaveBeenCalledOnce();
+    expect(fixture.from).toHaveBeenCalledTimes(2);
   });
 
   it("refuses overselling instead of posting a sale", async () => {
