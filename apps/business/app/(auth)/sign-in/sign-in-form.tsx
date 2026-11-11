@@ -2,7 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { Eye, EyeOff } from "lucide-react";
 import { AkiliButton } from "@/components/akilibiz/akili-button";
 import { AkiliFormField } from "@/components/akilibiz/akili-form-field";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
@@ -13,6 +13,7 @@ export function SignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,60 +21,42 @@ export function SignInForm() {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
-    const { error: signInError } = await createClient().auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInError) {
-      setError(signInError.message);
+    try {
+      const { error: signInError } = await createClient().auth.signInWithPassword({
+        email: email.trim(), password,
+      });
+      if (signInError) {
+        setError("Could not sign in. Check your email and password.");
+        return;
+      }
+      router.replace("/businesses");
+      router.refresh();
+    } catch {
+      setError("Could not sign in. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    // Business selection is part of sign-in, not the dashboard.
-    // Even a protected deep link must not bypass selection.
-    router.replace("/businesses");
-    router.refresh();
   }
 
   return (
     <form className="mt-8 space-y-5" onSubmit={signIn}>
       <AkiliFormField id="email" label="Email address">
-        <Input
-          autoComplete="email"
-          className="h-11"
-          id="email"
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          type="email"
-          value={email}
-        />
+        <Input autoComplete="email" className="h-11 rounded-full px-4" id="email"
+          onChange={(event) => setEmail(event.target.value)} required type="email" value={email}/>
       </AkiliFormField>
       <AkiliFormField id="password" label="Password">
-        <Input
-          autoComplete="current-password"
-          className="h-11"
-          id="password"
-          minLength={8}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          type="password"
-          value={password}
-        />
+        <div className="relative">
+          <Input autoComplete="current-password" className="h-11 rounded-full px-4 pr-12" id="password"
+            onChange={(event) => setPassword(event.target.value)} required type={showPassword ? "text" : "password"} value={password}/>
+          <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            {showPassword ? <EyeOff className="size-4"/> : <Eye className="size-4"/>}
+          </button>
+        </div>
       </AkiliFormField>
-      {error ? (
-        <StatusBanner title="We could not sign you in" tone="error">
-          {error}
-        </StatusBanner>
-      ) : null}
-      <AkiliButton
-        className="mt-2 w-full"
-        disabled={isSubmitting}
-        loading={isSubmitting}
-        type="submit"
-      >
+      {error ? <StatusBanner title="We could not sign you in" tone="error">{error}</StatusBanner> : null}
+      <AkiliButton className="mt-2 h-11 w-full rounded-full" disabled={isSubmitting} loading={isSubmitting} type="submit">
         {isSubmitting ? "Signing in…" : "Sign in"}
       </AkiliButton>
     </form>
