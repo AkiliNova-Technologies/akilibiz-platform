@@ -20,7 +20,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
           Protect business records with backups and connect your desktop to AkiliBiz Web.
         </p>
       </div>
-      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="flex min-w-0 flex-col gap-4">
           <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
             <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
