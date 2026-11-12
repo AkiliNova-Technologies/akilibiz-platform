@@ -17,7 +17,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
       <div className="space-y-1 pt-1">
         <h1 className="text-xl font-semibold sm:text-2xl">Backup, Restore &amp; Sync</h1>
         <p className="text-sm text-muted-foreground">
-          Protect business records with backups and connect your desktop to AkiliBiz Web.
+          Back up records and connect your desktop to AkiliBiz Web.
         </p>
       </div>
       <div className="grid min-w-0 grid-cols-1 items-start gap-4 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -27,12 +27,12 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Create backup</h2>
                 <p className="text-sm text-muted-foreground">
-                  Save a copy of your business records when backup storage is available.
+                  Save a copy of your business records.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled title="Backup creation unavailable">Create backup</Button>
-                <Button type="button" variant="outline" disabled title="Backup scheduling unavailable">Schedule backup</Button>
+                <Button type="button" disabled title="Backup creation unavailable" className="rounded-full">Create backup</Button>
+                <Button type="button" variant="outline" disabled title="Backup scheduling unavailable" className="rounded-full">Schedule backup</Button>
               </div>
             </CardContent>
           </Card>
@@ -40,7 +40,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
             <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Restore backup</h2>
-                <p className="text-sm text-muted-foreground">Check the integrity of a saved backup file.</p>
+                <p className="text-sm text-muted-foreground">Choose a backup file to verify.</p>
               </div>
               <input
                 ref={filePickerRef}
@@ -51,7 +51,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
                 onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
               />
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-full border px-3 py-1.5">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-full border px-4 py-1.5">
                   <span className="min-w-0 truncate text-sm text-muted-foreground" title={selectedFile?.name}>
                     {selectedFile?.name ?? "No backup file selected"}
                   </span>
@@ -59,7 +59,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="shrink-0"
+                    className="shrink-0 rounded-full"
                     disabled title="Backup verification unavailable"
                     onClick={() => filePickerRef.current?.click()}
                   >
@@ -103,10 +103,10 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
           <CardContent className="space-y-3 px-4 py-4 sm:px-5 sm:py-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold">Backup history</h2>
-              <p className="text-sm text-muted-foreground">Recent backup records for this business.</p>
+              <p className="text-sm text-muted-foreground">Recent backups for this business.</p>
             </div>
-            <div className="min-w-0 overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[34rem] text-left text-sm">
+            <div className="min-w-0 overflow-x-auto rounded-xl border">
+              <table className="w-full min-w-[31rem] text-left text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-medium">Date &amp; time</th>
@@ -133,7 +133,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
                     </tr>
                   ))}
                   {backup.backups.length === 0 && (
-                    <tr><td colSpan={5} className="px-4 py-7 text-center text-sm text-muted-foreground">
+                    <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                       No backup records available.
                     </td></tr>
                   )}
