@@ -67,11 +67,11 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
                     Browse
                   </Button>
                 </div>
-                <Button type="button" variant="outline" disabled title="Backup verification is not connected">
+                <Button type="button" variant="outline" className="rounded-full" disabled title="Backup verification is not connected">
                   Verify file
                 </Button>
               </div>
-              <Button type="button" disabled title="Backup restoration unavailable">
+              <Button type="button" className="rounded-full" disabled title="Backup restoration unavailable">
                 Restore backup
               </Button>
             </CardContent>
