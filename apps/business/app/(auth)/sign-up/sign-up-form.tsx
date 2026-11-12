@@ -30,7 +30,7 @@ export function SignUpForm() {
       const {data,error:authError} = await createClient().auth.signUp({
         email:email.trim(), password,
         options:{
-          data:{display_name:name.trim()},
+          data:{full_name:name.trim()},
           emailRedirectTo:`${window.location.origin}/auth/callback?next=/businesses`,
         },
       });

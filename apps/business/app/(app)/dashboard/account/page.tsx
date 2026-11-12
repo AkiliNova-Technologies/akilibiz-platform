@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 import { LinkedAccounts } from "@/components/akilibiz/auth/linked-accounts";
 import { AccountPasswordForm } from "@/components/akilibiz/auth/account-password-form";
+import { AccountNameForm } from "@/components/akilibiz/auth/account-name-form";
 
 export default async function AccountProfilePage() {
   const business = await requireActiveBusiness();
@@ -16,8 +16,11 @@ export default async function AccountProfilePage() {
   if (!user || error) redirect("/sign-in");
   const { data: identityData } = await supabase.auth.getUserIdentities();
   const googleConnected = identityData?.identities?.some((identity) => identity.provider === "google") ?? false;
-  const displayName = typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
-    ? user.user_metadata.full_name.trim() : user.email ?? "Account";
+  const fullName = typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
+    ? user.user_metadata.full_name.trim()
+    : typeof user.user_metadata?.display_name === "string" && user.user_metadata.display_name.trim()
+      ? user.user_metadata.display_name.trim() : "";
+  const displayName = fullName || user.email || "Account";
   const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   const joined = user.created_at
     ? new Intl.DateTimeFormat("en-UG", { day: "numeric", month: "short", year: "numeric" }).format(new Date(user.created_at))
@@ -55,14 +58,12 @@ export default async function AccountProfilePage() {
               </dl>
             </section>
             <Separator />
+            <AccountNameForm name={fullName} />
+            <Separator />
             <LinkedAccounts googleConnected={googleConnected} />
             <Separator />
             <AccountPasswordForm />
-            <Separator />
-            <div className="flex flex-wrap gap-2">
-              <Button disabled title="Hosted account editing is not yet connected">Edit profile</Button>
-              <Button variant="outline" disabled title="Password changes are not connected on this page">Change password</Button>
-            </div>
+
           </CardContent>
         </Card>
         <Card className="gap-0 py-0 sm:gap-0 sm:py-0">
@@ -73,9 +74,7 @@ export default async function AccountProfilePage() {
               <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">Role</dt><dd className="font-medium capitalize">{business.role.replaceAll("_", " ")}</dd></div>
               <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">Account status</dt><dd className="font-medium">Signed in</dd></div>
             </dl>
-            <p className="text-xs text-muted-foreground">
-              Your current business permissions are verified by the server. Some profile settings remain available only on desktop.
-            </p>
+
           </CardContent>
         </Card>
       </div>
