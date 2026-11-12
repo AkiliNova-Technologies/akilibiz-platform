@@ -35,7 +35,7 @@ export function PairingForm() {
             <p className="text-xs text-muted-foreground">Paste this code into the Desktop sync section of your desktop application.</p>
           </div>
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
-            <code className="min-w-0 flex-1 break-all rounded-lg bg-muted px-3 py-3 font-mono text-xs leading-relaxed select-all">
+            <code className="min-w-0 flex-1 break-all rounded-full bg-muted px-5 py-3 font-mono text-xs leading-relaxed select-all">
               {state.code}
             </code>
             <Button type="button" variant="outline" className="shrink-0 rounded-full" onClick={() => void copyCode()}>
