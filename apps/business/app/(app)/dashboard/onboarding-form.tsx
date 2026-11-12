@@ -7,6 +7,7 @@ import { OnboardingStepper } from "@/components/akilibiz/onboarding-stepper";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { onboardBusiness } from "./business-actions";
 import { initialBusinessFormState } from "@/lib/business-form-state";
 
@@ -57,16 +58,48 @@ export function OnboardingForm() {
             onChange={e => setEmail(e.target.value)} className={pill}/>
         </AkiliFormField>
       </div>
-      <div className={step === 4 ? "space-y-4" : "hidden"} aria-hidden={step !== 4}>
-        <p className="text-sm"><span className="text-muted-foreground">Business:</span> {name || "—"}</p>
-        {tradingName ? <p className="text-sm"><span className="text-muted-foreground">Trading name:</span> {tradingName}</p> : null}
+      <div className={step === 4 ? "space-y-5" : "hidden"} aria-hidden={step !== 4}>
+        <section aria-label="Business summary" className="space-y-3 rounded-xl bg-muted/40 px-4 py-4">
+          <h3 className="text-sm font-semibold">Business details</h3>
+          <dl className="space-y-3 text-sm">
+            <div className="space-y-1">
+              <dt className="text-xs text-muted-foreground">Business name</dt>
+              <dd className="break-words font-medium">{name || "—"}</dd>
+            </div>
+            {tradingName ? (
+              <div className="space-y-1">
+                <dt className="text-xs text-muted-foreground">Trading name</dt>
+                <dd className="break-words font-medium">{tradingName}</dd>
+              </div>
+            ) : null}
+            {phone.trim() ? (
+              <div className="space-y-1">
+                <dt className="text-xs text-muted-foreground">Phone number</dt>
+                <dd className="break-words font-medium">{phone}</dd>
+              </div>
+            ) : null}
+            {email.trim() ? (
+              <div className="space-y-1">
+                <dt className="text-xs text-muted-foreground">Business email</dt>
+                <dd className="break-all font-medium">{email}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
         <AkiliFormField id="new-currency" label="Currency">
-          <select id="new-currency" name="currencyCode" value={currency} onChange={e => setCurrency(e.target.value)}
-            className="h-11 w-full rounded-full border border-input bg-background px-4 text-sm">
-            {["UGX","KES","TZS","RWF","USD","GBP"].map(code => <option key={code} value={code}>{code}</option>)}
-          </select>
+          <Select value={currency} onValueChange={setCurrency} disabled={isPending}>
+            <SelectTrigger id="new-currency" className="h-11 w-full rounded-full px-4" aria-label="Currency">
+              <SelectValue placeholder="Choose currency" />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {["UGX", "KES", "TZS", "RWF", "USD", "GBP"].map(code => (
+                <SelectItem key={code} value={code}>{code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </AkiliFormField>
       </div>
+      <input type="hidden" name="currencyCode" value={currency} />
       <input type="hidden" name="locale" value="en-UG"/>
       <input type="hidden" name="timeZone" value="Africa/Kampala"/>
       {state.error ? <StatusBanner title="Could not create business" tone="error">{state.error}</StatusBanner> : null}
