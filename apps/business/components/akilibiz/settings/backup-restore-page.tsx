@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { Eye, FileCheck2, FolderOpen, RotateCcw } from "lucide-react";
 import { useBrowserBackupRestore } from "@/components/akilibiz/settings/backup-restore-data";
 import { Button } from "@/components/ui/button";
+import { PairingForm } from "@/app/(app)/dashboard/settings/desktop-sync/pairing-form";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function BackupRestorePage() {
+export function BackupRestorePage({ canPair, businessName }: { canPair: boolean; businessName: string }) {
   const backup = useBrowserBackupRestore();
   const filePickerRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
@@ -81,12 +81,21 @@ export function BackupRestorePage() {
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">Desktop sync</h2>
                 <p className="text-sm text-muted-foreground">
-                  Connect a desktop business and review the supported synchronization setup.
+                  Connect an existing desktop business to {businessName} using a one-time code.
                 </p>
               </div>
-              <Button asChild variant="outline">
-                <Link href="/dashboard/settings/desktop-sync">Manage desktop connection</Link>
-              </Button>
+              <div className="space-y-2 rounded-xl bg-muted/30 p-3 text-sm">
+                <p className="font-medium">How to pair your desktop</p>
+                <ol className="list-inside list-decimal space-y-1.5 text-muted-foreground">
+                  <li>Generate a code here for this web business.</li>
+                  <li>In AkiliBiz Desktop, open Settings → Backup, Restore &amp; Sync.</li>
+                  <li>Under Desktop sync, choose <span className="font-medium text-foreground">Link an existing web business</span> and paste the code.</li>
+                </ol>
+                <p className="text-xs text-muted-foreground">Pairing connects the businesses. It does not upload data. If the desktop is already connected, no new code is needed.</p>
+              </div>
+              {canPair ? <PairingForm /> : (
+                <p className="text-sm text-muted-foreground">Only the business owner can generate a pairing code.</p>
+              )}
             </CardContent>
           </Card>
         </div>
