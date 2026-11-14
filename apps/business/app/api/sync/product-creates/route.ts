@@ -61,7 +61,7 @@ export async function GET(request:NextRequest){
   const row=Array.isArray(data)?data[0]:null;
   if(!row)return reply({error:"Product request not found."},404);
   if(row.command_id!==commandId||typeof row.draft_id!=="string"||
-    !["pending","staged","applied","conflict"].includes(row.state))
+    !["pending","staged","applied","conflict","published"].includes(row.state))
     return reply({error:"Invalid request status."},503);
   return reply({commandId:row.command_id,draftId:row.draft_id,
     state:row.state,requestedAt:row.requested_at},200);
