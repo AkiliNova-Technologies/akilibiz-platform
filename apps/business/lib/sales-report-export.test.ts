@@ -21,7 +21,7 @@ describe("verified sales register CSV export",()=>{
       amount_paid_ugx:2000,balance_due_ugx:0,
       tax_amount_ugx:0,status:"completed",reversal_status:"none",
     }]);
-    expect(csv).toContain('"'=""unsafe"""');
+    expect(csv).toContain(`"'=""unsafe"""`);
     expect(csv).toContain('"Fresh, ""Market"""');
   });
 });
