@@ -160,3 +160,14 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 These automated checks do not prove cash posting can be enabled in production.
+
+## POS status visibility and product-insert correction — 2026-11-14
+
+- Added additive migration `20261114150000_web_pos_cash_sale_status_read.sql`: authenticated, active-business, role-limited, originating-user-only read of private cash-sale statuses (`pending_desktop`, `desktop_applied`, `reconciled`, `voided`). The request ID is scoped by business and actor. The RPC does not modify sales, inventory, or posting controls.
+- Added `GET /api/pos/sales/status?requestId=<uuid-v4>`, with authentication, selected-business permission checks, no-store headers, strict status response verification and an explicit `not_found` state. A not-found result does **not** authorize posting a replacement sale without desktop confirmation.
+- The separate cash-sale pilot offers **Check request status** for uncertain requests and **Check latest status** after the server accepts a sale. Restored requests preserve their original idempotency key; normal checkout remains disabled.
+- Tests cover rejected identifiers, unauthorized roles, business-scoped RPC arguments, unknown requests, reconciled responses, and database failures.
+- Desktop product repository `create_product` SQL was corrected to use 31 unique columns and 31 parameter bindings; required package-content fields in SKU lookup remain intact. Desktop code is committed separately to `akilibiz` `dev`.
+- No hosted migration has been applied and neither cash posting nor inbound product mutation has been enabled. TypeScript, Vitest and Rust regression checks remain to be run locally.
+
+Do not deploy the new RPC migration without normal staging review. Do not enable production cash posting based solely on these source-level tests.
