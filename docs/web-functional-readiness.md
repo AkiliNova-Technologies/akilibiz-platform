@@ -101,3 +101,39 @@ pnpm --filter @akilibiz/business-web test
 - Full contract, remaining acceptance and gate list: `docs/sync/phase2b-inbound-contact-creation-pilot.md`.
 
 **Do not activate these gates or run the hosted migration on production without isolated pilot acceptance.** The code is staged, not qualified for production deployment.
+
+## Non-destructive operational improvements — 2026-11-14
+
+The current increment prioritizes verifiable hosted reads and safe exports. No existing customer, product, inventory, sales, or accounting data was changed.
+
+### Delivered in code on `dev`
+
+- **Products:** server pagination at 50 records per page, business-scoped name search, exact matching count and previous/next controls. The existing desktop-aligned table is retained. The category summary explicitly fails rather than showing a partial product count when its current 1,000-record capacity is exceeded.
+- **Product and category export:** authenticated, business-scoped `/api/catalogue/export` CSV download. Approved fields only, explicit 5,000-record cap, no partial-response success, spreadsheet formula escaping and UI error reporting.
+- **Stock movement history:** a read-only, business-membership-checked RPC `list_desktop_inventory_movement_history` and a paginated web table. Reads **accepted** desktop movement receipts only; does not reconstruct pre-checkpoint stock history or post stock transactions. Migration `20261114130000_inventory_movement_history_read.sql` must be qualified/applied before this view becomes usable against the hosted environment. This migration is additive; it has **not** been deployed in this change.
+- **Credit integrity:** replaced the non-authoritative customer credit screen that previously showed demonstration balances and in-memory repayments with an explicit unavailable state and links to hosted customers/finance.
+- **Legacy adapters:** removed fabricated product, customer, inventory, and credit data, and removed simulated successful mutations. Actual product, customer, and stock reads continue through existing hosted pages.
+
+### Still not operational end-to-end
+
+- Hosted product/category creation and editing; inventory adjustments, full history before checkpoint, valuation, and stock reconciliation.
+- Authoritative credit balances, customer repayments, supplier payables and purchase-order posting.
+- Cash POS posting (database gate intentionally disabled), other tender methods, returns/refunds, and transactional receipt issuance.
+- Accounting/expense posting, VAT submission and audited period close; web finance mirrors remain read-only.
+- Hosted backup/restore, full import and complete notification automation.
+- Phase 2A/2B inbound contact editing/creation is staged behind opt-in flags and requires qualification before production use.
+
+### Testing order
+
+1. **Non-destructive first:** TypeScript, Vitest, pure mapping tests, read-only pages, access checks, application builds and code review.
+2. **Isolated validation:** disposable development Supabase and SQLite workspaces; migrations and explicit independent sandbox gates.
+3. **Destructive and recovery tests last:** only on disposable data after consent, with explicit test identities and rollback criteria. Never reset user or production databases.
+
+### Local checks for this increment
+
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+Run hosted read-only acceptance separately using two business memberships and a representative data volume (0, 50, 51, 1,001 products). New SQL is intentionally **not applied** during these source changes. Do not activate production sync or sales flags.
