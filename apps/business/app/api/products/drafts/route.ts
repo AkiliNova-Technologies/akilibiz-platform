@@ -33,7 +33,8 @@ export async function GET(){
   if((drafts.count??0)>100 || (categories.count??0)>1000)
     return fail("Too many drafts or categories for this view. No incomplete list was shown.",413);
   return NextResponse.json({drafts:drafts.data??[],categories:categories.data??[],
-    readOnlyCatalogue:true},{headers});
+    readOnlyCatalogue:true,
+    publicationRequestsEnabled:process.env.AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS==="1" && business.role==="owner"},{headers});
 }
 export async function POST(request:NextRequest){
   if(process.env.AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS!=="1") return fail("Product preparation drafts are not yet available.",503);
