@@ -7,6 +7,7 @@ create function public.list_desktop_inventory_movement_history(
 ) returns table(
   movement_id uuid,
   local_product_id bigint,
+  local_business_public_id text,
   source_movement_id bigint,
   delta_milli bigint,
   before_milli bigint,
@@ -31,7 +32,7 @@ begin
     raise exception 'Invalid history page' using errcode='22023';
   end if;
   return query
-    select r.id,r.local_product_id,r.source_movement_id,
+    select r.id,r.local_product_id,r.source_business_public_id,r.source_movement_id,
       r.delta_milli,r.before_milli,r.after_milli,
       nullif(r.payload->>'movement_type',''),
       nullif(r.payload->>'reason',''),
