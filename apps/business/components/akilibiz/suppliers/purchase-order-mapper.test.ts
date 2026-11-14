@@ -19,7 +19,7 @@ describe("authoritative purchasing mirror mapping",()=>{
       supplier_name:"Supplier #3",items_count:4,total_amount:250000,
       order_date:"2026-11-14",expected_delivery:"2026-11-17",
       status:"Pending",created_by_name:"Administrator",
-      notes:"Delivery in Kampala",
+      notes:"Delivery in Kampala",source_business_public_id:"desktop-a",
     });
   });
   it("rejects missing supplier IDs, fractional currency, unknown state and malformed date",()=>{
