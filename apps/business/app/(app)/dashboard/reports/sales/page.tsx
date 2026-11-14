@@ -46,7 +46,7 @@ const ugx = (value: number) =>
 
 export default function ReportsSalesPage() {
   const { sales, getSalesRegister, getSaleReportDrillDown, loading, error } = useReportsSalesData();
-  useEffect(() => { void getSalesRegister({ skip: 0, limit: 100 }); }, [getSalesRegister]);
+  useEffect(() => { void getSalesRegister({ skip: 0, limit: 5000 }); }, [getSalesRegister]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [draftFrom, setDraftFrom] = useState("");
@@ -55,10 +55,12 @@ export default function ReportsSalesPage() {
   const [drill, setDrill] = useState<SaleReportDrillDown | null>(null);
   const [drillLoading, setDrillLoading] = useState(false);
   const rows = useMemo<Row[]>(
-    () => sales.filter((sale) => (!from || sale.sale_date_utc >= from) && (!to || sale.sale_date_utc <= to)).map((source) => ({ id: source.id, sale_number: source.sale_number, sale_date_utc: source.sale_date_utc, customer: source.customer_name ?? "Walk-in customer", total: source.total_amount_ugx, paid: source.amount_paid_ugx, balance: source.balance_due_ugx, status: `${source.status} · ${source.reversal_status}`, source })),
-    [from, sales, to],
+    () => sales.map((source) => ({ id: source.id, sale_number: source.sale_number, sale_date_utc: source.sale_date_utc, customer: source.customer_name ?? "Walk-in customer", total: source.total_amount_ugx, paid: source.amount_paid_ugx, balance: source.balance_due_ugx, status: `${source.status} · ${source.reversal_status}`, source })),
+    [sales],
   );
-  const refresh = () => void getSalesRegister({ date_from: from || undefined, date_to: to || undefined, skip: 0, limit: 100 });
+  const refresh = () => void getSalesRegister({ date_from: from || undefined, date_to: to || undefined, skip: 0, limit: 5000 });
+  const totalBilled=rows.reduce((sum,row)=>sum+row.total,0);
+  const outstanding=rows.reduce((sum,row)=>sum+row.balance,0);
   const open = async (row: Row) => {
     setSelected(row);
     setDrill(null);
@@ -125,19 +127,19 @@ export default function ReportsSalesPage() {
           <section className="grid gap-4 md:grid-cols-3">
             <MetricCard
               title="Sales shown"
-              value="—"
+              value={loading ? "…" : error ? "—" : rows.length.toLocaleString("en-UG")}
               description={period}
               icon={<Eye className="size-5" />}
             />
             <MetricCard
               title="Total billed"
-              value="—"
+              value={loading || error ? "—" : ugx(totalBilled)}
               description="Exact UGX in this returned register"
               icon={<Eye className="size-5" />}
             />
             <MetricCard
               title="Outstanding"
-              value="—"
+              value={loading || error ? "—" : ugx(outstanding)}
               description="Exact reported balance"
               icon={<Eye className="size-5" />}
             />
@@ -168,6 +170,7 @@ export default function ReportsSalesPage() {
                   onClick={() => {
                     setFrom(draftFrom);
                     setTo(draftTo);
+                    void getSalesRegister({date_from:draftFrom,date_to:draftTo,skip:0,limit:5000});
                   }}
                   disabled={!draftFrom || !draftTo}>
                   Apply period
@@ -188,7 +191,7 @@ export default function ReportsSalesPage() {
                 toolbarActions={
                   <Button
                     variant="outline"
-                    onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                    onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
                     <RefreshCw className="size-4" />
                     
                   </Button>
@@ -196,8 +199,8 @@ export default function ReportsSalesPage() {
                 enableSelection={false}
                 enableGlobalSearch
                 enableSorting={false}
-                loading={false}
-                emptyMessage="Sales reporting is unavailable until the hosted sales register is connected."
+                loading={loading}
+                emptyMessage={error ? "Sales could not be verified." : "No synchronized sales found for this period."}
               />
             </CardContent>
           </Card>
