@@ -127,3 +127,31 @@ retained in the register, but not included in posted receipt value.
 Missing tax evidence is reported, not silently interpreted as zero.
 The detail dialog does **not** invent received line counts or supplier names.
 This is READ-ONLY; direct goods receipt creation and posting remain disabled.
+
+## Purchasing details and source-bound receipt drilldown
+
+The web purchase order detail dialog now loads the desktop-published
+`purchase_order_lines` and linked `goods_receipts` read models.
+Each line is matched by **source desktop business ID plus local purchase-order
+ID** (never SQLite ID alone). Ordered and received milliquantities,
+source-unit snapshots, whole-UGX prices and totals are validated; saved
+line totals must reconcile to the purchase-order header. Old orders without
+saved detail lines remain explicitly unavailable rather than appearing to
+have an empty verified basket.
+
+The purchasing report receipt detail also loads `goods_receipt_lines`.
+The source desktop business and receipt ID must both match, each whole-UGX
+item total must reconcile, and the complete line sum must match the receipt
+header total before details are shown. Posted and voided receipts remain
+visible. Unavailable or mismatched lines produce an error, not an invented
+invoice.
+
+Desktop `items_count_milli` is authoritative when present. Legacy
+`items_count` is accepted only at at most three decimal places. The web
+purchase-order register now correctly calls this **ordered quantity**,
+not the number of distinct product lines.
+
+No creation, receipt posting, stock changes, VAT posting, database
+migrations, or opt-in flag changes occurred. These are additive, owner-scoped
+read-only web operations. The complete local PostgreSQL/SQLite integration
+test remains deferred until all major web command flows are ready.
