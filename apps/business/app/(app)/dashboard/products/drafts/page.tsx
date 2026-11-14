@@ -15,7 +15,6 @@ type Draft=ProductDraftInput & {updated_at:string};
 type Response={drafts?:Draft[];categories?:Category[];error?:string};
 type Editor={id:string;name:string;sku:string;category_id:string;barcode:string;brand:string;description:string;stock_unit:string;cost:string;selling:string};
 const empty=():Editor=>({id:crypto.randomUUID(),name:"",sku:"",category_id:"",barcode:"",brand:"",description:"",stock_unit:"pcs",cost:"",selling:""});
-const initial:Editor={id:"",name:"",sku:"",category_id:"",barcode:"",brand:"",description:"",stock_unit:"pcs",cost:"",selling:""};
 const money=(value:number)=>new Intl.NumberFormat("en-UG",{style:"currency",currency:"UGX",maximumFractionDigits:0}).format(value);
 
 export default function ProductDraftsPage() {
