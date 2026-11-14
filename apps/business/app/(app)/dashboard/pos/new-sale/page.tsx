@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { SalePrintPreviewDialog } from "@/components/akilibiz/documents/SalePrintPreviewDialog";
+import { CashSalePilot } from "@/components/akilibiz/pos/cash-sale-pilot";
 import { usePosHeaderControls } from "@/components/akilibiz/pos/pos-header-actions";
 import {
   Card,
@@ -878,6 +879,9 @@ export default function POSPage() {
                         <p>Verified subtotal: {formatCurrency(quoteResult.subtotal)}</p>
                       )}
                     </div>
+                  )}
+                  {process.env.NEXT_PUBLIC_AKILIBIZ_CASH_SALE_PILOT === "1" && (
+                    <CashSalePilot businessId={activeBusinessId} cartItems={cartItems} />
                   )}
                   <Button
                     className="h-12 text-base font-semibold"
