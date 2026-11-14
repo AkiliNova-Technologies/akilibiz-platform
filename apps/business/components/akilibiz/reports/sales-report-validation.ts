@@ -15,7 +15,11 @@ export function verifiedSalePaymentOutcome(
 ):SalePaymentOutcome|null{
   const record=source.record;
   const paid=money(record.amount_paid_ugx??record.amount_paid);
-  const change=money(record.change_amount_ugx??record.change_amount);
+  const storedChange=record.change_amount_ugx??record.change_amount;
+  // Older non-overpaid sale snapshots may omit a redundant zero-change field.
+  // An overpayment MUST have explicit authoritative change evidence.
+  const change=storedChange===undefined&&paid!==null&&paid<=sale.total_amount
+    ? 0 : money(storedChange);
   const recordedBalance=signed(record.balance_due_ugx??record.balance_due);
   if(paid===null||recordedBalance===null||change===null)return null;
   const expectedChange=Math.max(0,paid-sale.total_amount);
