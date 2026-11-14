@@ -32,9 +32,29 @@ export async function GET(){
   if(drafts.error||categories.error||drafts.count===null||categories.count===null)return fail("Could not load or verify your product drafts. The draft database may not be configured yet.",503);
   if((drafts.count??0)>100 || (categories.count??0)>1000)
     return fail("Too many drafts or categories for this view. No incomplete list was shown.",413);
+  const publicationRequestsEnabled=
+    process.env.AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS==="1" && business.role==="owner";
+  let publicationRequests:unknown[]=[];
+  if(publicationRequestsEnabled){
+    // Recover submitted requests from the authoritative hosted database,
+    // never from sessionStorage or an arbitrary browser-supplied command ID.
+    const statuses=await supabase.rpc("list_desktop_product_create_statuses",{
+      target_business_id:business.id,
+    });
+    if(statuses.error || !Array.isArray(statuses.data) ||
+      statuses.data.length>100 ||
+      statuses.data.some((row:unknown)=>{
+        if(!row||typeof row!=="object")return true;
+        const value=row as Record<string,unknown>;
+        return typeof value.command_id!=="string"||
+          typeof value.draft_id!=="string"||
+          !["pending","staged","applied","conflict","published"].includes(String(value.state));
+      }))
+      return fail("Could not confirm existing desktop product requests. Try again.",503);
+    publicationRequests=statuses.data;
+  }
   return NextResponse.json({drafts:drafts.data??[],categories:categories.data??[],
-    readOnlyCatalogue:true,
-    publicationRequestsEnabled:process.env.AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS==="1" && business.role==="owner"},{headers});
+    readOnlyCatalogue:true,publicationRequestsEnabled,publicationRequests},{headers});
 }
 export async function POST(request:NextRequest){
   if(process.env.AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS!=="1") return fail("Product preparation drafts are not yet available.",503);
