@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Banknote, Download, Mail, MapPin, Phone, Plus, ShoppingBag, Star, Upload, UserPlus, Users, Wallet } from "lucide-react";
+import { Banknote, Mail, MapPin, Phone, Plus, ShoppingBag, Star, Upload, UserPlus, Users, Wallet } from "lucide-react";
 import { DataTable, type TableAction, type TableField } from "@/components/akilibiz/data-table";
 import MetricCard from "@/components/akilibiz/metric-card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import type { HostedCustomer } from "@/components/akilibiz/contacts/hosted-directory";
 import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
+import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
 type CustomerRow = HostedCustomer & {
   total_purchases: null;
@@ -99,9 +100,7 @@ export function HostedCustomers({ customers, error, canEditContacts, pagination 
                 <Button type="button" variant="outline" disabled title="Customer import is not connected">
                   <Upload className="size-4" /> Import
                 </Button>
-                <Button type="button" variant="outline" disabled title="Customer export is not connected">
-                  <Download className="size-4" /> Export
-                </Button>
+                <ContactExportButton entity="customers" />
                 <Button type="button" disabled title="Customer creation is not connected">
                   <Plus className="size-4" /> Add Customer
                 </Button>
