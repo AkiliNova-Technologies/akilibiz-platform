@@ -30,7 +30,7 @@ type Attempt = {
   id: string;
   cartFingerprint: string;
   cashReceived: number;
-  stage: "submitting" | "unknown" | "pending_desktop";
+  stage: "submitting" | "unknown" | "pending_desktop" | "desktop_applied" | "reconciled" | "voided";
   receipt?: string;
 };
 
@@ -58,7 +58,7 @@ export function CashSalePilot({
         if (saved.attempt && typeof saved.attempt.id === "string" &&
             typeof saved.attempt.cartFingerprint === "string" &&
             Number.isSafeInteger(saved.attempt.cashReceived) &&
-            ["unknown","submitting","pending_desktop"].includes(saved.attempt.stage)) {
+            ["unknown","submitting","pending_desktop","desktop_applied","reconciled","voided"].includes(saved.attempt.stage)) {
           setAttempt({ ...saved.attempt, stage: saved.attempt.stage === "submitting" ? "unknown" : saved.attempt.stage });
           setCash(typeof saved.cash === "string" ? saved.cash : String(saved.attempt.cashReceived));
           if (saved.quote && typeof saved.quote.fingerprint === "string" &&
@@ -111,6 +111,33 @@ export function CashSalePilot({
     } finally { setBusy(false); }
   };
 
+  const checkStatus = async () => {
+    if (!attempt || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/pos/sales/status?requestId=${encodeURIComponent(attempt.id)}`,
+        {cache:"no-store"},
+      );
+      const status = await response.json() as {
+        state?: "not_found" | "pending_desktop" | "desktop_applied" | "reconciled" | "voided";
+        receiptNumber?: string;
+        error?: string;
+      };
+      if (!response.ok || !status.state) {
+        throw new Error(status.error ?? "Could not verify this sale's status.");
+      }
+      if (status.state === "not_found") {
+        setError("No accepted sale has been found for this request. Keep the original request ID and confirm with the desktop before starting another sale.");
+      } else {
+        setAttempt({...attempt, stage:status.state, receipt:status.receiptNumber ?? attempt.receipt});
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not verify this sale.");
+    } finally { setBusy(false); }
+  };
+
   const submit = async () => {
     if (!restored || !items || !fingerprint || !validQuote || received === null || busy) return;
     if (received < validQuote.total) {
@@ -123,7 +150,7 @@ export function CashSalePilot({
       setError("This sale has an unresolved request. Restore the original cart and cash amount to retry safely.");
       return;
     }
-    if (attempt?.stage === "pending_desktop") return;
+    if (attempt && !["unknown","submitting"].includes(attempt.stage)) return;
     const next = attempt ?? {
       id: crypto.randomUUID(), cartFingerprint:fingerprint,
       cashReceived:received, stage:"submitting" as const,
@@ -185,7 +212,7 @@ export function CashSalePilot({
     </Button>
     <Dialog open={open} onOpenChange={value=>{
       // Preserve an uncertain request; closing the UI must not hide it.
-      if (!value && (busy || (attempt && attempt.stage !== "pending_desktop"))) return;
+      if (!value && busy) return;
       setOpen(value);
     }}>
       <DialogContent className="sm:max-w-lg">
@@ -196,17 +223,29 @@ export function CashSalePilot({
             confirm a desktop sale or issue a final receipt.
           </DialogDescription>
         </DialogHeader>
-        {attempt?.stage === "pending_desktop" ? (
+        {attempt && ["pending_desktop","desktop_applied","reconciled","voided"].includes(attempt.stage) ? (
           <div className="space-y-2 rounded-md border p-4 text-sm" role="status">
-            <p className="font-semibold">Sale queued for desktop reconciliation</p>
+            <p className="font-semibold">{attempt.stage === "pending_desktop"
+              ? "Sale queued for desktop reconciliation"
+              : attempt.stage === "desktop_applied"
+                ? "Desktop has applied the sale; stock reconciliation is pending"
+                : attempt.stage === "reconciled"
+                  ? "Sale reconciled with desktop"
+                  : "Sale voided"}</p>
             <p>Reference: {attempt.receipt ?? attempt.id}</p>
-            <p>Confirm the final sale status on AkiliBiz Desktop before handing over a receipt.</p>
+            <p>Verify final receipt and accounting details on AkiliBiz Desktop.</p>
+            <Button type="button" variant="outline" disabled={busy} onClick={()=>void checkStatus()}>
+              {busy ? "Checking…" : "Check latest status"}
+            </Button>
           </div>
         ) : <>
           {attempt && <p role="status" className="rounded-md border p-3 text-sm">
             A previous request has an uncertain outcome. Retry using the same
             request ID; do not submit another sale for this payment.
             <span className="mt-1 block font-mono text-xs">{attempt.id}</span>
+            <Button type="button" variant="outline" className="mt-2" disabled={busy} onClick={()=>void checkStatus()}>
+              {busy ? "Checking…" : "Check request status"}
+            </Button>
           </p>}
           <div className="flex items-center gap-3">
             <Button type="button" variant="outline" disabled={busy || !!attempt || !items}
@@ -227,9 +266,9 @@ export function CashSalePilot({
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         </>}
         <DialogFooter>
-          <Button variant="outline" type="button" disabled={busy || (attempt !== null && attempt.stage !== "pending_desktop")}
+          <Button variant="outline" type="button" disabled={busy}
             onClick={()=>setOpen(false)}>Close</Button>
-          {attempt?.stage !== "pending_desktop" && <Button type="button"
+          {(!attempt || ["unknown","submitting"].includes(attempt.stage)) && <Button type="button"
             disabled={busy || !validQuote || received === null || (
               attempt !== null && !attemptMatches
             )} onClick={()=>void submit()}>
