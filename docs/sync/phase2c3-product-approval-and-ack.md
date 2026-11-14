@@ -23,15 +23,16 @@ a connected or production business, and no feature flags were enabled.
    **Review web product requests** panel. They can inspect product, pricing,
    unit-conversion, stock, expiry, batch and package details. They must choose
    an active local VAT classification that belongs to this business.
-5. A single SQLite transaction rechecks command source and category, tax
+5. Before approval, the desktop makes a fresh authenticated hosted check that the request is still pending, its original owner and paired source are valid, and the independent business gate remains enabled. If offline or revoked, **no product is created**. An already committed local receipt may be safely replayed without another network call.
+6. A single SQLite transaction rechecks command source and category, tax
    registration/classification, SKU/barcode conflicts, all submitted numerical
    settings, and exact stock thresholds. It inserts the product with **zero
    opening stock** and an immutable receipt. Both commit or neither commits.
    Existing catalogue triggers generate the normal outbound product change.
-6. An independent desktop ACK worker submits *only committed local receipts*
+7. An independent desktop ACK worker submits *only committed local receipts*
    to a paired-device-authenticated Supabase RPC. It is idempotent and never
    regenerates the product on a lost HTTP response.
-7. The web status is `applied` after an authenticated receipt. The status is
+8. The web status is `applied` after an authenticated receipt. The status is
    derived as `published` only after a matching desktop product projection is
    visible for the same source business, product ID, category and SKU.
 
@@ -53,7 +54,7 @@ production data or a business with unqualified tax, permissions, and pairing.
 ## New migrations (additive)
 
 - Hosted `20261114200000_product_create_receipt_ack.sql`: private command
-  receipt fields, paired-device ACK RPC, and owner-only catalogue-confirmed
+  receipt fields, fresh pending-authorization RPC, paired-device ACK RPC, and owner-only catalogue-confirmed
   status query. Must follow the draft and request staging migrations.
 - Desktop `0118_cloud_product_create_receipts.sql`: separate immutable
   receipt linked to the previously staged command, created local product,
