@@ -17,6 +17,7 @@ describe("goods received report from desktop ledger",()=>{
     expect(mapGoodsReceived(row)).toEqual({
       id:18,receipt_number:"GR-18",receipt_date_utc:"2026-11-14",
       supplier_name:"Supplier #3",purchase_order_id:7,
+      source_business_public_id:"desktop-a",
       status:"posted",reversal_status:"not_reversed",
       total_amount_ugx:100000,tax_amount_ugx:18000,currency_code:"UGX",
     });
