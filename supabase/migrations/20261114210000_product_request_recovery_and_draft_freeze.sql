@@ -17,7 +17,9 @@ begin
   end if;
   if tg_op='DELETE' then return old; end if;
   return new;
-end $$;
+end $;
+revoke all on function private.prevent_requested_product_draft_mutation()
+  from public,anon,authenticated,service_role;
 
 create trigger prevent_requested_product_draft_update
 before update on public.web_product_drafts
