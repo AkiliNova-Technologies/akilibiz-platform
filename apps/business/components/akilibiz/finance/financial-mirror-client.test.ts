@@ -36,6 +36,26 @@ describe("complete financial mirror pagination",()=>{
       "synchronized records changed",
     );
   });
+  it("rejects a changed total during two-page retrieval",async()=>{
+    vi.stubGlobal("fetch",vi.fn(async(url:string)=>{
+      const page=Number(new URL(url,"http://localhost").searchParams.get("page"));
+      return new Response(JSON.stringify(payload(page,page===1?101:100,page===1?100:0)),{status:200});
+    }));
+    await expect(loadAllFinancialMirrorRows("supplier_payments")).rejects.toThrow(
+      "synchronized records changed",
+    );
+  });
+  it("rejects mixed publication generations during multi-page retrieval",async()=>{
+    vi.stubGlobal("fetch",vi.fn(async(url:string)=>{
+      const page=Number(new URL(url,"http://localhost").searchParams.get("page"));
+      const body=payload(page,101,page===1?100:1);
+      if(page===2)body.lastSuccessfulSync="2026-11-14T16:00:00Z";
+      return new Response(JSON.stringify(body),{status:200});
+    }));
+    await expect(loadAllFinancialMirrorRows("authoritative_expenses")).rejects.toThrow(
+      "synchronized records changed",
+    );
+  });
   it("fails safely when a business exceeds the bounded reporting limit",async()=>{
     vi.stubGlobal("fetch",vi.fn(async()=>
       new Response(JSON.stringify(payload(1,5001,100)),{status:200})));
