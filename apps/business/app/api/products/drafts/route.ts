@@ -29,7 +29,7 @@ export async function GET(){
       .eq("business_id",business.id).eq("is_active",true)
       .order("name").range(0,999),
   ]);
-  if(drafts.error||categories.error)return fail("Could not load your product drafts. The draft database may not be configured yet.",503);
+  if(drafts.error||categories.error||drafts.count===null||categories.count===null)return fail("Could not load or verify your product drafts. The draft database may not be configured yet.",503);
   if((drafts.count??0)>100 || (categories.count??0)>1000)
     return fail("Too many drafts or categories for this view. No incomplete list was shown.",413);
   return NextResponse.json({drafts:drafts.data??[],categories:categories.data??[],
