@@ -39,7 +39,7 @@ export function ContactCreateDialog({
   const router=useRouter();
   const config=FIELD_CONFIG[entity];
   const [fields,setFields]=React.useState<Record<string,string>>({});
-  const [requestId,setRequestId]=React.useState(()=>crypto.randomUUID());
+  const [requestId]=React.useState(()=>crypto.randomUUID());
   const [commandId,setCommandId]=React.useState<string|null>(null);
   const [state,setState]=React.useState<"pending"|"applied"|"conflict"|null>(null);
   const [busy,setBusy]=React.useState(false);
