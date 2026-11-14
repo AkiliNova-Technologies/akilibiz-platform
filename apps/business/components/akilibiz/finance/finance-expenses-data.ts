@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { FinancePaymentMethod } from "@/components/akilibiz/finance/finance-overview-data";
-import { loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
+import { loadAllFinancialMirrorRows, loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
 import { requiredAmount, requiredEnum, requiredId } from "@/components/akilibiz/finance/mirror-field-validation";
 
 export type ExpenseStatus = "pending" | "approved" | "paid" | "rejected";
@@ -43,8 +43,11 @@ export function useFinanceExpensesData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("authoritative_expenses");
+      const completeRows=mirror.total>mirror.rows.length
+        ? await loadAllFinancialMirrorRows("authoritative_expenses")
+        : mirror.rows;
       let invalidCount = 0;
-      const next = mirror.rows.flatMap(({ localRecordId, record }) => {
+      const next = completeRows.flatMap(({ localRecordId, record }) => {
         try {
         const state = requiredEnum(record, "state", ["draft", "posted", "cancelled", "voided", "corrected", "refunded"] as const);
         const paymentBasis = requiredEnum(record, "payment_basis", ["paid", "supplier_credit"] as const);
@@ -80,7 +83,7 @@ export function useFinanceExpensesData() {
       });
       if (invalidCount) setError(`${invalidCount} expense record(s) were hidden because required details or supplier-credit settlement evidence were unavailable.`);
       setExpenses(next); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale); return next;
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
+    } catch (reason) { setExpenses([]); setIsStale(true); setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
     finally { setLoading(false); }
   }, []);
   const addExpense = useCallback(async (_payload: CreateExpensePayload & { payee: string }): Promise<never> => unavailable(), []);
