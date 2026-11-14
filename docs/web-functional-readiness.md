@@ -67,7 +67,7 @@ Manually test searching for a contact on a later page, navigating 50+ results, c
 - Exported fields are explicitly allowlisted. CSV output quotes embedded commas/quotes/newlines and prefixes potential spreadsheet formula cells to limit CSV formula injection.
 - The export is bounded at 10,000 records, fetched in batches of 500. Larger exports fail clearly instead of silently downloading partial records. If the record count changes while exporting, the request fails and asks the user to retry.
 - The browser download control reports server errors and does not claim success when an export fails.
-- Customer/supplier **creation remains disabled**, deliberately: current bidirectional-contact infrastructure implements version-checked updates of existing desktop-authoritative records, not the desktop acceptance/reconciliation contract for brand-new records. Direct web inserts into `desktop_customers` or `desktop_suppliers` would conflict with SQLite ownership and must not be treated as a finished creation workflow.
+- Customer/supplier **creation remains disabled in production**. A separate, default-off Phase 2B request/receipt protocol now stages new contact creation on the desktop; it requires qualification before activation. Direct web inserts into `desktop_customers` or `desktop_suppliers` remain prohibited.
 - Existing owner-only update queue and environment gates remain unchanged.
 
 ### Focused checks
@@ -83,10 +83,21 @@ Hosted acceptance: export each directory as an authorized user, confirm that the
 
 The existing owner-only `/api/sync/contact-updates` endpoint now checks allowed field names, required contact values, size limits, email format, and control characters before forwarding a change to the version-checked desktop queue. This preserves the existing feature flag and desktop authority instead of introducing direct hosted mutations. Four additional regression tests cover these constraints.
 
-Web contact **create** requests remain pending the desktop-backed create command, its idempotency key, and authoritative acknowledgement/reconciliation semantics. Do not turn on production bidirectional contact editing solely because the frontend forms exist.
+Web contact creation now has a staged, default-off desktop-backed create command with idempotent request IDs and authoritative desktop acknowledgements. Do not turn on production contact creation or editing before an end-to-end qualification.
 
 Latest focused qualification:
 ```bash
 pnpm --filter @akilibiz/business-web exec tsc --noEmit
 pnpm --filter @akilibiz/business-web test
 ```
+
+## Phase 2B creation pilot implementation
+
+- Added separate hosted create commands and owner-scoped request/status functions, guarded by a new database opt-in `contact_creates_enabled` (default false).
+- Added `/api/sync/contact-creates` (POST queued/GET status), gated behind `AKILIBIZ_ENABLE_CONTACT_CREATION=1`, and owner-only Add Customer / Add Supplier dialogs.
+- Added a separate desktop SQLite inbox and guarded receive/apply/ACK worker steps (migration 0116); desktop contact inserts and immutable receipts commit atomically, preserving outbound dirty-contact capture.
+- No customer/supplier balance, purchases, inventory, tax, or financial columns are writable through this protocol.
+- The older Phase 2A update-only commands and tables remain unchanged.
+- Full contract, remaining acceptance and gate list: `docs/sync/phase2b-inbound-contact-creation-pilot.md`.
+
+**Do not activate these gates or run the hosted migration on production without isolated pilot acceptance.** The code is staged, not qualified for production deployment.
