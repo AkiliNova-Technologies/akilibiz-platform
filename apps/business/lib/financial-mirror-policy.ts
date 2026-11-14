@@ -1,6 +1,7 @@
 export const FINANCIAL_MIRROR_ENTITIES = new Set([
   "sales", "sale_items", "sale_payments", "supplier_payments", "supplier_payables",
-  "supplier_payment_allocations", "finance_transactions", "authoritative_expenses",
+  "supplier_payment_allocations", "purchase_orders", "purchase_order_lines",
+  "goods_receipts", "goods_receipt_lines", "finance_transactions", "authoritative_expenses",
   "expense_payables", "expense_settlements", "expense_tax_evidence",
   "authoritative_financial_events", "journal_entries", "journal_lines",
   "chart_of_accounts", "tax_settings", "tax_configurations", "receipt_settings",
