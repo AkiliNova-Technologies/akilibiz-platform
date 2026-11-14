@@ -3,12 +3,14 @@
 import {useCallback,useState} from "react";
 import {loadAllFinancialMirrorRows,type FinancialMirrorRow} from "@/components/akilibiz/finance/financial-mirror-client";
 import {dateWithinRange} from "./sales-report-validation";
+import {verifyGoodsReceiptLines} from "./goods-receipt-detail";
 
 export interface GoodsReceivedRegisterRow {
   id:number;receipt_number:string;receipt_date_utc:string;
   status:"posted"|"voided";supplier_name:string;
   total_amount_ugx:number;tax_amount_ugx:number;currency_code:"UGX";
   reversal_status:string;purchase_order_id?:number;
+  source_business_public_id:string;
 }
 export interface PurchasingReportQuery{
   date_from?:string;date_to?:string;skip?:number;limit?:number;
@@ -30,7 +32,8 @@ export function mapGoodsReceived(row:FinancialMirrorRow):GoodsReceivedRegisterRo
     !date||!/^\d{4}-\d{2}-\d{2}$/.test(date)||
     Number.isNaN(Date.parse(date))||
     (r.status!=="posted"&&r.status!=="voided")||
-    (r.currency_code!==undefined&&r.currency_code!=="UGX"))return null;
+    (r.currency_code!==undefined&&r.currency_code!=="UGX")||
+    typeof row.localBusinessPublicId!=="string"||!row.localBusinessPublicId.trim())return null;
   const orderId=r.purchase_order_id==null?undefined:positive(r.purchase_order_id);
   if(r.purchase_order_id!=null&&orderId===null)return null;
   return {
@@ -39,6 +42,7 @@ export function mapGoodsReceived(row:FinancialMirrorRow):GoodsReceivedRegisterRo
     total_amount_ugx:total,tax_amount_ugx:tax,currency_code:"UGX",
     reversal_status:r.status==="voided"?"voided":"not_reversed",
     purchase_order_id:orderId??undefined,
+    source_business_public_id:row.localBusinessPublicId,
   };
 }
 
@@ -66,5 +70,9 @@ export function useReportsPurchasingData(){
       return [];
     }finally{setLoading(false);}
   },[]);
-  return {goodsReceived,getGoodsReceivedRegister,loading,error};
+  const getGoodsReceiptLines=useCallback(async(receipt:GoodsReceivedRegisterRow)=>{
+    const rows=await loadAllFinancialMirrorRows("goods_receipt_lines");
+    return verifyGoodsReceiptLines(receipt,rows);
+  },[]);
+  return {goodsReceived,getGoodsReceivedRegister,getGoodsReceiptLines,loading,error};
 }
