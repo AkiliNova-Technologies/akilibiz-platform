@@ -96,7 +96,7 @@ export default function ProductDraftsPage() {
     }finally{setBusy(false);}
   };
   const field=(key:keyof Editor,value:string)=>setEditing(current=>current?{...current,[key]:value}:null);
-  const option=<K extends keyof DesktopProductOptions>(key:K,value:DesktopProductOptions[K])=>
+  const option = <K extends keyof DesktopProductOptions,>(key: K, value: DesktopProductOptions[K]) =>
     setEditing(current=>current?{...current,desktop_options:{...current.desktop_options,[key]:value}}:null);
 
   return <main className="flex min-w-0 flex-1 flex-col gap-5">
