@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
-import { loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
+import { loadAllFinancialMirrorRows, loadFinancialMirror, mirrorValue } from "@/components/akilibiz/finance/financial-mirror-client";
 import { requiredAmount, requiredEnum, requiredId } from "@/components/akilibiz/finance/mirror-field-validation";
 
 export type SupplierPaymentMethod = "Cash" | "Bank Transfer" | "Mobile Money" | "Cheque";
@@ -30,8 +30,11 @@ export function useSupplierPaymentsData() {
     setLoading(true); setError(null);
     try {
       const mirror = await loadFinancialMirror("supplier_payments");
+      const completeRows=mirror.total>mirror.rows.length
+        ? await loadAllFinancialMirrorRows("supplier_payments")
+        : mirror.rows;
       let invalidCount = 0;
-      const next = mirror.rows.flatMap(({ localRecordId, record }) => {
+      const next = completeRows.flatMap(({ localRecordId, record }) => {
         try {
           const status = requiredEnum(record, "status", ["Pending", "Partial", "Paid", "Overdue"] as const);
           const paymentMethod = requiredEnum(record, "payment_method", ["Cash", "Bank Transfer", "Mobile Money", "Cheque"] as const);
@@ -59,7 +62,7 @@ export function useSupplierPaymentsData() {
       });
       if (invalidCount) setError(`${invalidCount} supplier payment record(s) were hidden because required payment details were missing or invalid.`);
       setPayments(next); setLastSuccessfulSync(mirror.lastSuccessfulSync); setIsStale(mirror.isStale); return next;
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
+    } catch (reason) { setPayments([]); setIsStale(true); setError(reason instanceof Error ? reason.message : "Financial mirror request failed."); return []; }
     finally { setLoading(false); }
   }, []);
   return {
