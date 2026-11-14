@@ -108,3 +108,22 @@ safe inbound command and desktop posting receipt protocol exists.
 Source tests cover strict purchase order mapping, accepted statuses, and the
 four newly available owner-only mirror entity names. No migration was
 applied and no purchasing transactions were created.
+
+## Goods-received report mirror read implementation
+
+Desktop `goods_receipts` has local supplier and purchase-order IDs, receipt
+number/date, exact `total_amount_ugx`, nullable
+`tax_amount_ugx`, currency and `posted|voided` state. The web report now
+reads its complete bounded hosted mirror, verifies positive supplier/receipt
+identities, exact whole-UGX amounts including tax, valid dates, accepted
+currency and state, and displays a supplier *local ID* when no authoritative
+name is available.
+
+The selected period filters the actual loaded register; refresh and clear
+reload. Summary cards show verified posted receipt value and total receipt
+count only when there are no mirror verification errors. Voided records are
+retained in the register, but not included in posted receipt value.
+
+Missing tax evidence is reported, not silently interpreted as zero.
+The detail dialog does **not** invent received line counts or supplier names.
+This is READ-ONLY; direct goods receipt creation and posting remain disabled.
