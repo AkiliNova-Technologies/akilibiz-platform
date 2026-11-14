@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   ClipboardList,
@@ -61,8 +61,9 @@ const badge = (s: PurchaseOrderStatus) => (
   </Badge>
 );
 export default function SupplierPurchaseOrdersPage() {
-  const { orders, addOrder, editOrder, markReceived, loading } =
+  const { orders, addOrder, editOrder, markReceived, getOrders, loading, error } =
     usePurchaseOrdersData();
+  useEffect(()=>{void getOrders();},[getOrders]);
   const { suppliers } = useSuppliersData();
   const [form, setForm] = useState(false),
     [selected, setSelected] = useState<Row | null>(null),
@@ -146,6 +147,7 @@ export default function SupplierPurchaseOrdersPage() {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col gap-6">
+          {error && <p role="alert" className="rounded-md border border-destructive/30 p-3 text-sm text-destructive">{error}</p>}
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
               Purchase Orders
@@ -199,7 +201,7 @@ export default function SupplierPurchaseOrdersPage() {
                 emptyMessage={
                   loading
                     ? "Loading purchase orders..."
-                     : "No purchase orders available."
+                     : error ? "Could not verify the purchase order register." : "No synchronized purchase orders found for this business."
                 }
                 toolbarActions={
                   <Button disabled title="Purchase order creation is not connected">
