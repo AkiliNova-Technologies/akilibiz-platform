@@ -93,6 +93,7 @@ export function HostedCatalogue({
   error?: string | null;
   stockError?: string | null;
   pagination?: CataloguePagination;
+  draftsEnabled: boolean;
 }) {
   const [selectedProduct, setSelectedProduct] = useState<HostedProductRow | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HostedCategoryRow | null>(null);
@@ -424,12 +425,19 @@ export function HostedCatalogue({
                   <Layers className="size-4" />
                   Variants
                 </Button>
-                <Button asChild title="Prepare a product draft; desktop publication is not yet available">
-                  <Link href="/dashboard/products/drafts">
+                {draftsEnabled ? (
+                  <Button asChild title="Prepare a product draft; desktop publication is not yet available">
+                    <Link href="/dashboard/products/drafts">
+                      <Plus className="size-4" />
+                      Prepare Product
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button disabled title="Product preparation is not enabled yet">
                     <Plus className="size-4" />
-                    Prepare Product
-                  </Link>
-                </Button>
+                    Add Product
+                  </Button>
+                )}
               </div>
             }
           />
