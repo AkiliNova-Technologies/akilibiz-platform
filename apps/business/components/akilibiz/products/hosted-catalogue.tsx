@@ -253,7 +253,7 @@ export function HostedCatalogue({
       <div className="flex min-w-0 flex-1 flex-col gap-6">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Category Management</h2>
-          <p className="text-sm text-muted-foreground">Organize products into categories.</p>
+          <p className="text-sm text-muted-foreground">View the categories synchronized from AkiliBiz Desktop.</p>
         </div>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <MetricCard title="Total Categories" value={error ? "—" : String(categories.length)}
@@ -269,7 +269,7 @@ export function HostedCatalogue({
           <CardContent className="min-w-0 px-6 pb-6">
             <DataTable<HostedCategoryRow>
               title="Product Categories"
-              description="Manage your product categories."
+              description="Browse synchronized categories. Changes are currently made on the desktop."
               data={categories}
               emptyMessage={error ?? "No categories found."}
               fields={categoryFields}
@@ -359,7 +359,7 @@ export function HostedCatalogue({
       <div>
         <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Product Catalogue</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your products, pricing, stock and categories.
+          View the products, prices, and stock information synchronized from AkiliBiz Desktop.
         </p>
       </div>
 
@@ -395,7 +395,7 @@ export function HostedCatalogue({
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<HostedProductRow>
             title="Product Catalogue"
-            description="View and manage your products."
+            description="Browse synchronized products. Changes are currently made on the desktop."
             data={products}
             emptyMessage={error ?? "No products found."}
             fields={productFields}
