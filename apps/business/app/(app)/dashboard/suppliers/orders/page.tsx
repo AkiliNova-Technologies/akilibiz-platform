@@ -26,6 +26,7 @@ import {
   formatSupplierCurrency,
 } from "@/components/akilibiz/suppliers/suppliers-data";
 import { Badge } from "@/components/ui/badge";
+import type { PurchaseOrderLine, PurchaseOrderReceipt } from "@/components/akilibiz/suppliers/purchase-order-detail";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -61,13 +62,29 @@ const badge = (s: PurchaseOrderStatus) => (
   </Badge>
 );
 export default function SupplierPurchaseOrdersPage() {
-  const { orders, addOrder, editOrder, markReceived, getOrders, loading, error } =
+  const { orders, addOrder, editOrder, markReceived, getOrders, getOrderDetail, loading, error } =
     usePurchaseOrdersData();
   useEffect(()=>{void getOrders();},[getOrders]);
   const { suppliers } = useSuppliersData();
   const [form, setForm] = useState(false),
     [selected, setSelected] = useState<Row | null>(null),
     [detail, setDetail] = useState(false);
+  const [orderDetail,setOrderDetail]=useState<{
+    lines:PurchaseOrderLine[];receipts:PurchaseOrderReceipt[];linesReconciled:boolean;
+  }|null>(null);
+  const [detailLoading,setDetailLoading]=useState(false);
+  const [detailError,setDetailError]=useState<string|null>(null);
+  useEffect(()=>{
+    if(!detail||!selected){setOrderDetail(null);setDetailError(null);return;}
+    let active=true;
+    setOrderDetail(null);setDetailError(null);setDetailLoading(true);
+    void getOrderDetail(selected).then(result=>{
+      if(active)setOrderDetail(result);
+    }).catch(cause=>{
+      if(active)setDetailError(cause instanceof Error?cause.message:"Order details could not be loaded.");
+    }).finally(()=>{if(active)setDetailLoading(false);});
+    return ()=>{active=false;};
+  },[detail,selected,getOrderDetail]);
   const [data, setData] = useState({
     po_number: "",
     supplier_id: "",
@@ -373,7 +390,7 @@ export default function SupplierPurchaseOrdersPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={detail} onOpenChange={setDetail}>
-        <DialogContent>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Purchase Order Details</DialogTitle>
             <DialogDescription>
@@ -405,6 +422,53 @@ export default function SupplierPurchaseOrdersPage() {
                   <span>Status</span>
                   {badge(selected.status)}
                 </div>
+                {detailLoading && <p role="status" className="text-sm text-muted-foreground">Loading purchased items and goods receipts…</p>}
+                {detailError && (
+                  <div role="alert" className="space-y-2 rounded-md border border-destructive/30 p-3">
+                    <p className="text-sm text-destructive">{detailError}</p>
+                    <p className="text-xs text-muted-foreground">The order has not been changed. Close and reopen to try again.</p>
+                  </div>
+                )}
+                {orderDetail && (
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="space-y-2">
+                      <p className="font-semibold">Ordered items</p>
+                      {orderDetail.lines.length===0 ? (
+                        <p className="text-sm text-muted-foreground">Item-level details are not available in this synchronized order.</p>
+                      ) : orderDetail.lines.map(line=>(
+                        <div key={line.id} className="grid grid-cols-[1fr_auto] gap-2 rounded-md border p-3 text-sm">
+                          <div>
+                            <p className="font-medium">Product #{line.product_id}</p>
+                            <p className="text-muted-foreground">
+                              Ordered: {line.ordered_quantity_milli/1000} {line.stock_unit??"units"} · Received: {line.received_quantity_milli/1000} {line.stock_unit??"units"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">{formatSupplierCurrency(line.line_total_ugx)}</p>
+                            <p className="text-xs text-muted-foreground">{formatSupplierCurrency(line.unit_price_ugx)}/unit</p>
+                          </div>
+                        </div>
+                      ))}
+                      {orderDetail.linesReconciled && (
+                        <p className="text-xs text-muted-foreground">Item totals match this purchase order.</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <p className="font-semibold">Goods receipt history</p>
+                      {orderDetail.receipts.length===0 ? (
+                        <p className="text-sm text-muted-foreground">No synchronized goods receipts linked to this order.</p>
+                      ) : orderDetail.receipts.map(receipt=>(
+                        <div key={receipt.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                          <div>
+                            <p className="font-medium">{receipt.receipt_number}</p>
+                            <p className="text-xs text-muted-foreground">{receipt.receipt_date} · {receipt.status==="voided"?"Voided":"Posted"}</p>
+                          </div>
+                          <span>{formatSupplierCurrency(receipt.total_amount_ugx)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {selected.status !== "Received" &&
                   selected.status !== "Cancelled" && (
                     <Button
