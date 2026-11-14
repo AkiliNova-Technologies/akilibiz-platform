@@ -80,15 +80,62 @@ begin
     ]) then
     raise exception 'Complete product and inventory settings first' using errcode='22023';
   end if;
-  if item.desktop_options->>'product_type' not in ('stock_item','service','digital','fee')
+  -- Validate each option type before numeric casts. A draft can be written
+  -- through the RLS-protected table API, bypassing the Next.js parser.
+  -- Bad JSON must fail with 22023, never an uncaught numeric cast error.
+  if jsonb_typeof(item.desktop_options->'product_type')<>'string'
+    or item.desktop_options->>'product_type' not in ('stock_item','service','digital','fee')
+    or jsonb_typeof(item.desktop_options->'inventory_type')<>'string'
     or item.desktop_options->>'inventory_type' not in ('count','weight','liquid','length','area','volume')
+    or jsonb_typeof(item.desktop_options->'sales_unit')<>'string'
     or coalesce(length(btrim(item.desktop_options->>'sales_unit')),0) not between 1 and 40
+    or jsonb_typeof(item.desktop_options->'purchase_unit')<>'string'
     or coalesce(length(btrim(item.desktop_options->>'purchase_unit')),0) not between 1 and 40
-    or (item.desktop_options->>'unit_conversion_factor')::numeric<=0
-    or (item.desktop_options->>'min_stock_level')::numeric<0
-    or (item.desktop_options->>'max_stock_level')::numeric <
-       (item.desktop_options->>'min_stock_level')::numeric then
+    or jsonb_typeof(item.desktop_options->'allow_decimal_quantity')<>'boolean'
+    or jsonb_typeof(item.desktop_options->'allow_negative_stock')<>'boolean'
+    or jsonb_typeof(item.desktop_options->'track_expiry')<>'boolean'
+    or jsonb_typeof(item.desktop_options->'track_batches')<>'boolean'
+    or jsonb_typeof(item.desktop_options->'tax_inclusive')<>'boolean'
+  then
     raise exception 'Product inventory settings are invalid' using errcode='22023';
+  end if;
+  if jsonb_typeof(item.desktop_options->'unit_conversion_factor')<>'number'
+    or jsonb_typeof(item.desktop_options->'min_stock_level')<>'number'
+    or jsonb_typeof(item.desktop_options->'max_stock_level')<>'number'
+    or (item.desktop_options->>'unit_conversion_factor') !~ '^[0-9]+(\\.[0-9]+)?$'
+    or (item.desktop_options->>'min_stock_level') !~ '^[0-9]+(\\.[0-9]+)?$'
+    or (item.desktop_options->>'max_stock_level') !~ '^[0-9]+(\\.[0-9]+)?$'
+  then
+    raise exception 'Use valid nonnegative numbers for inventory settings'
+      using errcode='22023';
+  end if;
+  if (item.desktop_options->>'unit_conversion_factor')::numeric<=0
+    or (item.desktop_options->>'unit_conversion_factor')::numeric>1000000000
+    or (item.desktop_options->>'min_stock_level')::numeric>1000000000
+    or (item.desktop_options->>'max_stock_level')::numeric>1000000000
+    or (item.desktop_options->>'max_stock_level')::numeric <
+       (item.desktop_options->>'min_stock_level')::numeric
+  then
+    raise exception 'Product inventory levels are outside the supported range'
+      using errcode='22023';
+  end if;
+  if jsonb_typeof(item.desktop_options->'package_content_quantity')='null'
+     and jsonb_typeof(item.desktop_options->'package_content_unit')='null' then
+    null;
+  elsif jsonb_typeof(item.desktop_options->'package_content_quantity')='number'
+    and jsonb_typeof(item.desktop_options->'package_content_unit')='string'
+    and (item.desktop_options->>'package_content_quantity') ~ '^[0-9]+(\\.[0-9]+)?$'
+    and (item.desktop_options->>'package_content_unit') in
+      ('mg','g','kg','tonne','ml','cl','dl','ltr','mm','cm','m')
+  then
+    if (item.desktop_options->>'package_content_quantity')::numeric<=0
+      or (item.desktop_options->>'package_content_quantity')::numeric>1000000000
+    then
+      raise exception 'Product package quantity is invalid' using errcode='22023';
+    end if;
+  else
+    raise exception 'Product package quantity and measure must be entered together'
+      using errcode='22023';
   end if;
   select * into category from public.desktop_categories c
     where c.id=item.category_id and c.business_id=target_business_id and c.is_active;
