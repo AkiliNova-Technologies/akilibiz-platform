@@ -12,15 +12,17 @@ import { Separator } from "@/components/ui/separator";
 import type { HostedSupplier } from "@/components/akilibiz/contacts/hosted-directory";
 import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
+import { ContactCreateDialog } from "@/components/akilibiz/contacts/contact-create-dialog";
 import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
 function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
 }
 
-export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean;pagination:DirectoryPagination}) {
+export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContacts,pagination}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean;canCreateContacts:boolean;pagination:DirectoryPagination}) {
   const [selected, setSelected] = useState<HostedSupplier | null>(null);
   const [editing,setEditing]=useState<HostedSupplier|null>(null);
+  const [creating,setCreating]=useState(false);
   const activeCount = useMemo(() => suppliers.filter((supplier) => supplier.is_active).length, [suppliers]);
 
   // The contact-directory query cannot establish purchases, payables or product counts.
@@ -88,7 +90,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{su
                   <Upload className="size-4" />Import
                 </Button>
                 <ContactExportButton entity="suppliers" />
-                <Button type="button" disabled title="Supplier creation is unavailable">
+                <Button type="button" disabled={!canCreateContacts} title={canCreateContacts ? "Request a supplier on the paired desktop" : "Contact creation is not yet enabled"} onClick={()=>setCreating(true)}>
                   <Plus className="size-4" />Add Supplier
                 </Button>
               </div>
@@ -97,6 +99,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{su
         </CardContent>
       </Card>
 
+      {creating&&<ContactCreateDialog entity="supplier" onClose={()=>setCreating(false)}/>}
       {editing&&<ContactEditDialog key={editing.id} contact={editing} entity="supplier"
         onClose={()=>setEditing(null)}/>}
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
