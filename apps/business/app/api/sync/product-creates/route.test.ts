@@ -67,6 +67,19 @@ describe("guarded desktop product creation request API",()=>{
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({error:"Product requests are not ready for this business."});
   });
+  it("reports published only when the authoritative database status says published",async()=>{
+    setup();
+    const response=await GET(new NextRequest(`http://localhost/api/sync/product-creates?id=${commandId}`));
+    expect((await response.json()).state).toBe("pending");
+    const rpc=setup();
+    rpc.mockImplementation(async()=>({
+      data:[{command_id:commandId,draft_id:draftId,state:"published",
+        requested_at:"2026-11-14T14:00:00Z"}],error:null,
+    }));
+    const published=await GET(new NextRequest(`http://localhost/api/sync/product-creates?id=${commandId}`));
+    expect(published.status).toBe(200);
+    expect((await published.json()).state).toBe("published");
+  });
   it("looks up status by owner and business, not by arbitrary product ID",async()=>{
     const rpc=setup();
     const response=await GET(new NextRequest(`http://localhost/api/sync/product-creates?id=${commandId}`));
