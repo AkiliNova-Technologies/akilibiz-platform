@@ -36,6 +36,7 @@ export async function GET(){
     readOnlyCatalogue:true},{headers});
 }
 export async function POST(request:NextRequest){
+  if(process.env.AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS!=="1") return fail("Product preparation drafts are not yet available.",503);
   const context=await authorize();
   if(!context)return fail("Sign in required.",401);
   if(!context.allowed)return fail("Product drafts require an owner or manager.",403);
@@ -59,6 +60,7 @@ export async function POST(request:NextRequest){
   },{status:200,headers});
 }
 export async function DELETE(request:NextRequest){
+  if(process.env.AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS!=="1") return fail("Product preparation drafts are not yet available.",503);
   const context=await authorize();
   if(!context)return fail("Sign in required.",401);
   if(!context.allowed)return fail("Product drafts require an owner or manager.",403);
