@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {parsePurchaseOrderDraft,purchaseOrderDraftTotal,purchaseOrderLineTotal} from "./purchase-order-draft-validation";
+import {parsePurchaseOrderDraft,purchaseOrderDraftTotal,purchaseOrderLineTotal,parseMilliQuantityInput} from "./purchase-order-draft-validation";
 
 const draft={
   id:"11111111-1111-4111-8111-111111111111",
@@ -32,6 +32,15 @@ describe("desktop-authoritative purchasing draft preparation",()=>{
     expect(parsePurchaseOrderDraft({...draft,order_date:"2026-02-30"})).toBeNull();
     expect(parsePurchaseOrderDraft({...draft,source_business_public_id:""})).toBeNull();
     expect(parsePurchaseOrderDraft({...draft,notes:"x".repeat(2001)})).toBeNull();
+  });
+  it("parses decimal quantities to exact thousandths without rounding user input",()=>{
+    expect(parseMilliQuantityInput("1.5")).toBe(1500);
+    expect(parseMilliQuantityInput("1.001")).toBe(1001);
+    expect(parseMilliQuantityInput("0.001")).toBe(1);
+    expect(parseMilliQuantityInput("1.0005")).toBeNull();
+    expect(parseMilliQuantityInput("0.0004")).toBeNull();
+    expect(parseMilliQuantityInput("0")).toBeNull();
+    expect(parseMilliQuantityInput("not-a-number")).toBeNull();
   });
   it("rejects precision overflow instead of rounding or unsafe integer arithmetic",()=>{
     expect(purchaseOrderDraftTotal([{
