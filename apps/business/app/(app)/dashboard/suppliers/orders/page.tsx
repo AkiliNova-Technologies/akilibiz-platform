@@ -403,7 +403,7 @@ export default function SupplierPurchaseOrdersPage() {
                 {[
                   ["PO Number", selected.po_number],
                   ["Supplier", selected.supplier_name],
-                  ["Items", selected.items_count],
+                  ["Ordered quantity", selected.items_count],
                   [
                     "Total Amount",
                     formatSupplierCurrency(selected.total_amount),
