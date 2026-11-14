@@ -75,3 +75,15 @@ and export integrity.
 Do not confuse these source changes with an end-to-end deployment. The live
 AkiliBiz Supabase migration history still lags the repository and **must not**
 be used as the disposable integration environment.
+
+## Financial mirror completeness hardening
+
+The supplier-payment and authoritative-expense adapters previously requested
+just the first default 100 records from their business-scoped mirror API.
+Both now use the complete bounded mirror loader whenever more rows exist,
+and clear stale rows if pagination or an API request fails. This avoids
+presenting a partial supplier payment register or expense list as complete.
+
+The shared pagination regression test covers 101 rows in two pages, missing
+second-page records and the 5000-record safety limit. Acceptance with the
+desktop-published schema and a disposable business is still required.
