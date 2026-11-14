@@ -29,30 +29,30 @@ create policy web_purchase_order_drafts_select on public.web_purchase_order_draf
  for select to authenticated using (
  created_by=(select auth.uid()) and exists (
  select 1 from public.business_memberships m
- where m.business_id=business_id and m.user_id=(select auth.uid())
+ where m.business_id=web_purchase_order_drafts.business_id and m.user_id=(select auth.uid())
    and m.active and m.role in ('owner','manager')));
 create policy web_purchase_order_drafts_insert on public.web_purchase_order_drafts
  for insert to authenticated with check (
  created_by=(select auth.uid()) and exists (
  select 1 from public.business_memberships m
- where m.business_id=business_id and m.user_id=(select auth.uid())
+ where m.business_id=web_purchase_order_drafts.business_id and m.user_id=(select auth.uid())
    and m.active and m.role in ('owner','manager')));
 create policy web_purchase_order_drafts_update on public.web_purchase_order_drafts
  for update to authenticated using (
  created_by=(select auth.uid()) and exists (
  select 1 from public.business_memberships m
- where m.business_id=business_id and m.user_id=(select auth.uid())
+ where m.business_id=web_purchase_order_drafts.business_id and m.user_id=(select auth.uid())
    and m.active and m.role in ('owner','manager')))
  with check (
  created_by=(select auth.uid()) and exists (
  select 1 from public.business_memberships m
- where m.business_id=business_id and m.user_id=(select auth.uid())
+ where m.business_id=web_purchase_order_drafts.business_id and m.user_id=(select auth.uid())
    and m.active and m.role in ('owner','manager')));
 create policy web_purchase_order_drafts_delete on public.web_purchase_order_drafts
  for delete to authenticated using (
  created_by=(select auth.uid()) and exists (
  select 1 from public.business_memberships m
- where m.business_id=business_id and m.user_id=(select auth.uid())
+ where m.business_id=web_purchase_order_drafts.business_id and m.user_id=(select auth.uid())
    and m.active and m.role in ('owner','manager')));
 
 -- Identity and supplier source are immutable on update. A new draft is needed
