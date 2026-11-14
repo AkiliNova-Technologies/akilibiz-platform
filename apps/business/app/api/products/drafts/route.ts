@@ -21,7 +21,7 @@ export async function GET(){
   const {supabase,user,business}=context;
   const [drafts,categories]=await Promise.all([
     supabase.from("web_product_drafts")
-      .select("id,name,sku,category_id,barcode,brand,description,stock_unit,cost_price_ugx,selling_price_ugx,updated_at",{count:"exact"})
+      .select("id,name,sku,category_id,barcode,brand,description,stock_unit,cost_price_ugx,selling_price_ugx,desktop_options,updated_at",{count:"exact"})
       .eq("business_id",business.id).eq("created_by",user.id)
       .order("updated_at",{ascending:false}).range(0,99),
     supabase.from("desktop_categories")
