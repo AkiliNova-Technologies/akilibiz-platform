@@ -53,5 +53,5 @@ export function HostedDirectory({
 }) {
   return view === "customers"
     ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} canCreateContacts={canCreateContacts} pagination={pagination} />
-    : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} pagination={pagination} />;
+    : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} canCreateContacts={canCreateContacts} pagination={pagination} />;
 }
