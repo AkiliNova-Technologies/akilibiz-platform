@@ -1,5 +1,11 @@
 -- Web purchase-order PREPARATION ONLY. No purchase, VAT, stock, or payable posting.
 -- No inbound desktop inbox or outbound request enabled by this migration.
+-- The existing supplier table has a UUID primary key and a source-specific
+-- composite uniqueness constraint, but not yet (business_id,id).
+-- Preserve a database-enforced tenant-bound supplier reference.
+alter table public.desktop_suppliers
+ add constraint desktop_suppliers_business_draft_ref unique(business_id,id);
+
 create table public.web_purchase_order_drafts (
   id uuid primary key,
   business_id uuid not null references public.businesses(id) on delete restrict,
