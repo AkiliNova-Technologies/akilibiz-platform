@@ -12,9 +12,11 @@ export async function HostedDirectoryPage({ view }: { view: "customers" | "suppl
   const records: Record<string, unknown>[] = [];
   let error: string | null = null;
 
-  for (let offset = 0; offset < 5000; offset += 500) {
+  const pageSize = 500;
+  const maxRecords = 5000;
+  for (let offset = 0; offset <= maxRecords; offset += pageSize) {
     const result = await supabase.from(table).select(fields)
-      .eq("business_id", business.id).order("id").range(offset, offset + 499);
+      .eq("business_id", business.id).order("id").range(offset, offset + pageSize - 1);
     if (result.error) {
       error = view === "customers"
         ? "Could not load your customers. Check your connection and try again."
@@ -23,8 +25,14 @@ export async function HostedDirectoryPage({ view }: { view: "customers" | "suppl
       break;
     }
     const batch = (result.data ?? []) as Record<string, unknown>[];
+    if (offset === maxRecords && batch.length) {
+      // Do not present a silently truncated customer/supplier list as complete.
+      error = "This business has more records than this directory can safely display. Use the desktop application until hosted pagination is available.";
+      records.length = 0;
+      break;
+    }
     records.push(...batch);
-    if (batch.length < 500) break;
+    if (batch.length < pageSize) break;
   }
 
   return <HostedDirectory
