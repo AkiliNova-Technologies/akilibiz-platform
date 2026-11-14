@@ -63,6 +63,7 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
   return {from,categoryQuery,writes,draftSelect};
 }
 describe("product draft API constraints",()=>{
+  afterEach(()=>vi.unstubAllEnvs());
   beforeEach(()=>{
     vi.clearAllMocks();
     vi.stubEnv("AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS","1");
