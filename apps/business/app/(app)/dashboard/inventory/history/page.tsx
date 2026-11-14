@@ -1,255 +1,105 @@
-"use client";
-import { useState } from "react";
-import { ArrowDown, ArrowUp, ClipboardList, Eye, History } from "lucide-react";
+import Link from "next/link";
+import { requireActiveBusiness } from "@/lib/business-context";
+import { createClient } from "@/lib/supabase/server";
 import {
-  DataTable,
-  type TableAction,
-  type TableData,
-  type TableField,
-} from "@/components/akilibiz/data-table";
-import MetricCard from "@/components/akilibiz/metric-card";
-import {
-  type AdjustmentType,
-  type StockMovement,
-} from "@/components/akilibiz/inventory/inventory-data";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-type Row = StockMovement & TableData;
-const labels: Record<AdjustmentType | "", string> = {
-  "": "",
-  stock_in: "Stock In",
-  stock_out: "Stock Out",
-  damaged: "Damaged",
-  lost: "Lost / Missing",
-  return_in: "Customer Return",
-  correction: "Inventory Correction",
-  opening_balance: "Opening Balance",
-};
-const date = (value: string) =>
-  new Date(value).toLocaleString("en-UG", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  type HostedMovement, validateHostedMovement, sourceProductKey, formatMilliStock,
+} from "@/lib/hosted-stock-movement-history";
+import { Button } from "@/components/ui/button";
+
+type Query = { page?: string | string[] };
+type Product = { local_product_id:number; local_business_public_id:string; name:string; sku:string; stock_unit:string };
+
+export default async function InventoryStockHistoryPage({
+  searchParams,
+}: { searchParams: Promise<Query> }) {
+  const active = await requireActiveBusiness();
+  const supabase = await createClient();
+  const params = await searchParams;
+  const requested = typeof params.page === "string" && /^[1-9][0-9]{0,4}$/.test(params.page)
+    ? Number(params.page) : 1;
+  const pageSize = 50;
+  const result = await supabase.rpc("list_desktop_inventory_movement_history",{
+    target_business_id:active.id,
+    page_offset:(requested-1)*pageSize,
+    page_limit:pageSize,
   });
-export default function InventoryStockHistoryPage() {
-  const [detail, setDetail] = useState<Row | null>(null);
-  // The hosted service does not yet expose a business-scoped movement ledger.
-  // Never present demonstration movements as recorded inventory transactions.
-  const rows: Row[] = [];
-  const fields: TableField<Row>[] = [
-    {
-      key: "product_name",
-      header: "Product",
-      enableSorting: true,
-      cell: (value) => <span className="font-medium">{String(value)}</span>,
-    },
-    {
-      key: "sku",
-      header: "SKU",
-      align: "center",
-      cell: (value) => (
-        <span className="font-mono text-sm">{String(value)}</span>
-      ),
-    },
-    {
-      key: "movement_type",
-      header: "Movement Type",
-      align: "center",
-      cell: (value) => (
-        <Badge
-          variant={
-            value === "damaged" || value === "lost" ? "destructive" : "outline"
-          }>
-          {labels[value as AdjustmentType | ""]}
-        </Badge>
-      ),
-    },
-    {
-      key: "quantity_change",
-      header: "Quantity Change",
-      align: "center",
-      enableSorting: true,
-      cell: (value, row) => (
-        <span
-          className={
-            Number(value) < 0 ? "font-medium text-destructive" : "font-medium"
-          }>
-          {Number(value) > 0 ? "+" : ""}
-          {Number(value)} {row.stock_unit}
-        </span>
-      ),
-    },
-    {
-      key: "stock_before",
-      header: "Before",
-      align: "center",
-      enableSorting: true,
-      cell: (value, row) => `${value} ${row.stock_unit}`,
-    },
-    {
-      key: "stock_after",
-      header: "After",
-      align: "center",
-      enableSorting: true,
-      cell: (value, row) => `${value} ${row.stock_unit}`,
-    },
-    {
-      key: "performed_by",
-      header: "Performed By",
-      align: "center",
-      enableSorting: true,
-    },
-    {
-      key: "created_at",
-      header: "Date & Time",
-      align: "center",
-      enableSorting: true,
-      cell: (value) => (
-        <span className="text-sm text-muted-foreground">
-          {date(String(value))}
-        </span>
-      ),
-    },
-  ];
-  const actions: TableAction<Row>[] = [
-    {
-      type: "custom",
-      label: "Inspect details",
-      icon: <Eye className="size-4" />,
-      onClick: setDetail,
-    },
-  ];
-  return (
-    <>
-      <div className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col gap-6">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Stock Movement History
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Review stock movement, audit references, and inventory history.
-            </p>
-          </div>
-          <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <MetricCard
-              title="Total Movements"
-              value="—"
-              description="Movement records unavailable"
-              icon={<History className="size-5" />}
-            />
-            <MetricCard
-              title="Stock Added"
-              value="—"
-              description="Incoming movements unavailable"
-              icon={<ArrowUp className="size-5" />}
-            />
-            <MetricCard
-              title="Stock Removed"
-              value="—"
-              description="Outgoing movements unavailable"
-              icon={<ArrowDown className="size-5" />}
-            />
-            <MetricCard
-              title="Adjustment Events"
-              value="—"
-              description="Adjustment records unavailable"
-              icon={<ClipboardList className="size-5" />}
-            />
-          </section>
-          <Card>
-            <CardContent className="px-6 pb-6">
-              <DataTable
-                title="Stock Movement Ledger"
-                description="Search and review product, movement type, quantities, and audit information"
-                data={rows}
-                fields={fields}
-                actions={actions}
-                enableGlobalSearch
-                searchPlaceholder="Search stock history..."
-                pageSize={10}
-                onRowClick={setDetail}
-                emptyMessage="No stock movements available."
-                onRefresh={() => {}}
-                refreshDisabled
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      <Dialog
-        open={Boolean(detail)}
-        onOpenChange={(open) => !open && setDetail(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Movement Details</DialogTitle>
-            <DialogDescription>
-              Review the complete stock movement audit record.
-            </DialogDescription>
-          </DialogHeader>
-          {detail && (
-            <Card>
-              <CardContent className="space-y-3 p-4">
-                {[
-                  ["Product", detail.product_name],
-                  ["SKU", detail.sku],
-                  ["Before", `${detail.stock_before} ${detail.stock_unit}`],
-                  [
-                    "Change",
-                    `${detail.quantity_change > 0 ? "+" : ""}${detail.quantity_change} ${detail.stock_unit}`,
-                  ],
-                  ["After", `${detail.stock_after} ${detail.stock_unit}`],
-                  ["Reason", detail.reason],
-                  ["Performed By", detail.performed_by],
-                  ["Date & Time", date(detail.created_at)],
-                ].map(([label, value]) => (
-                  <div className="flex justify-between gap-4" key={label}>
-                    <span className="text-sm text-muted-foreground">
-                      {label}
-                    </span>
-                    <span className="text-right font-medium">{value}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Movement Type
-                  </span>
-                  <Badge
-                    variant={
-                      detail.movement_type === "damaged" ||
-                      detail.movement_type === "lost"
-                        ? "destructive"
-                        : "outline"
-                    }>
-                    {labels[detail.movement_type]}
-                  </Badge>
-                </div>
-                {detail.notes && (
-                  <>
-                    <Separator />
-                    <div>
-                      <p className="mb-1 text-sm text-muted-foreground">
-                        Notes
-                      </p>
-                      <p className="text-sm">{detail.notes}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+  let error = result.error ? "Stock history is not available yet. Your existing stock records were not changed." : null;
+  const raw = (result.data ?? []) as HostedMovement[];
+  const total = raw[0]?.total_count ?? 0;
+  if (!error && raw.some(row=>!validateHostedMovement(row))) {
+    error = "Some stock movements could not be verified. Try again later.";
+  }
+  const pageCount = Math.max(1,Math.ceil(total/pageSize));
+  const page = requested > pageCount ? pageCount : requested;
+  const movements = error || requested > pageCount ? [] : raw;
+  const sources = [...new Set(movements.map(row=>row.local_business_public_id))];
+  const productResult = movements.length
+    ? await supabase.from("desktop_products")
+        .select("local_product_id,local_business_public_id,name,sku,stock_unit")
+        .eq("business_id",active.id).in("local_business_public_id",sources)
+        .limit(5000)
+    : { data: [] as Product[], error: null };
+  if (productResult.error) error = "Could not identify the products in the stock movement history.";
+  const names = new Map(
+    ((productResult.data ?? []) as Product[]).map(row=>[
+      sourceProductKey(row.local_business_public_id,row.local_product_id),row,
+    ]),
   );
+  const href=(next:number)=>`/dashboard/inventory/history?page=${next}`;
+  return <main className="flex flex-1 flex-col gap-5">
+    <div className="space-y-1">
+      <h1 className="text-2xl font-semibold">Stock Movement History</h1>
+      <p className="text-sm text-muted-foreground">
+        Verified desktop movements received by AkiliBiz Web. Historical movements before
+        the first synchronized checkpoint may not be included.
+      </p>
+    </div>
+    {error ? <div className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive" role="alert">{error}</div>
+      : <div className="text-sm text-muted-foreground">{total.toLocaleString("en-UG")} synchronized movements</div>}
+    <div className="overflow-x-auto rounded-lg border bg-card">
+      <table className="w-full min-w-[800px] text-left text-sm">
+        <thead className="border-b bg-muted/40 text-muted-foreground">
+          <tr>
+            <th className="px-4 py-3 font-medium">Product</th>
+            <th className="px-4 py-3 font-medium">Movement</th>
+            <th className="px-4 py-3 font-medium">Change</th>
+            <th className="px-4 py-3 font-medium">Before</th>
+            <th className="px-4 py-3 font-medium">After</th>
+            <th className="px-4 py-3 font-medium">Reason</th>
+            <th className="px-4 py-3 font-medium">Received</th>
+          </tr>
+        </thead>
+        <tbody>
+          {!error && movements.map(row=>{
+            const product=names.get(sourceProductKey(row.local_business_public_id,row.local_product_id));
+            const unit=product?.stock_unit??"units";
+            return <tr key={row.movement_id} className="border-b last:border-0">
+              <td className="px-4 py-3">
+                <div className="font-medium">{product?.name??"Product unavailable"}</div>
+                <div className="text-xs text-muted-foreground">{product?.sku??`Source ID ${row.local_product_id}`}</div>
+              </td>
+              <td className="px-4 py-3">{row.movement_type?.replaceAll("_"," ")??"Stock change"}</td>
+              <td className="px-4 py-3 tabular-nums">{row.delta_milli>0?"+":""}{formatMilliStock(row.delta_milli)} {unit}</td>
+              <td className="px-4 py-3 tabular-nums">{formatMilliStock(row.before_milli)} {unit}</td>
+              <td className="px-4 py-3 tabular-nums">{formatMilliStock(row.after_milli)} {unit}</td>
+              <td className="px-4 py-3">{row.reason??"—"}</td>
+              <td className="px-4 py-3">{new Date(row.accepted_at).toLocaleString("en-UG",{timeZone:"Africa/Kampala"})}</td>
+            </tr>;
+          })}
+          {!error && movements.length===0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+            No synchronized movement receipts are available for this business.
+          </td></tr>}
+        </tbody>
+      </table>
+    </div>
+    {!error && <div className="flex items-center justify-between gap-3">
+      <span className="text-sm text-muted-foreground">Page {page} of {pageCount}</span>
+      <div className="flex gap-2">
+        {page>1?<Button asChild variant="outline"><Link href={href(page-1)}>Previous</Link></Button>:
+          <Button disabled variant="outline">Previous</Button>}
+        {page<pageCount?<Button asChild variant="outline"><Link href={href(page+1)}>Next</Link></Button>:
+          <Button disabled variant="outline">Next</Button>}
+      </div>
+    </div>}
+  </main>;
 }
