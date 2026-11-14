@@ -105,6 +105,23 @@ describe("product draft API constraints",()=>{
     expect(client.from).not.toHaveBeenCalledWith("desktop_products");
     expect(await response.json()).toMatchObject({id:draft.id,state:"draft"});
   });
+  it("stores approved desktop product preparation options without publishing",async()=>{
+    const client=setup();
+    const options={
+      product_type:"stock_item", inventory_type:"count", sales_unit:"pcs",
+      purchase_unit:"carton",unit_conversion_factor:12,
+      min_stock_level:1,max_stock_level:40,
+      allow_decimal_quantity:false,allow_negative_stock:false,
+      track_expiry:false,track_batches:true,tax_inclusive:false,
+      package_content_quantity:null,package_content_unit:null,
+    };
+    const response=await POST(submit({...draft,desktop_options:options}));
+    expect(response.status).toBe(200);
+    expect(client.writes).toHaveBeenCalledWith({
+      ...draft,desktop_options:options,business_id:"tenant-a",created_by:"actor-a",
+    },{onConflict:"id"});
+    expect(client.from).not.toHaveBeenCalledWith("desktop_products");
+  });
   it("rejects malformed draft deletion before touching tables",async()=>{
     const client=setup();
     const result=await DELETE(new NextRequest("http://localhost/api/products/drafts?id=invalid",{method:"DELETE"}));
