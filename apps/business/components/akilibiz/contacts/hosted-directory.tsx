@@ -39,6 +39,7 @@ export function HostedDirectory({
   suppliers,
   error,
   canEditContacts,
+  canCreateContacts,
   pagination,
 }: {
   view: "customers" | "suppliers";
@@ -47,9 +48,10 @@ export function HostedDirectory({
   suppliers: HostedSupplier[];
   error?: string | null;
   canEditContacts: boolean;
+  canCreateContacts: boolean;
   pagination: DirectoryPagination;
 }) {
   return view === "customers"
-    ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} pagination={pagination} />
+    ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} canCreateContacts={canCreateContacts} pagination={pagination} />
     : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} pagination={pagination} />;
 }
