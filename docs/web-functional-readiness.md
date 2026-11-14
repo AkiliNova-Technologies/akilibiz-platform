@@ -59,3 +59,22 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 Manually test searching for a contact on a later page, navigating 50+ results, clearing the search, switching hosted businesses and verifying no contacts from the previous business appear, and checking the owner-only edit gate. Typecheck and unit tests cannot replace these hosted RLS checks.
+
+## Hosted contact CSV export increment
+
+- Customers and Suppliers now have a functioning **Export CSV** button that requests `GET /api/contacts/export?entity=customers|suppliers`.
+- The endpoint uses the authenticated Supabase client and `requireActiveBusiness()`. Both the record-count and data queries are constrained to the selected business; it never trusts a browser-provided business ID or uses service-role credentials.
+- Exported fields are explicitly allowlisted. CSV output quotes embedded commas/quotes/newlines and prefixes potential spreadsheet formula cells to limit CSV formula injection.
+- The export is bounded at 10,000 records, fetched in batches of 500. Larger exports fail clearly instead of silently downloading partial records. If the record count changes while exporting, the request fails and asks the user to retry.
+- The browser download control reports server errors and does not claim success when an export fails.
+- Customer/supplier **creation remains disabled**, deliberately: current bidirectional-contact infrastructure implements version-checked updates of existing desktop-authoritative records, not the desktop acceptance/reconciliation contract for brand-new records. Direct web inserts into `desktop_customers` or `desktop_suppliers` would conflict with SQLite ownership and must not be treated as a finished creation workflow.
+- Existing owner-only update queue and environment gates remain unchanged.
+
+### Focused checks
+
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+Hosted acceptance: export each directory as an authorized user, confirm that the selected business is the only source, test empty directory behavior and the 10,000-record limit, and confirm that errors do not download a misleading file.
