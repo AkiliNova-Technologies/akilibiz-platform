@@ -63,7 +63,17 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
   return {from,categoryQuery,writes,draftSelect};
 }
 describe("product draft API constraints",()=>{
-  beforeEach(()=>vi.clearAllMocks());
+  beforeEach(()=>{
+    vi.clearAllMocks();
+    vi.stubEnv("AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS","1");
+  });
+  it("denies draft access when the independent feature gate is off",async()=>{
+    vi.stubEnv("AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS","0");
+    const client=setup();
+    expect((await GET()).status).toBe(503);
+    expect((await POST(submit(draft))).status).toBe(503);
+    expect(client.from).not.toHaveBeenCalled();
+  });
   it("rejects unauthenticated and unauthorized users before writing",async()=>{
     const unauth=setup({signedIn:false});
     expect((await POST(submit(draft))).status).toBe(401);
