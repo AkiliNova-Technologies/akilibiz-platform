@@ -155,3 +155,33 @@ No creation, receipt posting, stock changes, VAT posting, database
 migrations, or opt-in flag changes occurred. These are additive, owner-scoped
 read-only web operations. The complete local PostgreSQL/SQLite integration
 test remains deferred until all major web command flows are ready.
+
+## Purchasing write workflow — preparation and request staging
+
+This source increment adds an independent **web purchase-order draft** workflow
+at `/dashboard/suppliers/orders/prepare`, protected by
+`AKILIBIZ_ENABLE_WEB_PURCHASE_ORDER_DRAFTS` (default OFF).
+Owner/manager can save/update/delete their own business-scoped drafts,
+choose an active supplier and its same-origin desktop stock products, enter
+purchase quantities at 0.001 resolution and whole UGX prices, and see
+exact line/order totals without rounding. Local supplier numeric IDs are never
+accepted from the browser. The new `20261114220000` migration enforces RLS,
+immutable draft source identity and direct-table numeric/source validation.
+
+An independent **owner-only default-OFF review request** protocol is now
+represented in source: `20261114230000_web_purchase_order_review_requests.sql`
+and `/api/purchasing/requests`. The SQL function locks the prepared draft,
+revalidates the supplier/product source and paired desktop device, snapshots
+the supplier source public UUID and each product's local integer ID, and
+creates one immutable, idempotent pending request. Submitted drafts cannot be
+updated/deleted. The UI recovers request states from owner-scoped RPC, and
+keeps an opaque retry identifier only for uncertain POSTs.
+
+**Still NOT available:** desktop inbox staging/application, approvals,
+receiving inventory, supplier VAT documents, supplier payable/journal/stock
+posting, and receipt acknowledgement. The default-off queue does not execute
+any business transaction; all of those require desktop code and isolated
+qualification. No hosted migrations have been applied, no business data was
+changed, and no feature gate was activated.
+
+See `docs/sync/web-purchase-order-preparation-20261114.md`.
