@@ -13,7 +13,8 @@ import { parseProductDraft,type ProductDraftInput, type DesktopProductOptions, D
 
 type Category={id:string;name:string;local_business_public_id:string;is_active:boolean};
 type Draft=ProductDraftInput & {updated_at:string};
-type Response={drafts?:Draft[];categories?:Category[];error?:string;publicationRequestsEnabled?:boolean};
+type PublicationRequest={command_id:string;draft_id:string;state:"pending"|"staged"|"applied"|"conflict"|"published";requested_at:string};
+type Response={drafts?:Draft[];categories?:Category[];error?:string;publicationRequestsEnabled?:boolean;publicationRequests?:PublicationRequest[]};
 type Editor={id:string;name:string;sku:string;category_id:string;barcode:string;brand:string;description:string;stock_unit:string;cost:string;selling:string;desktop_options:DesktopProductOptions};
 const empty=():Editor=>({id:crypto.randomUUID(),name:"",sku:"",category_id:"",barcode:"",brand:"",description:"",stock_unit:"pcs",cost:"",selling:"",desktop_options:{...DEFAULT_PRODUCT_OPTIONS}});
 const money=(value:number)=>new Intl.NumberFormat("en-UG",{style:"currency",currency:"UGX",maximumFractionDigits:0}).format(value);
@@ -21,6 +22,7 @@ const money=(value:number)=>new Intl.NumberFormat("en-UG",{style:"currency",curr
 export default function ProductDraftsPage() {
   const [drafts,setDrafts]=useState<Draft[]>([]);
   const [publicationRequestsEnabled,setPublicationRequestsEnabled]=useState(false);
+  const [publicationRequests,setPublicationRequests]=useState<PublicationRequest[]>([]);
   const [categories,setCategories]=useState<Category[]>([]);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
@@ -37,16 +39,24 @@ export default function ProductDraftsPage() {
       if(!result.ok)throw new Error(body.error??"Product drafts are unavailable.");
       setDrafts(body.drafts??[]);
       setPublicationRequestsEnabled(body.publicationRequestsEnabled===true);
+      setPublicationRequests(body.publicationRequests??[]);
       setCategories(body.categories??[]);
     }catch(cause){
       setDrafts([]);setCategories([]);
       setPublicationRequestsEnabled(false);
+      setPublicationRequests([]);
       setError(cause instanceof Error?cause.message:"Could not load drafts.");
     }finally{setLoading(false);}
   },[]);
   useEffect(()=>{void reload();},[reload]);
 
+  const requestFor=(draftId:string)=>publicationRequests.find(request=>request.draft_id===draftId);
+  const draftIsSubmitted=(draftId:string)=>Boolean(requestFor(draftId));
   const openDraft=(row:Draft)=>{
+    if(draftIsSubmitted(row.id)){
+      setError("This draft has already been sent for desktop review and cannot be edited.");
+      return;
+    }
     setMessage(null);setError(null);
     setEditing({
       id:row.id,name:row.name,sku:row.sku,category_id:row.category_id,
@@ -219,12 +229,16 @@ export default function ProductDraftsPage() {
           drafts.map(draft=><div key={draft.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-3 last:border-b-0">
             <div>
               <p className="font-medium">{draft.name}</p>
-              <p className="text-xs text-muted-foreground">{draft.sku} · {money(draft.selling_price_ugx)} · Draft only</p>
+              <p className="text-xs text-muted-foreground">{draft.sku} · {money(draft.selling_price_ugx)} · {draftIsSubmitted(draft.id)?"Sent for desktop review":"Draft only"}</p>
             </div>
             <div className="flex gap-2">
-              {publicationRequestsEnabled && <ProductDesktopRequest draftId={draft.id} />}
-              <Button size="sm" variant="outline" disabled={busy} onClick={()=>openDraft(draft)}><FilePenLine className="size-4"/>Edit</Button>
-              <Button size="sm" variant="outline" disabled={busy} onClick={()=>setDiscardId(draft.id)}><Trash2 className="size-4"/>Discard</Button>
+              {publicationRequestsEnabled && <ProductDesktopRequest
+                draftId={draft.id}
+                initialRequest={requestFor(draft.id)}
+                onRequested={()=>void reload()}
+              />}
+              <Button size="sm" variant="outline" disabled={busy||draftIsSubmitted(draft.id)} onClick={()=>openDraft(draft)}><FilePenLine className="size-4"/>Edit</Button>
+              <Button size="sm" variant="outline" disabled={busy||draftIsSubmitted(draft.id)} onClick={()=>setDiscardId(draft.id)}><Trash2 className="size-4"/>Discard</Button>
             </div>
           </div>)}
       </CardContent>
