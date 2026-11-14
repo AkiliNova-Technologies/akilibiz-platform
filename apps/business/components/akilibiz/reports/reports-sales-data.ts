@@ -4,18 +4,16 @@ import { useCallback, useState } from "react";
 import { loadAllFinancialMirrorRows, type FinancialMirrorRow } from "@/components/akilibiz/finance/financial-mirror-client";
 import { mapHostedSale, saleDetailFromRows } from "@/components/akilibiz/sales-history/hosted-sales-mapper";
 import type { SaleListResponse } from "@/components/akilibiz/sales-history/sales-history-data";
+import { dateWithinRange, verifiedSalePaymentOutcome } from "./sales-report-validation";
 
 export interface SalesRegisterRow { id: number; sale_number: string; sale_date_utc: string; status: string; customer_name: string | null; total_amount_ugx: number; amount_paid_ugx: number; balance_due_ugx: number; tax_amount_ugx: number; currency_code: string; reversal_status: string; }
 export interface SalesReportQuery { date_from?: string; date_to?: string; skip?: number; limit?: number; }
 export interface SaleReportDrillDown { sale: SalesRegisterRow; items: Array<{ name: string; quantity: number; unit_price_ugx: number; line_total_ugx: number }>; payments: Array<{ method: string; amount_ugx: number; reference: string }>; tax_amount_ugx: number; }
 
 function registerRow(sale: SaleListResponse, source: FinancialMirrorRow): SalesRegisterRow | null {
-  const record = source.record;
-  const paid = record.amount_paid_ugx ?? record.amount_paid;
-  const balance = record.balance_due_ugx ?? record.balance_due;
-  if (typeof paid !== "number" || !Number.isSafeInteger(paid) || paid < 0 ||
-      typeof balance !== "number" || !Number.isSafeInteger(balance) || balance < 0 ||
-      paid + balance !== sale.total_amount) return null;
+  const outcome = verifiedSalePaymentOutcome(sale,source);
+  if (!outcome) return null;
+  const {paid,balance} = outcome;
   return {
     id: sale.id, sale_number: sale.sale_number, sale_date_utc: sale.created_at,
     status: sale.status, customer_name: sale.customer_name, total_amount_ugx: sale.total_amount,
@@ -41,14 +39,19 @@ export function useReportsSalesData() {
         const register = registerRow(sale, mirror[index]);
         return register ? [{ sale, register }] : [];
       });
-      setRawSales(mapped);
-      setSales(mapped.map(row => row.register));
+      const filtered=mapped.filter(row=>
+        dateWithinRange(row.register.sale_date_utc,query.date_from,query.date_to));
+      const skip=Math.max(0,query.skip??0);
+      const limit=Math.max(0,query.limit??filtered.length);
+      const visible=filtered.slice(skip,skip+limit);
+      setRawSales(visible);
+      setSales(visible.map(row=>row.register));
       const omitted = mirror.length - mapped.length;
-      if (omitted || invalid) setError(`${omitted} sales were not included because their synchronized amounts are incomplete.`);
-      return mapped.map(row => row.register).filter(s => (!query.date_from || s.sale_date_utc >= query.date_from) &&
-        (!query.date_to || s.sale_date_utc.slice(0,10) <= query.date_to))
-        .slice(query.skip ?? 0, (query.skip ?? 0) + (query.limit ?? mapped.length));
+      if (omitted || invalid) setError(`${omitted} sales were not included because their synchronized payment facts could not be verified.`);
+      return visible.map(row=>row.register);
     } catch (reason) {
+      setRawSales([]);
+      setSales([]);
       setError(reason instanceof Error ? reason.message : "Synchronized sales report is unavailable.");
       return [];
     } finally {
