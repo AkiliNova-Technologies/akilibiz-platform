@@ -1,6 +1,7 @@
 "use client";
 
 import type { TableData } from "@/components/akilibiz/data-table";
+import type { DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { HostedSuppliers } from "@/components/akilibiz/contacts/hosted-suppliers";
 import { HostedCustomers } from "@/components/akilibiz/contacts/hosted-customers";
 
@@ -38,6 +39,7 @@ export function HostedDirectory({
   suppliers,
   error,
   canEditContacts,
+  pagination,
 }: {
   view: "customers" | "suppliers";
   businessName: string;
@@ -45,8 +47,9 @@ export function HostedDirectory({
   suppliers: HostedSupplier[];
   error?: string | null;
   canEditContacts: boolean;
+  pagination: DirectoryPagination;
 }) {
   return view === "customers"
-    ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} />
-    : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} />;
+    ? <HostedCustomers customers={customers} error={error} canEditContacts={canEditContacts} pagination={pagination} />
+    : <HostedSuppliers suppliers={suppliers} error={error} canEditContacts={canEditContacts} pagination={pagination} />;
 }
