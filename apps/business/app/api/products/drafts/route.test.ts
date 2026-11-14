@@ -123,6 +123,17 @@ describe("product draft API constraints",()=>{
     },{onConflict:"id"});
     expect(client.from).not.toHaveBeenCalledWith("desktop_products");
   });
+  it("explains a frozen publication draft conflict without retrying an unsafe write",async()=>{
+    const client=setup();
+    const writeChain={select:vi.fn(),single:vi.fn()};
+    writeChain.select.mockReturnValue(writeChain);
+    writeChain.single.mockResolvedValue({data:null,error:{code:"55000"}});
+    client.writes.mockReturnValue(writeChain);
+    const response=await POST(submit(draft));
+    expect(response.status).toBe(409);
+    expect((await response.json()).error).toContain("already been sent");
+    expect(client.writes).toHaveBeenCalledTimes(1);
+  });
   it("rejects malformed draft deletion before touching tables",async()=>{
     const client=setup();
     const result=await DELETE(new NextRequest("http://localhost/api/products/drafts?id=invalid",{method:"DELETE"}));
