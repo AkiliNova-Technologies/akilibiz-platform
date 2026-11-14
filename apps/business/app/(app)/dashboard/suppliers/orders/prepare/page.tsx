@@ -17,7 +17,8 @@ type Draft={
   order_date:string;expected_delivery:string|null;notes:string|null;
   lines:PurchaseOrderDraftLine[];updated_at:string;
 };
-type ListResponse={drafts?:Draft[];suppliers?:Supplier[];products?:Product[];error?:string;canPost?:false};
+type ReviewRequest={command_id:string;draft_id:string;state:"pending"|"staged"|"applied"|"conflict";requested_at:string};
+type ListResponse={drafts?:Draft[];suppliers?:Supplier[];products?:Product[];error?:string;canPost?:false;reviewRequestsEnabled?:boolean};
 
 const money=(amount:number)=>new Intl.NumberFormat("en-UG",{
   style:"currency",currency:"UGX",maximumFractionDigits:0,
@@ -33,6 +34,8 @@ export default function PreparePurchaseOrderPage(){
   const [suppliers,setSuppliers]=useState<Supplier[]>([]);
   const [products,setProducts]=useState<Product[]>([]);
   const [draft,setDraft]=useState<Draft|null>(null);
+  const [requests,setRequests]=useState<ReviewRequest[]>([]);
+  const [reviewEnabled,setReviewEnabled]=useState(false);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
@@ -44,21 +47,32 @@ export default function PreparePurchaseOrderPage(){
       const body=await response.json() as ListResponse;
       if(!response.ok||!body.drafts||!body.suppliers||!body.products)
         throw new Error(body.error??"Could not load purchase order drafts.");
+      let knownRequests:ReviewRequest[]=[];
+      if(body.reviewRequestsEnabled){
+        // Never interpret a failed status lookup as an empty review queue.
+        const statusResponse=await fetch("/api/purchasing/requests",{cache:"no-store"});
+        const statusBody=await statusResponse.json() as {requests?:ReviewRequest[];error?:string};
+        if(!statusResponse.ok||!Array.isArray(statusBody.requests))
+          throw new Error(statusBody.error??"Could not verify submitted purchase orders.");
+        knownRequests=statusBody.requests;
+      }
       setDrafts(body.drafts);setSuppliers(body.suppliers);setProducts(body.products);
+      setReviewEnabled(body.reviewRequestsEnabled===true);setRequests(knownRequests);
     }catch(cause){
-      setDrafts([]);setSuppliers([]);setProducts([]);
+      setDrafts([]);setSuppliers([]);setProducts([]);setRequests([]);setReviewEnabled(false);
       setError(cause instanceof Error?cause.message:"Purchase order preparation is unavailable.");
     }finally{setLoading(false);}
   },[]);
   useEffect(()=>{void reload();},[reload]);
   const selectedSupplier=suppliers.find(s=>s.id===draft?.supplier_id);
+  const currentSubmitted=Boolean(draft&&requests.some(request=>request.draft_id===draft.id));
   const availableProducts=useMemo(()=>products.filter(p=>
     p.local_business_public_id===draft?.source_business_public_id),[draft?.source_business_public_id,products]);
   const total=draft?purchaseOrderDraftTotal(draft.lines):null;
   const setLine=(index:number,change:Partial<PurchaseOrderDraftLine>)=>
     setDraft(current=>current?{...current,lines:current.lines.map((line,i)=>i===index?{...line,...change}:line)}:current);
   const save=async()=>{
-    if(!draft||busy)return;
+    if(!draft||busy||currentSubmitted)return;
     setBusy(true);setError(null);setNotice(null);
     try{
       const {updated_at:_updated,...payload}=draft;
@@ -73,8 +87,36 @@ export default function PreparePurchaseOrderPage(){
     }catch(cause){setError(cause instanceof Error?cause.message:"Could not save draft.");}
     finally{setBusy(false);}
   };
+  const requestFor=(draftId:string)=>requests.find(request=>request.draft_id===draftId);
+  const sendForReview=async(item:Draft)=>{
+    if(busy||!reviewEnabled||requestFor(item.id))return;
+    if(!window.confirm("Send this purchase order to the paired desktop for review? You will no longer be able to edit it."))return;
+    setBusy(true);setError(null);setNotice(null);
+    const key=`akilibiz:purchase-review-request:${item.id}`;
+    try{
+      let requestId:string|null=null;
+      try{requestId=window.sessionStorage.getItem(key);}catch{/* May be disabled. */}
+      if(!requestId){
+        requestId=crypto.randomUUID();
+        try{window.sessionStorage.setItem(key,requestId);}catch{
+          throw new Error("Could not store a safe retry reference. Enable session storage before requesting review.");
+        }
+      }
+      const response=await fetch("/api/purchasing/requests",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({draftId:item.id,requestId}),
+      });
+      const body=await response.json() as {error?:string;message?:string};
+      if(!response.ok)throw new Error(body.error??"Purchase order request could not be confirmed.");
+      setNotice(body.message??"Submitted for desktop review.");
+      setDraft(null);
+      await reload();
+    }catch(cause){
+      setError(cause instanceof Error?cause.message:"Could not confirm desktop review request. Refresh the page before trying again.");
+    }finally{setBusy(false);}
+  };
   const discard=async(id:string)=>{
-    if(busy||!window.confirm("Discard this purchase order draft?"))return;
+    if(busy||requestFor(id)||!window.confirm("Discard this purchase order draft?"))return;
     setBusy(true);setError(null);setNotice(null);
     try{
       const response=await fetch(`/api/purchasing/drafts?id=${encodeURIComponent(id)}`,{method:"DELETE"});
@@ -91,7 +133,7 @@ export default function PreparePurchaseOrderPage(){
       <div>
         <h1 className="text-2xl font-semibold">Prepare purchase orders</h1>
         <p className="text-sm text-muted-foreground">
-          Prepare supplier orders with exact quantities and prices. Saving a draft does not place an order or receive stock.
+          Prepare supplier orders with exact quantities and prices. A desktop review request never receives stock or records a supplier payment.
         </p>
       </div>
       <div className="flex gap-2">
@@ -174,14 +216,14 @@ export default function PreparePurchaseOrderPage(){
         <p className="font-semibold">Draft total: {total===null?"Check item amounts":money(total)}</p>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={()=>setDraft(null)}>Close</Button>
-          <Button type="button" disabled={busy||total===null||!selectedSupplier||
+          <Button type="button" disabled={busy||currentSubmitted||total===null||!selectedSupplier||
             draft.lines.some(line=>!line.product_id)} onClick={()=>void save()}>
             {busy?"Saving…":"Save draft"}
           </Button>
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Orders are not sent to desktop yet. Desktop approval, goods receiving and supplier VAT posting remain unavailable from this screen.
+        {reviewEnabled?"Submitting for review only queues a request. Desktop approval and receiving goods are separate, unavailable steps.":"Desktop review submission is currently disabled. Saving drafts never posts stock, VAT or supplier payables."}
       </p>
     </CardContent></Card>}
     <Card><CardContent className="space-y-3 p-5">
@@ -195,11 +237,22 @@ export default function PreparePurchaseOrderPage(){
             {" "}{item.order_date} · {item.lines.length} product lines ·
             {" "}{purchaseOrderDraftTotal(item.lines)===null?"Invalid amount":money(purchaseOrderDraftTotal(item.lines)??0)}
           </p>
-          <p className="text-xs text-muted-foreground">Not sent to desktop</p>
+          <p className="text-xs text-muted-foreground">
+            {requestFor(item.id) ? ({
+              pending:"Sent · awaiting desktop review",
+              staged:"Received by desktop · awaiting approval",
+              applied:"Created on desktop · awaiting catalogue sync",
+              conflict:"Desktop review needs attention",
+            }[requestFor(item.id)!.state]) : "Not sent to desktop"}
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={busy} onClick={()=>{setDraft(item);setNotice(null);}}>Edit</Button>
-          <Button size="sm" variant="outline" disabled={busy} onClick={()=>void discard(item.id)}>Discard</Button>
+          <Button size="sm" variant="outline" disabled={busy||Boolean(requestFor(item.id))}
+            onClick={()=>{setDraft(item);setNotice(null);}}>Edit</Button>
+          <Button size="sm" variant="outline" disabled={busy||Boolean(requestFor(item.id))}
+            onClick={()=>void discard(item.id)}>Discard</Button>
+          {reviewEnabled&&!requestFor(item.id)&&<Button size="sm" disabled={busy}
+            onClick={()=>void sendForReview(item)}>Send for desktop review</Button>}
         </div>
       </div>)}
     </CardContent></Card>
