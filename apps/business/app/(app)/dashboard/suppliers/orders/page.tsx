@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Check,
   ClipboardList,
@@ -174,7 +175,7 @@ export default function SupplierPurchaseOrdersPage() {
               Purchase Orders
             </h2>
             <p className="text-sm text-muted-foreground">
-              Create, monitor, and track supplier orders from draft through
+              Review synchronized supplier orders and prepare new purchase orders before desktop approval and
               receipt.
             </p>
           </div>
@@ -230,9 +231,11 @@ export default function SupplierPurchaseOrdersPage() {
                       onClick={()=>void getOrders()}>
                       Refresh
                     </Button>
-                    <Button disabled title="Purchase order creation is not connected">
-                      <Plus className="mr-2 size-4" />
-                      New Purchase Order
+                    <Button asChild variant="outline">
+                      <Link href="/dashboard/suppliers/orders/prepare">
+                        <Plus className="mr-2 size-4" />
+                        Prepare Purchase Order
+                      </Link>
                     </Button>
                   </div>
                 }
