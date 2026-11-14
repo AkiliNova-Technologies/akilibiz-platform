@@ -39,9 +39,16 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
   writeQuery.single.mockResolvedValue({
     data:{id:draft.id,updated_at:"2026-11-14T13:00:00Z"},error:null,
   });
+  const draftSelect={select:vi.fn(),eq:vi.fn(),order:vi.fn(),range:vi.fn(),delete:vi.fn()};
+  draftSelect.select.mockReturnValue(draftSelect);
+  draftSelect.eq.mockReturnValue(draftSelect);
+  draftSelect.order.mockReturnValue(draftSelect);
+  draftSelect.range.mockResolvedValue({data:[],count:0,error:null});
+  draftSelect.delete.mockReturnValue(draftSelect);
+  const draftTable={...draftSelect,upsert:writes};
   const tables={
     desktop_categories:categoryQuery,
-    web_product_drafts:{upsert:writes},
+    web_product_drafts:draftTable,
   };
   writes.mockReturnValue(writeQuery);
   const from=vi.fn((table:string)=>tables[table as keyof typeof tables]);
@@ -51,7 +58,7 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
     })},
     from,
   });
-  return {from,categoryQuery,writes};
+  return {from,categoryQuery,writes,draftSelect};
 }
 describe("product draft API constraints",()=>{
   beforeEach(()=>vi.clearAllMocks());
@@ -90,5 +97,16 @@ describe("product draft API constraints",()=>{
     const result=await DELETE(new NextRequest("http://localhost/api/products/drafts?id=invalid",{method:"DELETE"}));
     expect(result.status).toBe(400);
     expect(client.from).not.toHaveBeenCalled();
+  });
+  it("loads drafts only for the selected business and the signed-in owner",async()=>{
+    const client=setup();
+    const category=client.categoryQuery;
+    category.eq.mockReturnValue(category);
+    category.order=vi.fn().mockReturnValue(category) as typeof category.order;
+    category.range=vi.fn().mockResolvedValue({data:[],count:0,error:null}) as typeof category.range;
+    const result=await GET();
+    expect(result.status).toBe(200);
+    expect(client.draftSelect.eq).toHaveBeenCalledWith("business_id","tenant-a");
+    expect(client.draftSelect.eq).toHaveBeenCalledWith("created_by","actor-a");
   });
 });
