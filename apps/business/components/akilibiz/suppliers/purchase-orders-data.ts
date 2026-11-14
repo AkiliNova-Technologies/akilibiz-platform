@@ -62,7 +62,7 @@ export function usePurchaseOrdersData(){
       throw new Error("Purchase order items do not reconcile with the recorded order total.");
     return {lines,receipts,linesReconciled};
   },[]);
-  const addOrder=useCallback(async(_order:Omit<PurchaseOrder,"id"|"supplier_name"|"created_by_name">&{supplier_name:string}):Promise<never>=>unavailable(),[]);
+  const addOrder=useCallback(async(_order:Omit<PurchaseOrder,"id"|"supplier_name"|"created_by_name"|"source_business_public_id">&{supplier_name:string}):Promise<never>=>unavailable(),[]);
   const editOrder=useCallback(async(_id:number,_payload:Partial<PurchaseOrder>):Promise<never>=>unavailable(),[]);
   const markReceived=useCallback(async(_id:number):Promise<never>=>unavailable(),[]);
   return {
