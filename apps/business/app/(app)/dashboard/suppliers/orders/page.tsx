@@ -78,7 +78,11 @@ export default function SupplierPurchaseOrdersPage() {
     status: "Draft" as PurchaseOrderStatus,
     notes: "",
   });
-  const fields: TableField<Row>[] = [
+  const verified=!loading&&!error;
+  const pendingOrders=orders.filter(order=>["Draft","Pending","Partially Received"].includes(order.status)).length;
+  const receivedOrders=orders.filter(order=>order.status==="Received").length;
+  const totalValue=orders.reduce((sum,order)=>sum+order.total_amount,0);
+    const fields: TableField<Row>[] = [
     { key: "po_number", header: "PO Number", enableSorting: true },
     { key: "supplier_name", header: "Supplier", enableSorting: true },
     {
@@ -160,25 +164,25 @@ export default function SupplierPurchaseOrdersPage() {
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
               title="Total Orders"
-              value="—"
+              value={verified?orders.length.toLocaleString("en-UG"):"—"}
               description="All recorded supplier orders"
               icon={<ClipboardList className="size-5" />}
             />
             <MetricCard
               title="Pending Orders"
-              value="—"
+              value={verified?pendingOrders.toLocaleString("en-UG"):"—"}
               description="Orders awaiting fulfilment"
               icon={<Truck className="size-5" />}
             />
             <MetricCard
               title="Received Orders"
-              value="—"
+              value={verified?receivedOrders.toLocaleString("en-UG"):"—"}
               description="Orders fully delivered"
               icon={<Package className="size-5" />}
             />
             <MetricCard
               title="Order Value"
-              value="—"
+              value={verified?formatSupplierCurrency(totalValue):"—"}
               description="Total value committed"
               icon={<Wallet className="size-5" />}
             />
@@ -204,10 +208,16 @@ export default function SupplierPurchaseOrdersPage() {
                      : error ? "Could not verify the purchase order register." : "No synchronized purchase orders found for this business."
                 }
                 toolbarActions={
-                  <Button disabled title="Purchase order creation is not connected">
-                    <Plus className="mr-2 size-4" />
-                    New Purchase Order
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" variant="outline" disabled={loading}
+                      onClick={()=>void getOrders()}>
+                      Refresh
+                    </Button>
+                    <Button disabled title="Purchase order creation is not connected">
+                      <Plus className="mr-2 size-4" />
+                      New Purchase Order
+                    </Button>
+                  </div>
                 }
               />
             </CardContent>
