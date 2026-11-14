@@ -78,3 +78,15 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 Hosted acceptance: export each directory as an authorized user, confirm that the selected business is the only source, test empty directory behavior and the 10,000-record limit, and confirm that errors do not download a misleading file.
+
+## Contact editing validation increment
+
+The existing owner-only `/api/sync/contact-updates` endpoint now checks allowed field names, required contact values, size limits, email format, and control characters before forwarding a change to the version-checked desktop queue. This preserves the existing feature flag and desktop authority instead of introducing direct hosted mutations. Four additional regression tests cover these constraints.
+
+Web contact **create** requests remain pending the desktop-backed create command, its idempotency key, and authoritative acknowledgement/reconciliation semantics. Do not turn on production bidirectional contact editing solely because the frontend forms exist.
+
+Latest focused qualification:
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
