@@ -102,9 +102,9 @@ begin
   if jsonb_typeof(item.desktop_options->'unit_conversion_factor')<>'number'
     or jsonb_typeof(item.desktop_options->'min_stock_level')<>'number'
     or jsonb_typeof(item.desktop_options->'max_stock_level')<>'number'
-    or (item.desktop_options->>'unit_conversion_factor') !~ '^[0-9]+(\\.[0-9]+)?$'
-    or (item.desktop_options->>'min_stock_level') !~ '^[0-9]+(\\.[0-9]+)?$'
-    or (item.desktop_options->>'max_stock_level') !~ '^[0-9]+(\\.[0-9]+)?$'
+    or (item.desktop_options->>'unit_conversion_factor') !~ '^[0-9]+([.][0-9]+)?$'
+    or (item.desktop_options->>'min_stock_level') !~ '^[0-9]+([.][0-9]+)?$'
+    or (item.desktop_options->>'max_stock_level') !~ '^[0-9]+([.][0-9]+)?$'
   then
     raise exception 'Use valid nonnegative numbers for inventory settings'
       using errcode='22023';
@@ -124,7 +124,7 @@ begin
     null;
   elsif jsonb_typeof(item.desktop_options->'package_content_quantity')='number'
     and jsonb_typeof(item.desktop_options->'package_content_unit')='string'
-    and (item.desktop_options->>'package_content_quantity') ~ '^[0-9]+(\\.[0-9]+)?$'
+    and (item.desktop_options->>'package_content_quantity') ~ '^[0-9]+([.][0-9]+)?$'
     and (item.desktop_options->>'package_content_unit') in
       ('mg','g','kg','tonne','ml','cl','dl','ltr','mm','cm','m')
   then
