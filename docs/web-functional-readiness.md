@@ -284,3 +284,19 @@ were deployed, and no desktop app was started against existing user data during
 this implementation. Before activation, run source validation, apply migrations
 on disposable staging only, qualify revocation, tax, stock, outbox and ACK cases,
 and reserve destructive database/recovery tests for the final stage.
+
+## Phase 2C4 — Request recovery and immutable submitted drafts
+
+With the product request feature explicitly enabled, the web draft list now
+recovers each owner's submitted creation requests directly through the
+business-scoped `list_desktop_product_create_statuses` RPC. Browser session
+storage is only a retry-identity fallback, never publication authority. The
+new hosted migration `20261114210000_product_request_recovery_and_draft_freeze.sql`
+blocks editing or discarding a draft once it has been submitted for desktop
+review. The UI disables those actions and shows the current lifecycle:
+awaiting desktop review, received for approval, created but not yet synced,
+or catalogue-confirmed published.
+
+All gates remain default-off. This is committed source only, not a deployed
+or qualified end-to-end feature. See
+`docs/sync/phase2c4-product-request-recovery.md` for staged qualification.
