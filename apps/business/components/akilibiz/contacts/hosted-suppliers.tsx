@@ -78,7 +78,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{su
             fields={fields}
             actions={actions}
             enableGlobalSearch={false}
-            pageSize={10}
+            enablePagination={false}
             onRowClick={setSelected}
             emptyMessage={error ?? "No suppliers found."}
             toolbarActions={
