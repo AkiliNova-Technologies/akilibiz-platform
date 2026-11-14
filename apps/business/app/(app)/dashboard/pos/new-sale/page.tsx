@@ -881,7 +881,7 @@ export default function POSPage() {
                     </div>
                   )}
                   {process.env.NEXT_PUBLIC_AKILIBIZ_CASH_SALE_PILOT === "1" && (
-                    <CashSalePilot businessId={activeBusinessId} cartItems={cartItems} />
+                    <CashSalePilot key={activeBusinessId} businessId={activeBusinessId} cartItems={cartItems} />
                   )}
                   <Button
                     className="h-12 text-base font-semibold"
