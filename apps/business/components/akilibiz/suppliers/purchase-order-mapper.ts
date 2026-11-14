@@ -19,6 +19,7 @@ export function mapHostedPurchaseOrder(row:FinancialMirrorRow):PurchaseOrder|nul
     Number.isSafeInteger(Math.round(r.items_count*1000))&&
     Math.abs(r.items_count*1000-Math.round(r.items_count*1000))<1e-6
       ?Math.round(r.items_count*1000)/1000:null;
+  if(r.items_count_milli!=null&&exactQuantity===null)return null;
   const items=exactQuantity!==null?exactQuantity/1000:legacyQuantity;
   const total=whole(r.total_amount_ugx??r.total_amount);
   const number=text(r.po_number),orderDate=date(r.order_date);
