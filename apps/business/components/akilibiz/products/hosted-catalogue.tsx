@@ -16,6 +16,7 @@ import {
 
 import { DataTable, type TableAction, type TableData, type TableField } from "@/components/akilibiz/data-table";
 import MetricCard from "@/components/akilibiz/metric-card";
+import { CataloguePageControls, type CataloguePagination } from "@/components/akilibiz/products/catalogue-page-controls";
 import { CatalogueExportButton } from "@/components/akilibiz/products/catalogue-export-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,7 @@ export function HostedCatalogue({
   view,
   error,
   stockError,
+  pagination,
 }: {
   businessName: string;
   categories: HostedCategoryRow[];
@@ -88,6 +90,7 @@ export function HostedCatalogue({
   view: "products" | "categories";
   error?: string | null;
   stockError?: string | null;
+  pagination?: CataloguePagination;
 }) {
   const [selectedProduct, setSelectedProduct] = useState<HostedProductRow | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HostedCategoryRow | null>(null);
@@ -363,8 +366,8 @@ export function HostedCatalogue({
       <section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Products"
-          value={error ? "—" : String(products.length)}
-          description={error ? "Product data unavailable" : `${products.filter((product) => product.is_active).length} active products`}
+          value={error ? "—" : String(pagination?.total ?? products.length)}
+          description={error ? "Product data unavailable" : `${products.filter((product) => product.is_active).length} active on this page`}
           icon={<Package className="size-5" />}
         />
         <MetricCard
@@ -387,6 +390,7 @@ export function HostedCatalogue({
         />
       </section>
 
+      {pagination && !error ? <CataloguePageControls pagination={pagination} /> : null}
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<HostedProductRow>
@@ -396,9 +400,8 @@ export function HostedCatalogue({
             emptyMessage={error ?? "No products found."}
             fields={productFields}
             actions={productActions}
-            enableGlobalSearch
-            searchPlaceholder="Search products..."
-            pageSize={10}
+            enableGlobalSearch={false}
+            enablePagination={false}
             onRowClick={setSelectedProduct}
             toolbarActions={
               <div className="flex min-w-0 flex-wrap items-center gap-2">
