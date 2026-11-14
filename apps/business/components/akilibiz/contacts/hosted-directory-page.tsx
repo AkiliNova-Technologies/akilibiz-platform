@@ -58,6 +58,7 @@ export async function HostedDirectoryPage({
     businessName={business.name}
     view={view}
     canEditContacts={business.role === "owner" && process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS === "1"}
+    canCreateContacts={business.role === "owner" && process.env.AKILIBIZ_ENABLE_CONTACT_CREATION === "1"}
     error={error}
     pagination={{ page, total, search }}
     customers={view === "customers" ? records as unknown as HostedCustomer[] : []}
