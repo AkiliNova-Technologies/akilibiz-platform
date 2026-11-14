@@ -232,3 +232,26 @@ After source checks, use a disposable development business to verify RLS, create
 - No migrations were executed, no live database rows were updated, no destructive tests performed, and no feature gates enabled.
 
 **Validation commands:** `pnpm --filter @akilibiz/business-web exec tsc --noEmit` and `pnpm --filter @akilibiz/business-web test`. Then exercise save/edit/reopen of extended draft fields only against an approved disposable dev tenant. These commits are not a production publication qualification.
+
+## Phase 2C2 — Product desktop request staging (source only)
+
+The web product-draft editor now has a separate **Request desktop review** action visible only to an authenticated owner when `AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS=1`. The action uses one session-persisted UUIDv4 request key for retries. It submits only the saved `draftId`; the hosted database resolves category ownership, paired source and an immutable snapshot.
+
+Additive hosted migration `20261114190000_product_create_request_staging.sql` introduces an independent default-off per-business request switch, private immutable commands, owner request/status RPCs, and device-scoped polling. No receipt/ACK or publication RPC exists in this phase.
+
+Desktop source changes: `0117_cloud_inbound_product_creates.sql`, `product_create_inbox.rs`, and a separately gated cloud worker tick. With `AKILIBIZ_ENABLE_PRODUCT_CREATE_INBOX=1` a verified paired desktop may **stage only**; it never creates a product, records stock, posts tax/finance, or acknowledges success.
+
+All environment switches remain OFF, and no database migrations or network validations were executed during source authoring. **Never turn on the request gates in production yet.** The authorized SQLite product apply + receipt, fiscal classification selection, ACK, and outbound appearance confirmation remain required before actual publication.
+
+Non-destructive local checks:
+
+```bash
+cd ~/Desktop/akilibiz-platform
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+
+cd ~/Desktop/akilibiz
+cargo test --manifest-path src-tauri/Cargo.toml --lib product_create_inbox -- --nocapture
+```
+
+See `docs/sync/phase2c2-product-create-staging.md` for staged qualification steps and deferred destructive test requirements.
