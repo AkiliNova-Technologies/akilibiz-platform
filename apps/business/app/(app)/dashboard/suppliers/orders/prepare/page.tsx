@@ -8,7 +8,7 @@ import {Textarea} from "@/components/ui/textarea";
 import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from "@/components/ui/select";
 import {Card,CardContent} from "@/components/ui/card";
 import {
-  type PurchaseOrderDraftLine,purchaseOrderDraftTotal,
+  type PurchaseOrderDraftLine,purchaseOrderDraftTotal,parseMilliQuantityInput,
 } from "@/lib/purchase-order-draft-validation";
 
 type Supplier={id:string;name:string;local_business_public_id:string};
@@ -194,8 +194,11 @@ export default function PreparePurchaseOrderPage(){
             </label>
             <label className="space-y-1 text-sm">Quantity ({product?.stock_unit??"units"})
               <Input inputMode="decimal" type="number" min="0.001" step="0.001"
-                value={line.quantity_milli/1000}
-                onChange={event=>setLine(index,{quantity_milli:Math.round(Number(event.target.value)*1000)})}/>
+                value={Number.isFinite(line.quantity_milli)?line.quantity_milli/1000:""}
+                onChange={event=>{
+                  const raw=event.target.value;
+                  setLine(index,{quantity_milli:parseMilliQuantityInput(raw)??Number(raw)*1000});
+                }}/>
             </label>
             <label className="space-y-1 text-sm">UGX per unit
               <Input type="number" inputMode="numeric" min="0" step="1"
