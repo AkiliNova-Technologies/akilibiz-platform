@@ -11,6 +11,7 @@ describe("gated purchase order preparation (migration/source contract)",()=>{
   it("uses RLS and a recorded owner, never posting to desktop/stock/payables",()=>{
     expect(migration).toContain("alter table public.web_purchase_order_drafts force row level security");
     expect(migration).toContain("new.created_by is distinct from old.created_by");
+    expect(migration).toContain("desktop_suppliers_business_draft_ref unique(business_id,id)");
     expect(migration).toContain("m.business_id=web_purchase_order_drafts.business_id");
     expect(migration).not.toContain("m.business_id=business_id");
     expect(migration).toContain("new.source_business_public_id is distinct from old.source_business_public_id");
@@ -44,7 +45,8 @@ describe("staging-only desktop purchasing review requests",()=>{
     for(const statement of [
       "supplier.source_public_id","product.local_product_id",
       "pg_advisory_xact_lock","source_device_public_id",
-      "unique(business_id,draft_id)","freeze_requested_purchase_order_update",
+      "unique(business_id,draft_id)","public.web_purchase_order_drafts(business_id,id) on delete restrict",
+      "freeze_requested_purchase_order_update",
       "freeze_requested_purchase_order_delete",
       "requested_by=(select auth.uid())",
     ])expect(staging).toContain(statement);
