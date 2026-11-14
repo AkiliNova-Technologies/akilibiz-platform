@@ -23,6 +23,7 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
   const role=options.role??"owner";
   mocks.requireActiveBusiness.mockResolvedValue({id:"tenant-a",role});
   const writes=vi.fn();
+  const rpc=vi.fn().mockResolvedValue({data:[],error:null});
   const categoryQuery={
     select:vi.fn(),eq:vi.fn(),maybeSingle:vi.fn(),order:vi.fn(),range:vi.fn(),
   };
@@ -58,9 +59,9 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
     auth:{getUser:vi.fn().mockResolvedValue({
       data:{user:options.signedIn===false?null:{id:"actor-a"}},error:null,
     })},
-    from,
+    from,rpc,
   });
-  return {from,categoryQuery,writes,draftSelect};
+  return {from,categoryQuery,writes,draftSelect,rpc};
 }
 describe("product draft API constraints",()=>{
   afterEach(()=>vi.unstubAllEnvs());
@@ -127,6 +128,41 @@ describe("product draft API constraints",()=>{
     const result=await DELETE(new NextRequest("http://localhost/api/products/drafts?id=invalid",{method:"DELETE"}));
     expect(result.status).toBe(400);
     expect(client.from).not.toHaveBeenCalled();
+  });
+  it("recovers submitted draft requests from the hosted source, not local storage",async()=>{
+    vi.stubEnv("AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS","1");
+    const client=setup();
+    const command_id="33333333-3333-4333-8333-333333333333";
+    client.rpc.mockResolvedValue({data:[{
+      command_id,draft_id:draft.id,state:"applied",requested_at:"2026-11-14T15:00:00Z",
+    }],error:null});
+    const response=await GET();
+    expect(response.status).toBe(200);
+    expect(client.rpc).toHaveBeenCalledWith("list_desktop_product_create_statuses",{
+      target_business_id:"tenant-a",
+    });
+    expect(await response.json()).toMatchObject({
+      publicationRequestsEnabled:true,
+      publicationRequests:[{command_id,draft_id:draft.id,state:"applied"}],
+    });
+  });
+  it("fails closed if the existing publication state cannot be verified",async()=>{
+    vi.stubEnv("AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS","1");
+    const client=setup();
+    client.rpc.mockResolvedValue({data:null,error:{code:"42883"}});
+    const response=await GET();
+    expect(response.status).toBe(503);
+    expect((await response.json()).error).toContain("Could not confirm");
+  });
+  it("never fetches request status for a manager or with publication disabled",async()=>{
+    vi.stubEnv("AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS","1");
+    const manager=setup({role:"manager"});
+    expect((await GET()).status).toBe(200);
+    expect(manager.rpc).not.toHaveBeenCalled();
+    vi.stubEnv("AKILIBIZ_ENABLE_PRODUCT_CREATE_REQUESTS","0");
+    const owner=setup();
+    expect((await GET()).status).toBe(200);
+    expect(owner.rpc).not.toHaveBeenCalled();
   });
   it("loads drafts only for the selected business and the signed-in owner",async()=>{
     const client=setup();
