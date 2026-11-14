@@ -354,3 +354,26 @@ pnpm --filter @akilibiz/business-web test
 ```
 No test execution, local database migration or live transaction was
 performed through this GitHub source-only increment.
+
+## Web purchasing preparation and desktop review staging (source only)
+
+New, independently default-off purchasing features are implemented in source:
+- `AKILIBIZ_ENABLE_WEB_PURCHASE_ORDER_DRAFTS`: create/edit/discard
+  exact-UGX supplier purchase-order drafts using a source-matched supplier
+  and product catalogue. User-entered fractional quantities are parsed
+  to exact milliquantities without silent rounding.
+- `AKILIBIZ_ENABLE_PURCHASE_ORDER_REVIEW_REQUESTS`: owner-only immutable,
+  idempotent review requests through SQL-snapshotted supplier public UUID,
+  local product IDs and active paired desktop source. Review state is recovered
+  from the hosted database and previously submitted drafts cannot be edited
+  or deleted.
+- New migrations: `20261114220000_web_purchase_order_preparation.sql`
+  and `20261114230000_web_purchase_order_review_requests.sql`.
+- New web page: `/dashboard/suppliers/orders/prepare`.
+
+This is **not full purchasing posting**. Desktop request polling/application,
+receipt acknowledgment, VAT evidence, stock receipt and supplier payable
+entries are still pending. The migration SQL has not been applied anywhere
+through this workstream. Both independent switches remain OFF, including in
+production. Validation is source-only pending local TypeScript and Vitest.
+See `docs/sync/web-purchase-order-preparation-20261114.md`.
