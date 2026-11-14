@@ -80,3 +80,30 @@ begin
     where c.business_id=target_business_id and c.id=target_command_id
       and c.requested_by=(select auth.uid());
 end $$;
+
+-- Fresh authorization before LOCAL approval: a command staged yesterday is
+-- not authority to apply after its pairing, owner or pilot control is revoked.
+create function public.verify_desktop_product_create_pending(
+ target_business_id uuid,
+ source_business_public_id text,
+ source_device_public_id uuid,
+ target_command_id uuid
+) returns boolean language plpgsql security definer set search_path='' as $$
+begin
+  perform private.require_desktop_inventory_source(
+    target_business_id,source_business_public_id,source_device_public_id);
+  return exists (
+    select 1 from private.desktop_product_create_commands c
+    join private.desktop_product_create_controls ctl on ctl.business_id=c.business_id
+    where c.id=target_command_id and c.business_id=target_business_id
+      and c.source_business_public_id=verify_desktop_product_create_pending.source_business_public_id
+      and c.source_device_public_id=verify_desktop_product_create_pending.source_device_public_id
+      and c.requested_by=(select auth.uid())
+      and ctl.requests_enabled=true
+      and c.state='pending'
+  );
+end $$;
+revoke all on function public.verify_desktop_product_create_pending(uuid,text,uuid,uuid)
+  from public,anon,authenticated,service_role;
+grant execute on function public.verify_desktop_product_create_pending(uuid,text,uuid,uuid)
+  to authenticated;
