@@ -24,10 +24,12 @@ function setup(options:{role?:string;signedIn?:boolean;category?:boolean}={}) {
   mocks.requireActiveBusiness.mockResolvedValue({id:"tenant-a",role});
   const writes=vi.fn();
   const categoryQuery={
-    select:vi.fn(),eq:vi.fn(),maybeSingle:vi.fn(),
+    select:vi.fn(),eq:vi.fn(),maybeSingle:vi.fn(),order:vi.fn(),range:vi.fn(),
   };
   categoryQuery.select.mockReturnValue(categoryQuery);
   categoryQuery.eq.mockReturnValue(categoryQuery);
+  categoryQuery.order.mockReturnValue(categoryQuery);
+  categoryQuery.range.mockResolvedValue({data:[],count:0,error:null});
   categoryQuery.maybeSingle.mockResolvedValue({
     data:options.category===false?null:{id:draft.category_id,local_business_public_id:"desktop-a"},
     error:null,
@@ -100,10 +102,6 @@ describe("product draft API constraints",()=>{
   });
   it("loads drafts only for the selected business and the signed-in owner",async()=>{
     const client=setup();
-    const category=client.categoryQuery;
-    category.eq.mockReturnValue(category);
-    category.order=vi.fn().mockReturnValue(category) as typeof category.order;
-    category.range=vi.fn().mockResolvedValue({data:[],count:0,error:null}) as typeof category.range;
     const result=await GET();
     expect(result.status).toBe(200);
     expect(client.draftSelect.eq).toHaveBeenCalledWith("business_id","tenant-a");
