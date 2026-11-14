@@ -84,6 +84,7 @@ export function HostedCatalogue({
   error,
   stockError,
   pagination,
+  draftsEnabled,
 }: {
   businessName: string;
   categories: HostedCategoryRow[];
