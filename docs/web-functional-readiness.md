@@ -332,3 +332,25 @@ receiving, supplier settlement posting, product edit/deactivation commands,
 full finance posting, settings mutation workflows, all POS payment modes,
 staff mutations, and final local integration acceptance. No hosted migrations
 or business records were changed in this workstream.
+
+## Purchasing detail read model (source only)
+
+The Purchase Orders dialog now retrieves source-scoped, checked desktop
+order lines and linked receipt history, including ordered and received
+milliquantities. The Purchasing Reports dialog can retrieve receipt lines
+and verifies that every item's whole-UGX total reconciles to the parent.
+The purchasing mapper supports the desktop's exact fractional ordered
+quantity field; legacy quantity is accepted only to three decimal places.
+Cross-source SQLite IDs are not considered interchangeable.
+
+Missing item details produce an explicit unavailable/error state. Web
+purchase-order creation, receiving and financial/stock mutation remain
+disabled until qualified desktop-authoritative commands exist.
+
+Non-destructive validation:
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+No test execution, local database migration or live transaction was
+performed through this GitHub source-only increment.
