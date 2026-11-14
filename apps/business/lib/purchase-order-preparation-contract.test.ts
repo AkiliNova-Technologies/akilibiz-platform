@@ -11,6 +11,8 @@ describe("gated purchase order preparation (migration/source contract)",()=>{
   it("uses RLS and a recorded owner, never posting to desktop/stock/payables",()=>{
     expect(migration).toContain("alter table public.web_purchase_order_drafts force row level security");
     expect(migration).toContain("new.created_by is distinct from old.created_by");
+    expect(migration).toContain("m.business_id=web_purchase_order_drafts.business_id");
+    expect(migration).not.toContain("m.business_id=business_id");
     expect(migration).toContain("new.source_business_public_id is distinct from old.source_business_public_id");
     expect(migration).not.toMatch(/insert\s+into\s+(?:public\.)?(?:desktop_products|goods_receipts|supplier_payables|stock_movements)/i);
     expect(route).toContain('AKILIBIZ_ENABLE_WEB_PURCHASE_ORDER_DRAFTS!=="1"');
