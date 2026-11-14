@@ -18,7 +18,9 @@ create table private.desktop_purchase_order_requests (
  state text not null default 'pending' check(state in ('pending','staged','applied','conflict')),
  created_at timestamptz not null default now(),
  unique(business_id,requested_by,request_id),
- unique(business_id,draft_id)
+ unique(business_id,draft_id),
+ foreign key (business_id,draft_id) references
+  public.web_purchase_order_drafts(business_id,id) on delete restrict
 );
 create index desktop_purchase_order_request_queue_idx
  on private.desktop_purchase_order_requests
