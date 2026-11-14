@@ -33,6 +33,17 @@ describe("authoritative purchasing mirror mapping",()=>{
       expect(mapHostedPurchaseOrder({...row,record:{...row.record,...altered}})).toBeNull();
     }
   });
+  it("accepts precise weight/liquid quantities rather than treating them as line counts",()=>{
+    expect(mapHostedPurchaseOrder({...row,record:{
+      ...row.record,items_count:1.5,items_count_milli:1500,
+    }})?.items_count).toBe(1.5);
+    expect(mapHostedPurchaseOrder({...row,record:{
+      ...row.record,items_count:1.25,
+    }})?.items_count).toBe(1.25);
+    expect(mapHostedPurchaseOrder({...row,record:{
+      ...row.record,items_count:1.12345,
+    }})).toBeNull();
+  });
   it("accepts only supported receiving and cancellation lifecycle statuses",()=>{
     for(const status of ["Draft","Pending","Partially Received","Received","Cancelled"]){
       expect(mapHostedPurchaseOrder({...row,record:{...row.record,status}})?.status).toBe(status);
