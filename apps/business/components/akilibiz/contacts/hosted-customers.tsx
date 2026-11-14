@@ -91,7 +91,7 @@ export function HostedCustomers({ customers, error, canEditContacts, pagination 
             fields={fields}
             actions={actions}
             enableGlobalSearch={false}
-            pageSize={10}
+            enablePagination={false}
             onRowClick={setSelectedCustomer}
             emptyMessage={error ?? "No customers found."}
             toolbarActions={
