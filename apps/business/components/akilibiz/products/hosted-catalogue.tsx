@@ -6,7 +6,6 @@ import {
   FolderTree,
   Archive,
   Banknote,
-  Download,
   History,
   Layers,
   Package,
@@ -17,6 +16,7 @@ import {
 
 import { DataTable, type TableAction, type TableData, type TableField } from "@/components/akilibiz/data-table";
 import MetricCard from "@/components/akilibiz/metric-card";
+import { CatalogueExportButton } from "@/components/akilibiz/products/catalogue-export-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -283,9 +283,7 @@ export function HostedCatalogue({
                   <Button type="button" variant="outline" disabled title="Import history unavailable">
                     <History className="size-4" />Import History
                   </Button>
-                  <Button type="button" variant="outline" disabled title="Category export unavailable">
-                    <Download className="size-4" />Export
-                  </Button>
+                  <CatalogueExportButton entity="categories" />
                   <Button type="button" variant="outline" size="icon" disabled aria-label="Refresh" title="Category refresh unavailable">
                     <RefreshCw className="size-4" />
                   </Button>
@@ -412,10 +410,7 @@ export function HostedCatalogue({
                   <History className="size-4" />
                   Import History
                 </Button>
-                <Button type="button" variant="outline" disabled title="Export unavailable">
-                  <Download className="size-4" />
-                  Export
-                </Button>
+                <CatalogueExportButton entity="products" />
                 <Button type="button" variant="outline" size="icon" disabled title="Catalogue refresh unavailable">
                   <RefreshCw className="size-4" />
                   <span className="sr-only">Refresh</span>
