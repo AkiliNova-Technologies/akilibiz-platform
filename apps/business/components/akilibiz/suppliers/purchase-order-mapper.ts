@@ -13,7 +13,14 @@ const date=(v:unknown)=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}/.test(v)&&
 export function mapHostedPurchaseOrder(row:FinancialMirrorRow):PurchaseOrder|null{
   const r=row.record;
   const id=whole(row.localRecordId),supplierId=whole(r.supplier_id);
-  const items=whole(r.items_count),total=whole(r.total_amount_ugx??r.total_amount);
+  const exactQuantity=whole(r.items_count_milli);
+  const legacyQuantity=typeof r.items_count==="number"&&
+    Number.isFinite(r.items_count)&&r.items_count>=0&&
+    Number.isSafeInteger(Math.round(r.items_count*1000))&&
+    Math.abs(r.items_count*1000-Math.round(r.items_count*1000))<1e-6
+      ?Math.round(r.items_count*1000)/1000:null;
+  const items=exactQuantity!==null?exactQuantity/1000:legacyQuantity;
+  const total=whole(r.total_amount_ugx??r.total_amount);
   const number=text(r.po_number),orderDate=date(r.order_date);
   const status=r.status;
   if(id===null||id<=0||supplierId===null||supplierId<=0||
