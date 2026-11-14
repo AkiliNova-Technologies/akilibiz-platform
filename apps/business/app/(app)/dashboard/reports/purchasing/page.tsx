@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type {GoodsReceiptLine} from "@/components/akilibiz/reports/goods-receipt-detail";
 import { Eye, ReceiptText, RefreshCw, Truck } from "lucide-react";
 import {
   DataTable,
@@ -43,10 +44,24 @@ const money = (value: number) =>
   }).format(value);
 
 export default function ReportsPurchasingPage() {
-  const { goodsReceived, getGoodsReceivedRegister, loading, error } =
+  const { goodsReceived, getGoodsReceivedRegister, getGoodsReceiptLines, loading, error } =
     useReportsPurchasingData();
   useEffect(()=>{void getGoodsReceivedRegister({skip:0,limit:5000});},[getGoodsReceivedRegister]);
   const [selected, setSelected] = useState<Row | null>(null);
+  const [receiptLines,setReceiptLines]=useState<GoodsReceiptLine[]|null>(null);
+  const [receiptLoading,setReceiptLoading]=useState(false);
+  const [receiptError,setReceiptError]=useState<string|null>(null);
+  useEffect(()=>{
+    if(!selected){setReceiptLines(null);setReceiptError(null);return;}
+    let active=true;
+    setReceiptLoading(true);setReceiptLines(null);setReceiptError(null);
+    void getGoodsReceiptLines(selected.source).then(lines=>{
+      if(active)setReceiptLines(lines);
+    }).catch(cause=>{
+      if(active)setReceiptError(cause instanceof Error?cause.message:"Receipt items are unavailable.");
+    }).finally(()=>{if(active)setReceiptLoading(false);});
+    return ()=>{active=false;};
+  },[selected,getGoodsReceiptLines]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [draftDateFrom, setDraftDateFrom] = useState("");
@@ -213,7 +228,7 @@ export default function ReportsPurchasingPage() {
       <Dialog
         open={Boolean(selected)}
         onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Goods receipt detail</DialogTitle>
             <DialogDescription>
@@ -241,6 +256,22 @@ export default function ReportsPurchasingPage() {
                 <div key={label} className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">{label}</span>
                   <span className="font-medium">{value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Received items</h3>
+              {receiptLoading && <p role="status" className="text-sm text-muted-foreground">Loading receipt items…</p>}
+              {receiptError && <p role="alert" className="text-sm text-destructive">{receiptError}</p>}
+              {receiptLines?.map(line=>(
+                <div key={line.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm">
+                  <div>
+                    <p className="font-medium">Product #{line.product_id}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {line.quantity_milli/1000} units × {money(line.unit_cost_ugx)}
+                    </p>
+                  </div>
+                  <span>{money(line.line_total_ugx)}</span>
                 </div>
               ))}
             </div>
