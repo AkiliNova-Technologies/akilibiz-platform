@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { HostedCustomer } from "@/components/akilibiz/contacts/hosted-directory";
+import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
 
 type CustomerRow = HostedCustomer & {
@@ -23,7 +24,7 @@ type CustomerRow = HostedCustomer & {
 
 function Missing() { return <span className="text-muted-foreground">—</span>; }
 
-export function HostedCustomers({ customers, error, canEditContacts }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean }) {
+export function HostedCustomers({ customers, error, canEditContacts, pagination }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean; pagination: DirectoryPagination }) {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
   const [historyCustomer, setHistoryCustomer] = useState<CustomerRow | null>(null);
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -70,9 +71,9 @@ export function HostedCustomers({ customers, error, canEditContacts }: { custome
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Customers" value={error ? "—" : String(rows.length)} description={error ? "Customer information unavailable" : `${active} active customers`} icon={<Users className="size-5" />} />
+        <MetricCard title={pagination.search ? "Matching Customers" : "Total Customers"} value={error ? "—" : String(pagination.total)} description={error ? "Customer information unavailable" : `${active} active on this page`} icon={<Users className="size-5" />} />
         <MetricCard title="New This Month" value="—" description="Recent customers unavailable" icon={<UserPlus className="size-5" />} />
-        <MetricCard title="Loyalty Members" value={error ? "—" : String(loyalty)} description="Customers with loyalty points" icon={<Star className="size-5" />} />
+        <MetricCard title="Loyalty Members" value={error ? "—" : String(loyalty)} description="With loyalty points on this page" icon={<Star className="size-5" />} />
         <MetricCard title="Average Customer Value" value="—" description="Purchasing totals unavailable" icon={<Banknote className="size-5" />} />
       </section>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
@@ -80,6 +81,7 @@ export function HostedCustomers({ customers, error, canEditContacts }: { custome
         <MetricCard title="Outstanding Credit" value="—" description="Unpaid customer balances unavailable" icon={<Banknote className="size-5" />} />
       </section>
 
+      {!error && <ContactDirectoryControls view="customers" pagination={pagination} />}
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<CustomerRow>
@@ -88,8 +90,7 @@ export function HostedCustomers({ customers, error, canEditContacts }: { custome
             data={rows}
             fields={fields}
             actions={actions}
-            enableGlobalSearch
-            searchPlaceholder="Search customers..."
+            enableGlobalSearch={false}
             pageSize={10}
             onRowClick={setSelectedCustomer}
             emptyMessage={error ?? "No customers found."}
