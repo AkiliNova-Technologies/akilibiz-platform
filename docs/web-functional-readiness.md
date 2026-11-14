@@ -199,7 +199,7 @@ After these pass, proceed with isolated hosted permission tests; do not run dest
 
 ### Implemented in code (not deployed)
 
-- New `/dashboard/products/drafts` user-facing workflow linked from the desktop-aligned Products toolbar as **Prepare Product**. Supports creating, reopening/editing, listing, and explicitly discarding product drafts. The normal synchronized catalogue remains read-only.
+- New `/dashboard/products/drafts` user-facing workflow linked from the desktop-aligned Products toolbar as **Prepare Product** only when `AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS=1` is configured. This server-side feature flag defaults OFF; GET/POST/DELETE endpoints also reject use while disabled. Supports creating, reopening/editing, listing, and explicitly discarding product drafts. The normal synchronized catalogue remains read-only.
 - New `web_product_drafts` table and additive migration `20261114170000_web_product_preparation_drafts.sql`. Each row is tenant- and author-scoped. Active business owners/managers may only read/change their own draft rows. Composite foreign key checks category ownership. Immutable author/business identity enforced by trigger. **No migration was executed during these commits.**
 - New `/api/products/drafts`: GET draft list and active categories, POST idempotently saves a draft by client-generated UUID, DELETE removes only the current author's draft. Every request resolves the authenticated selected business, author and role server-side and uses the normal RLS-scoped Supabase client. Limits: 100 drafts and 1,000 active categories per view; fail clearly instead of returning an incomplete list.
 - Strict allowlist validation covers product name, SKU, category UUID, stock unit, integer UGX cost and selling prices, plus optional barcode, brand and description. Browser cannot send stock adjustments, opening balances, tax settings, business IDs, staff IDs or publication flags.
@@ -219,3 +219,5 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 After source checks, use a disposable development business to verify RLS, create/edit/discard, owner/manager authorization, switched businesses, disabled membership, invalid categories, concurrent edits and retained draft data. Postpone destructive database tests to the final stage as instructed.
+
+**Activation order:** review and non-destructively validate the draft migration on a disposable staging database, verify RLS for two distinct businesses and actors, then configure `AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS=1` in that environment. Do not enable it against a database without the draft schema. The migration and flag remain untouched during this source-code increment.
