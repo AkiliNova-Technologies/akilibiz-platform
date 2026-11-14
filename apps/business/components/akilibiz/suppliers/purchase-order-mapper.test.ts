@@ -28,7 +28,7 @@ describe("authoritative purchasing mirror mapping",()=>{
       {total_amount:250000.5},
       {status:"unrecognized"},
       {order_date:"not-a-date"},
-      {items_count:1.5},
+      {items_count:1.12345},
     ]){
       expect(mapHostedPurchaseOrder({...row,record:{...row.record,...altered}})).toBeNull();
     }
