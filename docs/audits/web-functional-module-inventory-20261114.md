@@ -87,3 +87,24 @@ presenting a partial supplier payment register or expense list as complete.
 The shared pagination regression test covers 101 rows in two pages, missing
 second-page records and the 5000-record safety limit. Acceptance with the
 desktop-published schema and a disposable business is still required.
+
+## Purchasing register read-only connection
+
+Desktop's `BUSINESS_MIRROR_ENTITIES` already includes
+`purchase_orders`, `purchase_order_lines`, `goods_receipts`, and
+`goods_receipt_lines`, as does the hosted `upload_desktop_business_mirror`
+contract. The Next.js `FINANCIAL_MIRROR_ENTITIES` allowlist now permits
+owner-scoped reads of these four domains.
+
+`usePurchaseOrdersData` now loads a complete bounded snapshot of desktop
+purchase-order mirrors. Its pure mapper requires a valid purchase number,
+positive local supplier ID, whole-UGX amount, exact item count, valid date,
+and documented lifecycle status. It never invents a supplier name: when
+no authoritative name snapshot exists it displays the local supplier ID.
+The page displays this real read model, explicit errors, refresh, and
+register-scoped metrics. Create/edit/mark-received remain disabled until a
+safe inbound command and desktop posting receipt protocol exists.
+
+Source tests cover strict purchase order mapping, accepted statuses, and the
+four newly available owner-only mirror entity names. No migration was
+applied and no purchasing transactions were created.
