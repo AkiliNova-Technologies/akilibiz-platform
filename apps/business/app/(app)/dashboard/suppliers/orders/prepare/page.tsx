@@ -5,6 +5,7 @@ import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
+import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from "@/components/ui/select";
 import {Card,CardContent} from "@/components/ui/card";
 import {
   type PurchaseOrderDraftLine,purchaseOrderDraftTotal,
@@ -154,17 +155,18 @@ export default function PreparePurchaseOrderPage(){
             onChange={event=>setDraft({...draft,po_number:event.target.value})}/>
         </label>
         <label className="space-y-1 text-sm">Supplier
-          <select className="h-10 w-full rounded-md border bg-background px-3" value={draft.supplier_id}
-            disabled={Boolean(draft.updated_at)}
-            onChange={event=>{
-              const supplier=suppliers.find(s=>s.id===event.target.value);
+          <Select value={draft.supplier_id||undefined} disabled={Boolean(draft.updated_at)}
+            onValueChange={value=>{
+              const supplier=suppliers.find(s=>s.id===value);
               setDraft({...draft,supplier_id:supplier?.id??"",
                 source_business_public_id:supplier?.local_business_public_id??"",
                 lines:[emptyLine()]});
             }}>
-            <option value="">Choose supplier</option>
-            {suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+            <SelectTrigger className="w-full"><SelectValue placeholder="Choose supplier"/></SelectTrigger>
+            <SelectContent>
+              {suppliers.map(s=><SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </label>
         <label className="space-y-1 text-sm">Order date
           <Input type="date" value={draft.order_date} onChange={event=>setDraft({...draft,order_date:event.target.value})}/>
@@ -182,11 +184,13 @@ export default function PreparePurchaseOrderPage(){
           const product=availableProducts.find(p=>p.id===line.product_id);
           return <div key={index} className="grid gap-3 rounded-md border p-3 md:grid-cols-[minmax(0,2fr)_1fr_1fr_auto] md:items-end">
             <label className="space-y-1 text-sm">Product
-              <select className="h-10 w-full rounded-md border bg-background px-3" value={line.product_id}
-                onChange={event=>setLine(index,{product_id:event.target.value})}>
-                <option value="">Choose product</option>
-                {availableProducts.map(p=><option key={p.id} value={p.id}>{p.name} · {p.sku}</option>)}
-              </select>
+              <Select value={line.product_id||undefined}
+                onValueChange={value=>setLine(index,{product_id:value})}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Choose product"/></SelectTrigger>
+                <SelectContent>
+                  {availableProducts.map(p=><SelectItem key={p.id} value={p.id}>{p.name} · {p.sku}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </label>
             <label className="space-y-1 text-sm">Quantity ({product?.stock_unit??"units"})
               <Input inputMode="decimal" type="number" min="0.001" step="0.001"
