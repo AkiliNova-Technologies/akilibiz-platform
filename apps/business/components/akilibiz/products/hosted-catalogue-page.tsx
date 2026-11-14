@@ -64,6 +64,7 @@ export async function HostedCataloguePage({
     categories={(error?[]:categoriesResult.data??[]) as HostedCategoryRow[]}
     products={productRows as HostedProductRow[]}
     pagination={view==="products"?{page,total,search}:undefined}
+    draftsEnabled={process.env.AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS === "1"}
     view={view}
   />;
 }
