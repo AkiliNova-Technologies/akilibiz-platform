@@ -12,7 +12,7 @@ Navigation parity with AkiliBiz Desktop is **not** functional parity. Web screen
 | --- | --- | --- |
 | Dashboard overview | Hosted operational summary plus permitted financial mirror data | Verify each KPI's source, correctness, permissions and date windows; never show an unavailable KPI as zero |
 | Business insights | Dedicated analytics page exists | Verify hosted analytics completeness and date window behavior |
-| Customers / suppliers | Hosted business-scoped directory | Replace 5,000-record ceiling with true server pagination; verify create/edit permissions and bidirectional sync gates |
+| Customers / suppliers | Hosted business-scoped directory | Server-side 50-record pagination and name search implemented; validate exact counts, business isolation, and edit permissions against hosted data |
 | Products | Hosted catalogue page exists | Confirm authoritative catalogue, stock availability, edit flows and permission enforcement |
 | Business profile | Reads authenticated active business and allows owner updates | Verify saving and switching between hosted businesses |
 | Backup / restore / sync | Web pairing exists; backup and restore buttons are explicitly disabled | Implement and qualify a hosted backup policy separately; do not upload a local SQLite file into a web business as an implicit restore |
@@ -42,3 +42,20 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 A clean typecheck does not prove hosted data, RLS, CRUD, or synchronization acceptance. Exercise authenticated multi-business test accounts and the real hosted endpoints separately.
+
+## Hosted contact directory pagination increment
+
+The Customers and Suppliers pages now accept `?q=<name>&page=<number>`. The server validates pagination inputs, obtains an exact result count from Supabase, scopes **both** count and record queries by authenticated business membership, and requests only 50 records per page. Search is case-insensitive, bounded to 100 characters, and escapes SQL LIKE wildcards so literal names are matched. The UI includes Search/Clear, Previous/Next, result range, and page count.
+
+Customer and supplier KPIs that cannot be computed globally from one page explicitly describe **this page**. Total/matching count uses the hosted query count, not the current page length. No production bidirectional contact flag is enabled.
+
+**Still incomplete:** contact creation, import/export, server-derived customer financial metrics, hosted acceptance tests, and a full audit of other web business modules.
+
+### Focused qualification
+
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+Manually test searching for a contact on a later page, navigating 50+ results, clearing the search, switching hosted businesses and verifying no contacts from the previous business appear, and checking the owner-only edit gate. Typecheck and unit tests cannot replace these hosted RLS checks.
