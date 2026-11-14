@@ -74,7 +74,11 @@ export async function POST(request:NextRequest){
   const write=await supabase.from("web_product_drafts").upsert({
     ...input,business_id:business.id,created_by:user.id,
   },{onConflict:"id"}).select("id,updated_at").single();
-  if(write.error)return fail("Could not save this draft. Check your access or contact support.",409);
+  if(write.error){
+    if(write.error.code==="55000")
+      return fail("This draft has already been sent for desktop review and cannot be edited.",409);
+    return fail("Could not save this draft. Check your access or contact support.",409);
+  }
   return NextResponse.json({
     id:write.data.id,updatedAt:write.data.updated_at,state:"draft",
     message:"Draft saved on the web. No product or stock was created on the desktop.",
@@ -91,7 +95,11 @@ export async function DELETE(request:NextRequest){
   const result=await supabase.from("web_product_drafts").delete()
     .eq("business_id",business.id).eq("created_by",user.id).eq("id",id)
     .select("id");
-  if(result.error)return fail("Could not discard this draft.",503);
+  if(result.error){
+    if(result.error.code==="55000")
+      return fail("This draft has already been sent for desktop review and cannot be discarded.",409);
+    return fail("Could not discard this draft.",503);
+  }
   if(!result.data?.length)return fail("Draft not found.",404);
   return NextResponse.json({discarded:true},{headers});
 }
