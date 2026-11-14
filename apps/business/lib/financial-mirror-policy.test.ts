@@ -10,6 +10,8 @@ describe("financial mirror policy", () => {
   it("allow-lists synchronized read-only domains", () => {
     expect(FINANCIAL_MIRROR_ENTITIES.has("finance_transactions")).toBe(true);
     expect(FINANCIAL_MIRROR_ENTITIES.has("authoritative_expenses")).toBe(true);
+    for(const entity of ["purchase_orders","purchase_order_lines","goods_receipts","goods_receipt_lines"])
+      expect(FINANCIAL_MIRROR_ENTITIES.has(entity)).toBe(true);
     expect(FINANCIAL_MIRROR_ENTITIES.has("users")).toBe(false);
   });
 
