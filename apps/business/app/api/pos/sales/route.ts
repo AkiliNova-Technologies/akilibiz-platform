@@ -12,7 +12,9 @@ const reply = (body: unknown, status: number) =>
  *
  * The database feature gate is deliberately OFF for all businesses. Until
  * desktop reconciliation and fiscal qualification pass, valid calls receive
- * 423 and cannot create a sale. No browser checkout UI invokes this endpoint.
+ * 423 and cannot create a sale. The separate browser cash-sale pilot may
+ * call it only when its own explicit build-time gate is enabled; ordinary
+ * checkout remains disabled.
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
