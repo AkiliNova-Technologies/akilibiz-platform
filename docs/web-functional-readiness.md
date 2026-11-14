@@ -171,3 +171,26 @@ These automated checks do not prove cash posting can be enabled in production.
 - No hosted migration has been applied and neither cash posting nor inbound product mutation has been enabled. TypeScript, Vitest and Rust regression checks remain to be run locally.
 
 Do not deploy the new RPC migration without normal staging review. Do not enable production cash posting based solely on these source-level tests.
+
+## Product CSV usefulness and POS status verification follow-up
+
+- Product exports now include `category_name` rather than an unresolvable hosted category UUID. The endpoint resolves names using **only categories from the currently authenticated business** in batches; mismatched or missing categories fail the entire export instead of producing a misleading partial file. Raw `category_id` is never included in the CSV.
+- The product CSV remains a **review/export** format. It is not guaranteed to satisfy every required field of the desktop import template (tax classifications, units, inventory settings, etc.). Do not claim full import round-trip compatibility until a separate import-contract audit passes.
+- The new POS cash-sale status route supports explicit checks of unknown or pending requests and never creates transactions. The RPC read migration remains unapplied pending isolated validation.
+- Desktop product insert SQL was inspected again: it now lists exactly 31 unique columns, 31 placeholders, and 31 bind calls. SKU lookup still selects the optional package-content fields. Compilation and a real desktop create-product test are pending.
+- All changes in this increment were source commits only. No migration, database reset, application deployment, or production feature activation occurred.
+
+### Non-destructive checks
+
+Web:
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+Desktop:
+```bash
+cargo test --manifest-path src-tauri/Cargo.toml --lib product -- --nocapture
+```
+
+After these pass, proceed with isolated hosted permission tests; do not run destructive database or recovery tests until the final stage.
