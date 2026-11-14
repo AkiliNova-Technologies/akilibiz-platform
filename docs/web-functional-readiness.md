@@ -300,3 +300,35 @@ or catalogue-confirmed published.
 All gates remain default-off. This is committed source only, not a deployed
 or qualified end-to-end feature. See
 `docs/sync/phase2c4-product-request-recovery.md` for staged qualification.
+
+## Platform-wide completion workstream — operational reports and mirror consistency
+
+This cycle shifts from single-product qualification to the full desktop/web
+functionality backlog, with the final disposable PostgreSQL and SQLite
+integration suite deferred until all necessary source workflows are present.
+See `docs/audits/web-functional-module-inventory-20261114.md`.
+
+**Sales Reports:** the report now uses the selected UTC date window for its
+visible list and verified metrics, re-enables Refresh, prevents a failed reload
+from continuing to display stale results, and exports the verified register as
+CSV. The mapper accepts an exact, checked historical cash-overpayment pattern
+with nonnegative displayed outstanding debt, without changing source payment
+records. It does not accept missing or incorrect change evidence.
+
+**Supplier payments and expenses:** read adapters now require a complete
+bounded financial mirror rather than quietly stopping at the first 100 records.
+The shared loader rejects changes to the authoritative record count or
+publication timestamp during pagination, rejects inconsistent/invalid page
+metadata, and fails closed beyond 5000 records. This does not enable posting
+financial transactions from the browser.
+
+Targeted tests cover real-world cash overpayments, zero-change/credit cases,
+date boundaries, 64-bit-safe UGX integer checks, CSV escaping, React sales
+register period state and stale failures, and multi-page financial mirror
+consistency.
+
+**Not yet delivered:** source-authoritative purchase order creation/goods
+receiving, supplier settlement posting, product edit/deactivation commands,
+full finance posting, settings mutation workflows, all POS payment modes,
+staff mutations, and final local integration acceptance. No hosted migrations
+or business records were changed in this workstream.
