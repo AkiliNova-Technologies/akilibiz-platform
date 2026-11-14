@@ -194,3 +194,28 @@ cargo test --manifest-path src-tauri/Cargo.toml --lib product -- --nocapture
 ```
 
 After these pass, proceed with isolated hosted permission tests; do not run destructive database or recovery tests until the final stage.
+
+## Product preparation drafts — November 14, 2026
+
+### Implemented in code (not deployed)
+
+- New `/dashboard/products/drafts` user-facing workflow linked from the desktop-aligned Products toolbar as **Prepare Product**. Supports creating, reopening/editing, listing, and explicitly discarding product drafts. The normal synchronized catalogue remains read-only.
+- New `web_product_drafts` table and additive migration `20261114170000_web_product_preparation_drafts.sql`. Each row is tenant- and author-scoped. Active business owners/managers may only read/change their own draft rows. Composite foreign key checks category ownership. Immutable author/business identity enforced by trigger. **No migration was executed during these commits.**
+- New `/api/products/drafts`: GET draft list and active categories, POST idempotently saves a draft by client-generated UUID, DELETE removes only the current author's draft. Every request resolves the authenticated selected business, author and role server-side and uses the normal RLS-scoped Supabase client. Limits: 100 drafts and 1,000 active categories per view; fail clearly instead of returning an incomplete list.
+- Strict allowlist validation covers product name, SKU, category UUID, stock unit, integer UGX cost and selling prices, plus optional barcode, brand and description. Browser cannot send stock adjustments, opening balances, tax settings, business IDs, staff IDs or publication flags.
+- Draft validation and API tests cover payload limits, foreign identity rejection, owner-only access and selected-business queries.
+
+### Deliberately not yet provided
+
+The draft is **not** a real synchronized product. It cannot be sold, exported as desktop catalogue stock, or included in inventory. The desktop `CreateProductDto` contract additionally requires product type, inventory mode, sales/purchase units, quantity conversion, minimum/maximum stock, expiry/batch flags and authoritative tax classification rules. These must be resolved by a guarded desktop inbound command, idempotent application/receipt and outbound publication before **Publish product** is enabled. No direct `desktop_products` insert is permitted.
+
+### Testing
+
+No live database writes, destructive testing or migration deployments were performed. Once the new migration has passed staging review, use non-destructive checks:
+
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+After source checks, use a disposable development business to verify RLS, create/edit/discard, owner/manager authorization, switched businesses, disabled membership, invalid categories, concurrent edits and retained draft data. Postpone destructive database tests to the final stage as instructed.
