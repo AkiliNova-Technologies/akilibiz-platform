@@ -6,7 +6,7 @@ export const CATALOGUE_EXPORT_BATCH = 500;
 
 const columns: Record<CatalogueExportEntity, readonly string[]> = {
   products: [
-    "name", "sku", "barcode", "brand", "stock_unit", "selling_price_ugx",
+    "name", "sku", "category_name", "barcode", "brand", "stock_unit", "selling_price_ugx",
     "cost_price_ugx", "is_active", "updated_at",
   ],
   categories: [
