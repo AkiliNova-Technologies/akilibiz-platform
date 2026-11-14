@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
+import { validateContactChanges } from "@/lib/contact-update-validation";
 
 /** Pilot-only: enqueue a version-checked command. Never update the public
  * desktop contact projection from the web: SQLite remains authoritative. */
@@ -37,10 +38,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid contact update." }, { status: 400, headers });
   }
   const changes = input.changes as Record<string, unknown>;
-  if (!Object.keys(changes).length ||
-      Object.entries(changes).some(([key, value]) =>
-        !allowed.includes(key) || !(typeof value === "string" || value === null))) {
-    return NextResponse.json({ error: "Unsupported contact field." }, { status: 400, headers });
+  const validationError = validateContactChanges(input.entity as "customer" | "supplier", changes);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400, headers });
   }
   const { data, error } = await supabase.rpc("request_desktop_contact_update", {
     target_business_id: business.id,
