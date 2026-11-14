@@ -1,0 +1,73 @@
+import { NextRequest,NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { requireActiveBusiness } from "@/lib/business-context";
+import { parseProductDraft } from "@/lib/product-draft-validation";
+
+const headers={"Cache-Control":"private, no-store"};
+const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
+const uuidV4=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+async function authorize() {
+  const supabase=await createClient();
+  const {data:{user},error}=await supabase.auth.getUser();
+  if(error||!user)return null;
+  const business=await requireActiveBusiness();
+  return {supabase,user,business,allowed:["owner","manager"].includes(business.role)};
+}
+export async function GET(){
+  const context=await authorize();
+  if(!context)return fail("Sign in required.",401);
+  if(!context.allowed)return fail("Product drafts require an owner or manager.",403);
+  const {supabase,user,business}=context;
+  const [drafts,categories]=await Promise.all([
+    supabase.from("web_product_drafts")
+      .select("id,name,sku,category_id,barcode,brand,description,stock_unit,cost_price_ugx,selling_price_ugx,updated_at",{count:"exact"})
+      .eq("business_id",business.id).eq("created_by",user.id)
+      .order("updated_at",{ascending:false}).range(0,99),
+    supabase.from("desktop_categories")
+      .select("id,name,local_business_public_id,is_active",{count:"exact"})
+      .eq("business_id",business.id).eq("is_active",true)
+      .order("name").range(0,999),
+  ]);
+  if(drafts.error||categories.error)return fail("Could not load your product drafts. The draft database may not be configured yet.",503);
+  if((drafts.count??0)>100 || (categories.count??0)>1000)
+    return fail("Too many drafts or categories for this view. No incomplete list was shown.",413);
+  return NextResponse.json({drafts:drafts.data??[],categories:categories.data??[],
+    readOnlyCatalogue:true},{headers});
+}
+export async function POST(request:NextRequest){
+  const context=await authorize();
+  if(!context)return fail("Sign in required.",401);
+  if(!context.allowed)return fail("Product drafts require an owner or manager.",403);
+  const input=parseProductDraft(await request.json().catch(()=>null));
+  if(!input)return fail("Review the product name, SKU, category, unit, and whole-UGX prices.",400);
+  const {supabase,user,business}=context;
+  const category=await supabase.from("desktop_categories")
+    .select("id,local_business_public_id").eq("business_id",business.id)
+    .eq("id",input.category_id).eq("is_active",true).maybeSingle();
+  if(category.error || !category.data)
+    return fail("Choose an active category belonging to this business.",409);
+  // A draft is intentionally NOT a desktop product and has no effect on stock,
+  // SKU reservations, prices, VAT, POS or synchronized catalogue.
+  const write=await supabase.from("web_product_drafts").upsert({
+    ...input,business_id:business.id,created_by:user.id,
+  },{onConflict:"id"}).select("id,updated_at").single();
+  if(write.error)return fail("Could not save this draft. Check your access or contact support.",409);
+  return NextResponse.json({
+    id:write.data.id,updatedAt:write.data.updated_at,state:"draft",
+    message:"Draft saved on the web. No product or stock was created on the desktop.",
+  },{status:200,headers});
+}
+export async function DELETE(request:NextRequest){
+  const context=await authorize();
+  if(!context)return fail("Sign in required.",401);
+  if(!context.allowed)return fail("Product drafts require an owner or manager.",403);
+  const id=request.nextUrl.searchParams.get("id");
+  if(!id || !uuidV4.test(id))return fail("Invalid draft reference.",400);
+  const {supabase,user,business}=context;
+  const result=await supabase.from("web_product_drafts").delete()
+    .eq("business_id",business.id).eq("created_by",user.id).eq("id",id)
+    .select("id");
+  if(result.error)return fail("Could not discard this draft.",503);
+  if(!result.data?.length)return fail("Draft not found.",404);
+  return NextResponse.json({discarded:true},{headers});
+}
