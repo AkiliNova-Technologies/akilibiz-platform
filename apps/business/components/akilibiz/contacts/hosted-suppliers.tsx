@@ -10,13 +10,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { HostedSupplier } from "@/components/akilibiz/contacts/hosted-directory";
+import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
 
 function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
 }
 
-export function HostedSuppliers({suppliers,error,canEditContacts}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean}) {
+export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean;pagination:DirectoryPagination}) {
   const [selected, setSelected] = useState<HostedSupplier | null>(null);
   const [editing,setEditing]=useState<HostedSupplier|null>(null);
   const activeCount = useMemo(() => suppliers.filter((supplier) => supplier.is_active).length, [suppliers]);
@@ -57,16 +58,17 @@ export function HostedSuppliers({suppliers,error,canEditContacts}:{suppliers:Hos
         <p className="text-sm text-muted-foreground">Manage supplier information and purchasing relationships.</p>
       </div>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Suppliers" value={error ? "—" : String(suppliers.length)}
-          description={error ? "Supplier information unavailable" : `${activeCount} active suppliers`} icon={<Truck className="size-5" />} />
+        <MetricCard title={pagination.search ? "Matching Suppliers" : "Total Suppliers"} value={error ? "—" : String(pagination.total)}
+          description={error ? "Supplier information unavailable" : `${activeCount} active on this page`} icon={<Truck className="size-5" />} />
         <MetricCard title="Active Suppliers" value={error ? "—" : String(activeCount)}
-          description="Available suppliers" icon={<Package className="size-5" />} />
+          description="Active on this page" icon={<Package className="size-5" />} />
         <MetricCard title="Purchase Value" value="—"
           description="Purchase totals unavailable" icon={<Banknote className="size-5" />} />
         <MetricCard title="Outstanding" value="—"
           description="Supplier payables unavailable" icon={<Wallet className="size-5" />} />
       </section>
 
+      {!error && <ContactDirectoryControls view="suppliers" pagination={pagination} />}
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<HostedSupplier>
@@ -75,8 +77,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts}:{suppliers:Hos
             data={suppliers}
             fields={fields}
             actions={actions}
-            enableGlobalSearch
-            searchPlaceholder="Search suppliers..."
+            enableGlobalSearch={false}
             pageSize={10}
             onRowClick={setSelected}
             emptyMessage={error ?? "No suppliers found."}
