@@ -25,14 +25,25 @@ export function mirrorValue(record: Record<string, unknown>, ...keys: string[]) 
  */
 export async function loadAllFinancialMirrorRows(entity: string, maxRows = 5000): Promise<FinancialMirrorRow[]> {
   const rows: FinancialMirrorRow[] = [];
+  let expectedTotal: number | null = null;
+  let expectedSync: string | null = null;
   for (let page = 1; page <= Math.ceil(maxRows / 100); page++) {
     const result = await loadFinancialMirror(entity, { page, pageSize: 100 });
     if (result.total > maxRows) throw new Error(
       "This business has more synchronized records than this report can display safely. Narrow the report or use a paginated view."
     );
+    if (!Number.isSafeInteger(result.total) || result.total < 0 ||
+        result.page !== page || result.pageSize !== 100 || !Array.isArray(result.rows))
+      throw new Error("The synchronized report response is invalid. Refresh to retry.");
+    if (expectedTotal === null) {
+      expectedTotal = result.total;
+      expectedSync = result.lastSuccessfulSync;
+    } else if (result.total !== expectedTotal || result.lastSuccessfulSync !== expectedSync) {
+      throw new Error("The synchronized records changed while this report was loading. Refresh to retry.");
+    }
     rows.push(...result.rows);
-    if (rows.length >= result.total) return rows;
-    if (result.rows.length === 0) throw new Error(
+    if (rows.length === expectedTotal) return rows;
+    if (rows.length > expectedTotal || result.rows.length === 0) throw new Error(
       "The synchronized records changed while this report was loading. Refresh to retry."
     );
   }
