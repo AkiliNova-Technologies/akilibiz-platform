@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   const fields=payload.fields as Record<string,unknown>;
   const required=entity==="customer"
     ? ["name"] : ["name","contact_person","phone","payment_terms"];
-  if(required.some(key=>typeof fields[key]!=="string"||!fields[key].trim())) {
+  if(required.some(key=>{const value=fields[key];return typeof value!=="string"||!value.trim();})) {
     return reply({error:"Complete all required contact fields."},400);
   }
   const error=validateContactChanges(entity,fields);
