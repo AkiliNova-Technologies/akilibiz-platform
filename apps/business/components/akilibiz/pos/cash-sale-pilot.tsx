@@ -139,6 +139,7 @@ export function CashSalePilot({
     setAttempt({...next, stage:"submitting"});
     setBusy(true);
     setError(null);
+    let safelyRejected = false;
     try {
       const response=await fetch("/api/pos/sales",{
         method:"POST",
@@ -152,9 +153,10 @@ export function CashSalePilot({
       });
       const body=await response.json() as SaleResponse;
       if (!response.ok) {
-        // A known HTTP rejection can safely be retried under the same key.
-        // Keep the key even for 423 and 409; never silently start a new sale.
-        setAttempt({...next, stage:"unknown"});
+        // Auth/validation/closed-gate failures cannot have posted a sale.
+        // Conflicts or service failures are not conclusive: preserve the
+        // original key until a desktop/operator reconciliation.
+        safelyRejected = [400,401,403,423].includes(response.status);
         throw new Error(body.error ?? "The sale was not confirmed.");
       }
       if (body.status !== "pending_desktop" || typeof body.sale_id !== "string") {
@@ -163,8 +165,14 @@ export function CashSalePilot({
       setAttempt({...next,stage:"pending_desktop",receipt:body.receipt_number});
       setQuote(null);
     } catch (cause) {
-      setAttempt(current=>current?.stage === "pending_desktop"
-        ? current : {...next,stage:"unknown"});
+      if (safelyRejected) {
+        setAttempt(null);
+        setQuote(null);
+        try { window.sessionStorage.removeItem(storageKey); } catch { /* optional */ }
+      } else {
+        setAttempt(current=>current?.stage === "pending_desktop"
+          ? current : {...next,stage:"unknown"});
+      }
       setError(cause instanceof Error ? cause.message : "Sale status is uncertain. Retry with the same request ID.");
     } finally { setBusy(false); }
   };
