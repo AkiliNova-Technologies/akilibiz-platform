@@ -63,7 +63,7 @@ export function ProductDesktopRequest({draftId}:{draftId:string}){
   return <div className="flex flex-col items-end gap-1">
     {saved?.commandId ? <>
       <span role="status" className="text-xs text-muted-foreground">
-        Request {saved.state??"pending"} — not a published product
+        {saved.state === "published" ? "Product published and synchronized" : `Request ${saved.state??"pending"} — not yet published`}
       </span>
       <Button size="sm" variant="outline" disabled={busy} onClick={()=>void check()}>
         {busy?"Checking…":"Check desktop request"}
