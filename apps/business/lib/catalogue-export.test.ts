@@ -19,9 +19,9 @@ describe("catalogue CSV export",()=>{
       is_active:true,updated_at:"2026-11-14T12:00:00Z",
       business_id:"not-for-export",
     }]);
-    expect(text).toContain('"'=HYPERLINK(""url"")"');
+    expect(text).toContain(`"'=HYPERLINK(""url"")"`);
     expect(text).toContain('"A,B"');
-    expect(text).toContain('"'+CMD"');
+    expect(text).toContain(`"'+CMD"`);
     expect(text).not.toContain("not-for-export");
     expect(text.endsWith("\r\n")).toBe(true);
   });
