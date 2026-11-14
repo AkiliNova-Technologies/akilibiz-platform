@@ -207,7 +207,7 @@ After these pass, proceed with isolated hosted permission tests; do not run dest
 
 ### Deliberately not yet provided
 
-The draft is **not** a real synchronized product. It cannot be sold, exported as desktop catalogue stock, or included in inventory. The desktop `CreateProductDto` contract additionally requires product type, inventory mode, sales/purchase units, quantity conversion, minimum/maximum stock, expiry/batch flags and authoritative tax classification rules. These must be resolved by a guarded desktop inbound command, idempotent application/receipt and outbound publication before **Publish product** is enabled. No direct `desktop_products` insert is permitted.
+The draft is **not** a real synchronized product. It cannot be sold, exported as desktop catalogue stock, or included in inventory. The draft now collects product type, inventory mode, sales/purchase units, conversion factor, minimum/maximum stock, expiry/batch controls, package contents and tax-inclusive preference. However, these fields alone do **not** supply authoritative tax classification, validate local SKU/category identity or establish a desktop commit. They must be resolved by a guarded desktop inbound command, idempotent application/receipt and outbound publication before **Publish product** is enabled. No direct `desktop_products` insert is permitted.
 
 ### Testing
 
@@ -221,3 +221,14 @@ pnpm --filter @akilibiz/business-web test
 After source checks, use a disposable development business to verify RLS, create/edit/discard, owner/manager authorization, switched businesses, disabled membership, invalid categories, concurrent edits and retained draft data. Postpone destructive database tests to the final stage as instructed.
 
 **Activation order:** review and non-destructively validate the draft migration on a disposable staging database, verify RLS for two distinct businesses and actors, then configure `AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS=1` in that environment. Do not enable it against a database without the draft schema. The migration and flag remain untouched during this source-code increment.
+
+## Phase 2C — Desktop-compatible product draft details (source increment)
+
+- New additive `20261114180000_web_product_draft_desktop_options.sql` adds the bounded JSONB `desktop_options` field to **only** `web_product_drafts`; existing drafts retain an empty-options default and remain readable.
+- Drafts can now store product type (`stock_item`, `service`, `digital`, `fee`), inventory type (`count`, `weight`, `liquid`, `length`, `area`, `volume`), sales/purchase units, quantity conversion, stock level warnings, negative/decimal quantity preference, expiry/batch tracking, tax-inclusive preference and validated package contents.
+- Draft editor has clear user-facing inputs for these details, including paired package amount/unit and measurement-select controls. The backend rejects extra fields, invalid enums, non-finite prices/quantities, negative stock thresholds, overlong units and unsupported package measurements. Existing V1 drafts can be edited and enriched.
+- No product is published, stock is allocated, taxes are calculated, or changes are sent to SQLite during draft save. The authoritative desktop `CreateProductDto` will still require category-ID mapping to the paired source, SKU/barcode uniqueness, tax-classification lookup and explicit idempotent desktop creation/ACK.
+- The standalone draft feature remains OFF unless `AKILIBIZ_ENABLE_WEB_PRODUCT_DRAFTS=1` is set **after** the two additive draft migrations are applied and RLS qualified in a development environment.
+- No migrations were executed, no live database rows were updated, no destructive tests performed, and no feature gates enabled.
+
+**Validation commands:** `pnpm --filter @akilibiz/business-web exec tsc --noEmit` and `pnpm --filter @akilibiz/business-web test`. Then exercise save/edit/reopen of extended draft fields only against an approved disposable dev tenant. These commits are not a production publication qualification.
