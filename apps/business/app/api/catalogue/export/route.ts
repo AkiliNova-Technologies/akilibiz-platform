@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
   if (counted.count > CATALOGUE_EXPORT_LIMIT) {
     return fail("This catalogue is too large to export in one file. Please contact support.", 413);
   }
-  const fields = catalogueExportColumns(kind).join(",");
+  const fields = kind === "products"
+    ? [...catalogueExportColumns(kind).filter(field => field !== "category_name"), "category_id"].join(",")
+    : catalogueExportColumns(kind).join(",");
   const rows: Record<string, unknown>[] = [];
   for (let offset = 0; offset < counted.count; offset += CATALOGUE_EXPORT_BATCH) {
     const result = await supabase.from(table).select(fields)
@@ -50,6 +52,37 @@ export async function GET(request: NextRequest) {
   }
   if (rows.length !== counted.count) {
     return fail("Catalogue records changed during the export. Please retry.", 409);
+  }
+  if (kind === "products" && rows.length) {
+    const ids = [...new Set(rows.map(row => row.category_id))];
+    if (ids.some(id => typeof id !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))) {
+      return fail("One or more product categories could not be verified.", 502);
+    }
+    const names = new Map<string, string>();
+    for (let offset = 0; offset < ids.length; offset += 200) {
+      const batch = ids.slice(offset, offset + 200) as string[];
+      const result = await supabase.from("desktop_categories")
+        .select("id,name")
+        .eq("business_id", business.id)
+        .in("id", batch);
+      if (result.error || !Array.isArray(result.data)) {
+        return fail("Could not verify product categories for export.", 502);
+      }
+      for (const category of result.data) {
+        if (typeof category.id !== "string" ||
+          typeof category.name !== "string" || !category.name.trim()) {
+          return fail("A product category name is unavailable.", 502);
+        }
+        names.set(category.id, category.name);
+      }
+    }
+    if (ids.some(id => !names.has(id as string))) {
+      return fail("A product category is missing. No partial export was downloaded.", 409);
+    }
+    for (const row of rows) {
+      row.category_name = names.get(row.category_id as string)!;
+    }
   }
   const csv = catalogueExportCsv(kind, rows);
   return new NextResponse(csv, {
