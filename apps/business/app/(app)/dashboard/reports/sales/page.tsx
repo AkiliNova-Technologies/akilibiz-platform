@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Eye, RefreshCw } from "lucide-react";
+import { Download, Eye, RefreshCw } from "lucide-react";
 import {
   DataTable,
   type TableAction,
@@ -17,6 +17,7 @@ import {
   useReportsSalesData,
 } from "@/components/akilibiz/reports/reports-sales-data";
 import { Badge } from "@/components/ui/badge";
+import { salesReportCsv } from "@/lib/sales-report-export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -61,6 +62,30 @@ export default function ReportsSalesPage() {
   const refresh = () => void getSalesRegister({ date_from: from || undefined, date_to: to || undefined, skip: 0, limit: 5000 });
   const totalBilled=rows.reduce((sum,row)=>sum+row.total,0);
   const outstanding=rows.reduce((sum,row)=>sum+row.balance,0);
+  const exportRegister = () => {
+    // Do not export an incomplete or failed financial mirror as an authoritative report.
+    if (loading || error || !sales.length) return;
+    const csv=salesReportCsv(sales.map(row=>({
+      sale_number:row.sale_number,
+      sale_date_utc:row.sale_date_utc,
+      customer_name:row.customer_name,
+      total_amount_ugx:row.total_amount_ugx,
+      amount_paid_ugx:row.amount_paid_ugx,
+      balance_due_ugx:row.balance_due_ugx,
+      tax_amount_ugx:row.tax_amount_ugx,
+      status:row.status,
+      reversal_status:row.reversal_status,
+    })));
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;
+    link.download=`akilibiz-sales-register-${from||"all"}-${to||"all"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
   const open = async (row: Row) => {
     setSelected(row);
     setDrill(null);
@@ -189,12 +214,17 @@ export default function ReportsSalesPage() {
                 actions={actions}
                 onRowClick={(row) => void open(row)}
                 toolbarActions={
-                  <Button
-                    variant="outline"
-                    onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
-                    <RefreshCw className="size-4" />
-                    
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button type="button" variant="outline" size="sm"
+                      disabled={loading||Boolean(error)||sales.length===0}
+                      onClick={exportRegister}>
+                      <Download className="size-4" aria-hidden="true"/>Export CSV
+                    </Button>
+                    <Button type="button" variant="outline" onClick={refresh}
+                      size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
+                      <RefreshCw className="size-4" />
+                    </Button>
+                  </div>
                 }
                 enableSelection={false}
                 enableGlobalSearch
