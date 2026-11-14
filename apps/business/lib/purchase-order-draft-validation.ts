@@ -16,6 +16,15 @@ const exact=(v:unknown)=>typeof v==="number"&&Number.isSafeInteger(v)&&v>=0;
 const keys=(value:Record<string,unknown>,expected:string[])=>Object.keys(value).length===expected.length&&
   Object.keys(value).every(key=>expected.includes(key));
 
+/** Parse decimal quantities without silently rounding additional precision. */
+export function parseMilliQuantityInput(value:string):number|null{
+  const trimmed=value.trim();
+  if(!/^(?:0|[1-9][0-9]*)(?:[.][0-9]{1,3})?$/.test(trimmed))return null;
+  const [whole,fraction=""]=trimmed.split(".");
+  const result=Number(whole)*1000+Number(fraction.padEnd(3,"0"));
+  return Number.isSafeInteger(result)&&result>0?result:null;
+}
+
 /** Exactly representable milliquantities and whole-UGX line totals. */
 export function purchaseOrderLineTotal(line:PurchaseOrderDraftLine):number|null{
   if(!exact(line.quantity_milli)||line.quantity_milli<=0||
