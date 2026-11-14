@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Banknote, Download, Package, Plus, ShoppingBag, Truck, Upload, Wallet } from "lucide-react";
+import { Banknote, Package, Plus, ShoppingBag, Truck, Upload, Wallet } from "lucide-react";
 import { DataTable, type TableAction, type TableField } from "@/components/akilibiz/data-table";
 import MetricCard from "@/components/akilibiz/metric-card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import type { HostedSupplier } from "@/components/akilibiz/contacts/hosted-directory";
 import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
+import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
 function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
@@ -86,9 +87,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,pagination}:{su
                 <Button type="button" variant="outline" disabled title="Supplier import is unavailable">
                   <Upload className="size-4" />Import
                 </Button>
-                <Button type="button" variant="outline" disabled title="Supplier export is unavailable">
-                  <Download className="size-4" />Export
-                </Button>
+                <ContactExportButton entity="suppliers" />
                 <Button type="button" disabled title="Supplier creation is unavailable">
                   <Plus className="size-4" />Add Supplier
                 </Button>
