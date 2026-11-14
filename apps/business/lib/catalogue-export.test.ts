@@ -4,7 +4,7 @@ import { catalogueExportColumns, catalogueExportCsv } from "./catalogue-export";
 describe("catalogue CSV export",()=>{
   it("restricts columns to the approved catalogue fields",()=>{
     expect(catalogueExportColumns("products")).toEqual([
-      "name","sku","barcode","brand","stock_unit","selling_price_ugx",
+      "name","sku","category_name","barcode","brand","stock_unit","selling_price_ugx",
       "cost_price_ugx","is_active","updated_at",
     ]);
     expect(catalogueExportColumns("categories")).toEqual([
@@ -14,13 +14,13 @@ describe("catalogue CSV export",()=>{
   });
   it("escapes spreadsheet formulas and multiline values",()=>{
     const text=catalogueExportCsv("products",[{
-      name:"=HYPERLINK(\"url\")",sku:"A,B",barcode:null,brand:"+CMD",
+      name:"=HYPERLINK(\"url\")",sku:"A,B",category_name:"Beverages",barcode:null,brand:"+CMD",
       stock_unit:"piece",selling_price_ugx:10000,cost_price_ugx:6000,
       is_active:true,updated_at:"2026-11-14T12:00:00Z",
       business_id:"not-for-export",
     }]);
     expect(text).toContain(`"'=HYPERLINK(""url"")"`);
-    expect(text).toContain('"A,B"');
+    expect(text).toContain('"A,B","Beverages"');
     expect(text).toContain(`"'+CMD"`);
     expect(text).not.toContain("not-for-export");
     expect(text.endsWith("\r\n")).toBe(true);
