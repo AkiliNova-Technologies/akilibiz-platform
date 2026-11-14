@@ -9,6 +9,16 @@ alter table private.desktop_product_create_commands
   check ((state='applied') = (local_receipt_id is not null
     and local_product_id is not null and applied_at is not null));
 
+-- One desktop receipt and local product can never confirm two distinct
+-- web commands, even under replay or competing paired-device requests.
+create unique index desktop_product_create_unique_receipt
+  on private.desktop_product_create_commands(business_id,local_receipt_id)
+  where local_receipt_id is not null;
+create unique index desktop_product_create_unique_local_product
+  on private.desktop_product_create_commands(
+    business_id,source_business_public_id,local_product_id)
+  where local_product_id is not null;
+
 create function public.ack_desktop_product_create(
  target_business_id uuid,
  source_business_public_id text,
