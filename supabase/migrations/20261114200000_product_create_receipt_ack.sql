@@ -73,7 +73,7 @@ begin
           and p.local_business_public_id=c.source_business_public_id
           and p.local_product_id=c.local_product_id
           and p.category_id=c.category_id
-          and p.sku=c.payload->>'sku'
+          and p.sku=(c.payload->>'sku')
       ) then 'published' else c.state end,
       c.created_at
     from private.desktop_product_create_commands c
