@@ -8,17 +8,19 @@ import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ProductDesktopRequest } from "@/components/akilibiz/products/product-desktop-request";
 import { parseProductDraft,type ProductDraftInput, type DesktopProductOptions, DEFAULT_PRODUCT_OPTIONS } from "@/lib/product-draft-validation";
 
 type Category={id:string;name:string;local_business_public_id:string;is_active:boolean};
 type Draft=ProductDraftInput & {updated_at:string};
-type Response={drafts?:Draft[];categories?:Category[];error?:string};
+type Response={drafts?:Draft[];categories?:Category[];error?:string;publicationRequestsEnabled?:boolean};
 type Editor={id:string;name:string;sku:string;category_id:string;barcode:string;brand:string;description:string;stock_unit:string;cost:string;selling:string;desktop_options:DesktopProductOptions};
 const empty=():Editor=>({id:crypto.randomUUID(),name:"",sku:"",category_id:"",barcode:"",brand:"",description:"",stock_unit:"pcs",cost:"",selling:"",desktop_options:{...DEFAULT_PRODUCT_OPTIONS}});
 const money=(value:number)=>new Intl.NumberFormat("en-UG",{style:"currency",currency:"UGX",maximumFractionDigits:0}).format(value);
 
 export default function ProductDraftsPage() {
   const [drafts,setDrafts]=useState<Draft[]>([]);
+  const [publicationRequestsEnabled,setPublicationRequestsEnabled]=useState(false);
   const [categories,setCategories]=useState<Category[]>([]);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
@@ -34,9 +36,11 @@ export default function ProductDraftsPage() {
       const body=await result.json() as Response;
       if(!result.ok)throw new Error(body.error??"Product drafts are unavailable.");
       setDrafts(body.drafts??[]);
+      setPublicationRequestsEnabled(body.publicationRequestsEnabled===true);
       setCategories(body.categories??[]);
     }catch(cause){
       setDrafts([]);setCategories([]);
+      setPublicationRequestsEnabled(false);
       setError(cause instanceof Error?cause.message:"Could not load drafts.");
     }finally{setLoading(false);}
   },[]);
@@ -218,6 +222,7 @@ export default function ProductDraftsPage() {
               <p className="text-xs text-muted-foreground">{draft.sku} · {money(draft.selling_price_ugx)} · Draft only</p>
             </div>
             <div className="flex gap-2">
+              {publicationRequestsEnabled && <ProductDesktopRequest draftId={draft.id} />}
               <Button size="sm" variant="outline" disabled={busy} onClick={()=>openDraft(draft)}><FilePenLine className="size-4"/>Edit</Button>
               <Button size="sm" variant="outline" disabled={busy} onClick={()=>setDiscardId(draft.id)}><Trash2 className="size-4"/>Discard</Button>
             </div>
