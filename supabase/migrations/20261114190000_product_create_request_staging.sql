@@ -115,6 +115,10 @@ begin
     or (item.desktop_options->>'max_stock_level')::numeric>1000000000
     or (item.desktop_options->>'max_stock_level')::numeric <
        (item.desktop_options->>'min_stock_level')::numeric
+    or (item.desktop_options->>'min_stock_level')::numeric * 1000 <>
+       trunc((item.desktop_options->>'min_stock_level')::numeric * 1000)
+    or (item.desktop_options->>'max_stock_level')::numeric * 1000 <>
+       trunc((item.desktop_options->>'max_stock_level')::numeric * 1000)
   then
     raise exception 'Product inventory levels are outside the supported range'
       using errcode='22023';
