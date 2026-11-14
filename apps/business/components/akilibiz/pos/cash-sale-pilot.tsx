@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,34 @@ export function CashSalePilot({
   const [quote, setQuote] = useState<{ fingerprint: string; total: number } | null>(null);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [busy, setBusy] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const storageKey = `akilibiz.cash-pilot.${businessId}`;
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as { attempt?: Attempt; cash?: string; quote?: { fingerprint: string; total: number } };
+        if (saved.attempt && typeof saved.attempt.id === "string" &&
+            typeof saved.attempt.cartFingerprint === "string" &&
+            Number.isSafeInteger(saved.attempt.cashReceived) &&
+            ["unknown","submitting","pending_desktop"].includes(saved.attempt.stage)) {
+          setAttempt({ ...saved.attempt, stage: saved.attempt.stage === "submitting" ? "unknown" : saved.attempt.stage });
+          setCash(typeof saved.cash === "string" ? saved.cash : String(saved.attempt.cashReceived));
+          if (saved.quote && typeof saved.quote.fingerprint === "string" &&
+              Number.isSafeInteger(saved.quote.total)) setQuote(saved.quote);
+          setOpen(true);
+        }
+      }
+    } catch { /* Browser storage is optional; never create a new ID automatically for an unverified sale. */ }
+    setRestored(true);
+  }, [storageKey]);
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      if (!attempt) window.sessionStorage.removeItem(storageKey);
+      else window.sessionStorage.setItem(storageKey, JSON.stringify({ attempt, cash, quote }));
+    } catch { /* A failed storage write must not be treated as confirmation of a sale. */ }
+  }, [attempt, cash, quote, restored, storageKey]);
   const items = useMemo(() => pilotQuoteItems(cartItems), [cartItems]);
   const fingerprint = useMemo(
     () => items ? pilotCartFingerprint(businessId, items) : null,
@@ -84,7 +112,7 @@ export function CashSalePilot({
   };
 
   const submit = async () => {
-    if (!items || !fingerprint || !validQuote || received === null || busy) return;
+    if (!restored || !items || !fingerprint || !validQuote || received === null || busy) return;
     if (received < validQuote.total) {
       setError("Cash received is less than the verified subtotal.");
       return;
@@ -100,6 +128,14 @@ export function CashSalePilot({
       id: crypto.randomUUID(), cartFingerprint:fingerprint,
       cashReceived:received, stage:"submitting" as const,
     };
+    // Persist the idempotency key BEFORE the network call. Do not risk a
+    // duplicate new key if the browser is refreshed during transmission.
+    try { window.sessionStorage.setItem(storageKey, JSON.stringify({
+      attempt:{...next,stage:"unknown"}, cash, quote,
+    })); } catch {
+      setError("Safe sale recovery is unavailable in this browser. Do not proceed.");
+      return;
+    }
     setAttempt({...next, stage:"submitting"});
     setBusy(true);
     setError(null);
@@ -135,7 +171,7 @@ export function CashSalePilot({
 
   return <>
     <Button type="button" variant="outline"
-      disabled={!items?.length || Boolean(attempt)}
+      disabled={!restored || (!items?.length && !attempt)}
       onClick={()=>setOpen(true)}>
       Cash sale pilot
     </Button>
