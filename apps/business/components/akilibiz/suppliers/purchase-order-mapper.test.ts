@@ -43,6 +43,9 @@ describe("authoritative purchasing mirror mapping",()=>{
     expect(mapHostedPurchaseOrder({...row,record:{
       ...row.record,items_count:1.12345,
     }})).toBeNull();
+    expect(mapHostedPurchaseOrder({...row,record:{
+      ...row.record,items_count_milli:-100,
+    }})).toBeNull();
   });
   it("accepts only supported receiving and cancellation lifecycle statuses",()=>{
     for(const status of ["Draft","Pending","Partially Received","Received","Cancelled"]){
