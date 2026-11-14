@@ -137,3 +137,26 @@ pnpm --filter @akilibiz/business-web test
 ```
 
 Run hosted read-only acceptance separately using two business memberships and a representative data volume (0, 50, 51, 1,001 products). New SQL is intentionally **not applied** during these source changes. Do not activate production sync or sales flags.
+
+## POS cash posting client pilot — 2026-11-14
+
+A separately gated **Cash sale pilot** UI now calls the existing authenticated read-only quote endpoint and staged `post_web_pos_cash_sale` RPC via `/api/pos/sales`. It is not the normal checkout.
+
+- Browser build-time flag `NEXT_PUBLIC_AKILIBIZ_CASH_SALE_PILOT=1` is **unset by default**; the pilot entry point is otherwise invisible.
+- Independent hosted per-business cash posting control remains disabled by default. This change does not migrate or enable it.
+- Uses only exact product UUIDs and milli-quantities; backend computes prices, tax, inventory and authorization and serializes the transaction. Browser-supplied prices, actor identity and business identifiers are not accepted by the API.
+- Cash amount is validated as nonnegative, whole UGX. The quote is a snapshot, not a lock, and the authoritative database can reject a sale after preflight.
+- Client records one version-4 idempotency UUID **before** sending the request. It saves this key, original business/cart fingerprint, entered amount and quote in browser session storage. Unknown outcomes retain that ID for explicit retry; no replacement key is generated for an ambiguous response.
+- Browser business switches remount the pilot to avoid sharing an in-flight request with another business.
+- A response with `pending_desktop` is displayed as queued for reconciliation, **not a finalized desktop sale or printable receipt**.
+- Cash pilot deliberately excludes credit orders, card/mobile-money, discounts, tax overrides, and customer accounting until their authoritative contracts are qualified.
+- Do **not** activate the browser or database gates for real transactions until a disposable end-to-end environment has verified replay, tax policy, stock holds, desktop outbox/ACK, refund behavior, and interrupted posting. Defer destructive recovery tests to the final stage, per project instructions.
+
+Focused source checks (no database writes):
+
+```bash
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+These automated checks do not prove cash posting can be enabled in production.
