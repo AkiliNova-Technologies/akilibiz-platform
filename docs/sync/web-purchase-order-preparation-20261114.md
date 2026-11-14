@@ -23,16 +23,29 @@ Status: source implemented on `dev`; **NOT deployed, not transaction posting, no
 - The web exposes **NO purchasing posting endpoint**; the preparation
   screen explicitly states that no stock, VAT, supplier balance or desktop
   order is created by saving a draft.
-- No new queue, desktop inbox, approval, stock ledger, supplier payable,
-  or receipt acknowledgement was introduced in this increment.
+- An independent **default-off** owner-only hosted request queue is now present.
+  It performs immutable SQL snapshotting, idempotency and request status recovery.
+  The desktop inbox, actual approval/application, stock ledger, supplier payable,
+  and goods receipt acknowledgement have **not** been implemented.
 
 ## Source files
 
 - `supabase/migrations/20261114220000_web_purchase_order_preparation.sql`
+- `supabase/migrations/20261114230000_web_purchase_order_review_requests.sql`
 - `apps/business/lib/purchase-order-draft-validation.ts`
 - `apps/business/app/api/purchasing/drafts/route.ts`
 - `apps/business/app/(app)/dashboard/suppliers/orders/prepare/page.tsx`
 - Corresponding validation, API and SQL contract tests.
+
+## Owner-only review request staging
+
+- `AKILIBIZ_ENABLE_PURCHASE_ORDER_REVIEW_REQUESTS=1` is a separate switch from draft preparation; it remains OFF.
+- `20261114230000_web_purchase_order_review_requests.sql` creates private request controls and a pending-only queue.
+- `POST /api/purchasing/requests` accepts only `draftId` and UUIDv4 `requestId`. The SQL function re-reads the locked draft, checks the originating owner, active paired desktop, active supplier and current product sources, then snapshots the supplier **source public UUID**, each product **local integer ID**, quantity in thousandths, and exact whole-UGX unit price. Browser-supplied supplier/local IDs cannot drive posting.
+- Requests are idempotent per owner/draft ID. Submitted draft updates and deletes are rejected by database triggers.
+- `GET /api/purchasing/requests` restores the owners request lifecycle from a source-of-truth SQL function. Session storage holds only the uncertain-POST retry reference.
+- The source-bound `list_pending_desktop_purchase_order_reviews` RPC exposes only pending commands for the authorized paired desktop. It does not apply, approve or acknowledge them.
+- A manager may prepare their own drafts but cannot submit or act for an owner; owner-based submission requires an owner-created draft until a separately reviewed manager handoff is implemented.
 
 ## Next dependency
 
