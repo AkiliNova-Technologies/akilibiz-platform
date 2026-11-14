@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, ReceiptText, RefreshCw, Truck } from "lucide-react";
 import {
   DataTable,
@@ -43,8 +43,9 @@ const money = (value: number) =>
   }).format(value);
 
 export default function ReportsPurchasingPage() {
-  const { goodsReceived, getGoodsReceivedRegister } =
+  const { goodsReceived, getGoodsReceivedRegister, loading, error } =
     useReportsPurchasingData();
+  useEffect(()=>{void getGoodsReceivedRegister({skip:0,limit:5000});},[getGoodsReceivedRegister]);
   const [selected, setSelected] = useState<Row | null>(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -53,11 +54,6 @@ export default function ReportsPurchasingPage() {
   const rows = useMemo<Row[]>(
     () =>
       goodsReceived
-        .filter(
-          (receipt) =>
-            (!dateFrom || receipt.receipt_date_utc >= dateFrom) &&
-            (!dateTo || receipt.receipt_date_utc <= dateTo),
-        )
         .map((source) => ({
           id: source.id,
           receipt_number: source.receipt_number,
@@ -68,9 +64,12 @@ export default function ReportsPurchasingPage() {
           status: `${source.status} · ${source.reversal_status}`,
           source,
         })),
-    [dateFrom, dateTo, goodsReceived],
+    [goodsReceived],
   );
-  const fields: TableField<Row>[] = [
+  const posted=rows.filter(row=>row.source.status==="posted");
+  const postedValue=posted.reduce((sum,row)=>sum+row.total_amount_ugx,0);
+  const verified=!loading&&!error;
+    const fields: TableField<Row>[] = [
     {
       key: "receipt_number",
       header: "Receipt",
@@ -110,12 +109,14 @@ export default function ReportsPurchasingPage() {
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
       skip: 0,
-      limit: 100,
+      limit: 5000,
     });
   return (
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
+          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+          {loading && <p role="status" className="text-sm text-muted-foreground">Loading goods receipts…</p>}
           <div>
             <h2 className="text-2xl font-semibold">Purchasing Reports</h2>
             <p className="text-sm text-muted-foreground">
@@ -126,13 +127,13 @@ export default function ReportsPurchasingPage() {
           <section className="grid gap-4 md:grid-cols-2">
             <MetricCard
               title="Posted receipts"
-              value="—"
+              value={verified?money(postedValue):"—"}
               description="Exact UGX from posted goods receipts"
               icon={<ReceiptText className="size-5" />}
             />
             <MetricCard
               title="Receipt register"
-              value="—"
+              value={verified?rows.length.toLocaleString("en-UG"):"—"}
               description="Posted and voided receipts remain traceable"
               icon={<Truck className="size-5" />}
             />
@@ -141,7 +142,7 @@ export default function ReportsPurchasingPage() {
             <CardContent className="grid gap-4 px-4 md:grid-cols-4 md:items-end">
               <DateRangePicker
                 id="purchasing-report-date-range"
-                label="Date range (UTC)"
+                label="Receipt date range"
                 from={draftDateFrom}
                 to={draftDateTo}
                 onRangeChange={(from, to) => {
@@ -163,6 +164,7 @@ export default function ReportsPurchasingPage() {
                   onClick={() => {
                     setDateFrom(draftDateFrom);
                     setDateTo(draftDateTo);
+                    void getGoodsReceivedRegister({date_from:draftDateFrom,date_to:draftDateTo,skip:0,limit:5000});
                   }}
                   disabled={!draftDateFrom || !draftDateTo}>
                   Apply period
@@ -175,6 +177,7 @@ export default function ReportsPurchasingPage() {
                     setDraftDateTo("");
                     setDateFrom("");
                     setDateTo("");
+                    void getGoodsReceivedRegister({skip:0,limit:5000});
                   }}>
                   Clear period
                 </Button>
@@ -191,7 +194,7 @@ export default function ReportsPurchasingPage() {
                 actions={actions}
                 onRowClick={setSelected}
                 toolbarActions={
-                  <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                  <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
                     <RefreshCw className="size-4" />
                     
                   </Button>
@@ -200,8 +203,8 @@ export default function ReportsPurchasingPage() {
                 enableGlobalSearch
                 enableSorting={false}
                 pageSize={10}
-                loading={false}
-                emptyMessage="No purchasing records available."
+                loading={loading}
+                emptyMessage={error?"Purchasing records could not be verified.":"No synchronized goods receipts found for this period."}
               />
             </CardContent>
           </Card>
@@ -225,11 +228,11 @@ export default function ReportsPurchasingPage() {
                 ["Date", selected.receipt_date_utc],
                 [
                   "Purchase order",
-                  selected.source.purchase_order?.po_number ?? "—",
+                  selected.source.purchase_order_id ? `Desktop order #${selected.source.purchase_order_id}` : "—",
                 ],
                 [
                   "Items received",
-                  String(selected.source.purchase_order?.items_count ?? "—"),
+                  "Not available in this register",
                 ],
                 ["Total", money(selected.total_amount_ugx)],
                 ["VAT", money(selected.tax_amount_ugx)],
