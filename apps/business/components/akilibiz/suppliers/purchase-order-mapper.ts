@@ -19,7 +19,8 @@ export function mapHostedPurchaseOrder(row:FinancialMirrorRow):PurchaseOrder|nul
   if(id===null||id<=0||supplierId===null||supplierId<=0||
     items===null||total===null||!number||!orderDate||
     typeof status!=="string"||!states.has(status as PurchaseOrderStatus)||
-    (r.expected_delivery!=null&&date(r.expected_delivery)===null))return null;
+    (r.expected_delivery!=null&&date(r.expected_delivery)===null)||
+    typeof row.localBusinessPublicId!=="string"||!row.localBusinessPublicId.trim())return null;
   return {
     id,po_number:number,supplier_id:supplierId,
     // Desktop mirror supplies local supplier ID, not its name. Do not invent a join.
@@ -29,5 +30,6 @@ export function mapHostedPurchaseOrder(row:FinancialMirrorRow):PurchaseOrder|nul
     status:status as PurchaseOrderStatus,
     created_by_name:text(r.created_by_name_snapshot)??"Desktop staff",
     notes:text(r.notes)??undefined,
+    source_business_public_id:row.localBusinessPublicId,
   };
 }
