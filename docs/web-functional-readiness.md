@@ -255,3 +255,32 @@ cargo test --manifest-path src-tauri/Cargo.toml --lib product_create_inbox -- --
 ```
 
 See `docs/sync/phase2c2-product-create-staging.md` for staged qualification steps and deferred destructive test requirements.
+
+## Phase 2C3 — Explicit desktop product approval, durable receipt, cloud confirmation
+
+Source changes now add an end-to-end **code path** for product creation: a logged-in
+desktop staff user with `products.create` permission can review the complete
+staged product request and explicitly choose an active, business-scoped VAT
+classification. The desktop revalidates the pending hosted command, paired
+device and owner before any local write; revoked or unreachable authorization
+fails closed.
+
+A single SQLite transaction inserts the real product and a separate immutable
+product-creation receipt; opening stock is always **zero**, and standard
+catalogue triggers enqueue the outbound product projection. A new independent,
+default-off ACK worker delivers only committed receipts. The hosted status
+becomes **published** only when the same local product ID, source, category and
+SKU are observed in the desktop-to-web catalogue projection.
+
+Source files include desktop migration `0118_cloud_product_create_receipts.sql`,
+hosted migration `20261114200000_product_create_receipt_ack.sql`, desktop review
+UI, Tauri approval/review handlers, and web status tests. The local tests use
+disposable in-memory SQLite, check replay and receipt immutability, and do not
+access user databases.
+
+**Not production-qualified:** All gates listed in
+`docs/sync/phase2c3-product-approval-and-ack.md` remain off, no migrations
+were deployed, and no desktop app was started against existing user data during
+this implementation. Before activation, run source validation, apply migrations
+on disposable staging only, qualify revocation, tax, stock, outbox and ACK cases,
+and reserve destructive database/recovery tests for the final stage.
