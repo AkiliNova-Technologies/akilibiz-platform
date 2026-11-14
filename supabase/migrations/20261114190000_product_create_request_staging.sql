@@ -19,8 +19,7 @@ create table private.desktop_product_create_commands (
     check(state in ('pending','staged','applied','conflict')),
   created_at timestamptz not null default now(),
   unique (business_id,requested_by,request_id),
-  unique (business_id,draft_id),
-  check (state <> 'applied' or state <> 'pending')
+  unique (business_id,draft_id)
 );
 create index desktop_product_create_queue_idx on private.desktop_product_create_commands
   (business_id,source_business_public_id,source_device_public_id,created_at,id)
