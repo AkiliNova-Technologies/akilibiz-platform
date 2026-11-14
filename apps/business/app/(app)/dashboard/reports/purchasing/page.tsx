@@ -236,7 +236,8 @@ export default function ReportsPurchasingPage() {
             </DialogDescription>
           </DialogHeader>
           {selected ? (
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 text-sm">
+              <div className="space-y-3">
               {[
                 ["Receipt", selected.receipt_number],
                 ["Supplier", selected.supplier_name],
@@ -247,7 +248,7 @@ export default function ReportsPurchasingPage() {
                 ],
                 [
                   "Items received",
-                  "Not available in this register",
+                  receiptLines ? String(receiptLines.length) : receiptLoading ? "Loading…" : "Unavailable",
                 ],
                 ["Total", money(selected.total_amount_ugx)],
                 ["VAT", money(selected.tax_amount_ugx)],
@@ -258,8 +259,8 @@ export default function ReportsPurchasingPage() {
                   <span className="font-medium">{value}</span>
                 </div>
               ))}
-            </div>
-            <div className="space-y-3">
+              </div>
+              <div className="space-y-3">
               <h3 className="text-sm font-semibold">Received items</h3>
               {receiptLoading && <p role="status" className="text-sm text-muted-foreground">Loading receipt items…</p>}
               {receiptError && <p role="alert" className="text-sm text-destructive">{receiptError}</p>}
@@ -274,6 +275,7 @@ export default function ReportsPurchasingPage() {
                   <span>{money(line.line_total_ugx)}</span>
                 </div>
               ))}
+              </div>
             </div>
           ) : null}
         </DialogContent>
