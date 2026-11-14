@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import type { HostedCustomer } from "@/components/akilibiz/contacts/hosted-directory";
 import { ContactDirectoryControls, type DirectoryPagination } from "@/components/akilibiz/contacts/contact-directory-controls";
 import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-dialog";
+import { ContactCreateDialog } from "@/components/akilibiz/contacts/contact-create-dialog";
 import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
 type CustomerRow = HostedCustomer & {
@@ -25,10 +26,11 @@ type CustomerRow = HostedCustomer & {
 
 function Missing() { return <span className="text-muted-foreground">—</span>; }
 
-export function HostedCustomers({ customers, error, canEditContacts, pagination }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean; pagination: DirectoryPagination }) {
+export function HostedCustomers({ customers, error, canEditContacts, canCreateContacts, pagination }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean; canCreateContacts: boolean; pagination: DirectoryPagination }) {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
   const [historyCustomer, setHistoryCustomer] = useState<CustomerRow | null>(null);
   const [editing, setEditing] = useState<CustomerRow | null>(null);
+  const [creating,setCreating]=useState(false);
   const rows = useMemo<CustomerRow[]>(() => customers.map((customer) => ({
     ...customer,
     total_purchases: null,
@@ -101,7 +103,7 @@ export function HostedCustomers({ customers, error, canEditContacts, pagination 
                   <Upload className="size-4" /> Import
                 </Button>
                 <ContactExportButton entity="customers" />
-                <Button type="button" disabled title="Customer creation is not connected">
+                <Button type="button" disabled={!canCreateContacts} title={canCreateContacts ? "Request a customer on the paired desktop" : "Contact creation is not yet enabled"} onClick={()=>setCreating(true)}>
                   <Plus className="size-4" /> Add Customer
                 </Button>
               </div>
@@ -166,6 +168,7 @@ export function HostedCustomers({ customers, error, canEditContacts, pagination 
         </DialogContent>
       </Dialog>
 
+      {creating&&<ContactCreateDialog entity="customer" onClose={()=>setCreating(false)}/>}
       {editing&&<ContactEditDialog key={editing.id} contact={editing} entity="customer"
         onClose={()=>setEditing(null)}/>}
       <Dialog open={historyCustomer !== null} onOpenChange={(open) => { if (!open) setHistoryCustomer(null); }}>
