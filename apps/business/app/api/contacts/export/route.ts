@@ -48,7 +48,13 @@ export async function GET(request: NextRequest) {
     if (result.error || !result.data) {
       return NextResponse.json({ error: "Could not complete this export." }, { status: 502, headers });
     }
-    rows.push(...(result.data as Record<string, unknown>[]));
+    // Dynamic field selection is not inferred by the Supabase client types.
+    // Check the response shape before treating these values as export rows.
+    const batch: unknown = result.data;
+    if (!Array.isArray(batch) || batch.some(row => row === null || typeof row !== "object" || Array.isArray(row))) {
+      return NextResponse.json({ error: "Could not validate contact export." }, { status: 502, headers });
+    }
+    rows.push(...(batch as Record<string, unknown>[]));
   }
   // Do not hand out a silently partial dataset if rows changed while fetching.
   if (rows.length !== count.count) {
