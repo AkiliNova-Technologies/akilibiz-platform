@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   FolderTree,
@@ -422,9 +423,11 @@ export function HostedCatalogue({
                   <Layers className="size-4" />
                   Variants
                 </Button>
-                <Button type="button" disabled title="Product creation unavailable">
-                  <Plus className="size-4" />
-                  Add Product
+                <Button asChild title="Prepare a product draft; desktop publication is not yet available">
+                  <Link href="/dashboard/products/drafts">
+                    <Plus className="size-4" />
+                    Prepare Product
+                  </Link>
                 </Button>
               </div>
             }
