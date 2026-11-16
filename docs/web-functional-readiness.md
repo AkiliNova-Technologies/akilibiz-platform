@@ -407,3 +407,28 @@ This adds **no** stock receipt, payable, tax claim, or journal posting;
 the desktop receiving service remains the only authority. Source
 qualification and the final disposable-database test are still pending.
 No existing business database or production feature gates changed.
+
+## Foundation follow-up — stable API errors and permission-aware navigation
+
+The follow-up source commits extend shared API error handling and business-role navigation:
+
+- Legacy APIs preserve the textual error field and original response data, while private no-store JSON errors gain a stable machine-readable code.
+- Existing CSV exports keep their direct download response and header contracts.
+- Product/contact exports, financial mirrors, POS catalogue/status, tax reads, purchasing drafts and request, sync endpoints, dashboard and stock reports have adopted compatible response helpers.
+- The application shell resolves active membership on the server, then derives conservative role-aware navigation without changing any route, RLS or desktop business authorization.
+- Owners retain desktop navigation parity. Managers/cashiers see only the dashboard and explicitly supported POS entry; other staff see the dashboard pending qualification of other permissions. No active business exposes no privileged sidebar.
+- Tests cover role visibility, absence of a business selection, legacy errors, custom response headers, stable codes and success-payload preservation.
+
+These changes are source only. No migrations, financial posting, feature switches or live business records were changed. Compilation and test qualification remain to be performed on the developer checkout.
+
+Run from the web repo root:
+
+```bash
+git pull --ff-only origin dev
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+pnpm --filter @akilibiz/business-web lint
+pnpm --filter @akilibiz/business-web exec next build --webpack
+```
+
+Remaining: server-page permission acceptance with disposable memberships, remaining domain-specific API error cases, and full desktop purchasing/receiving integration qualification.
