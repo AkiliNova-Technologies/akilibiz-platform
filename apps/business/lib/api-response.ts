@@ -60,3 +60,26 @@ export function apiLegacyJson(body:unknown,status=200){
   }
   return apiSuccess(body,status);
 }
+
+
+/** Drop-in NextResponse.json compatibility for older route handlers.
+ * Retains success payloads, HTTP status and custom headers, adding an error
+ * code only to legacy error objects. Never permits private responses to cache.
+ */
+export function apiCompatJson(body:unknown,init?:ResponseInit){
+  const status=init?.status??200;
+  let payload=body;
+  if(status>=400 && body!==null && typeof body==="object" &&
+     !Array.isArray(body) && typeof (body as {error?:unknown}).error==="string"){
+    const original=body as Record<string,unknown>;
+    const code:ApiErrorCode=status===401?"UNAUTHORIZED":
+      status===403?"FORBIDDEN":status===404?"NOT_FOUND":
+      status===400||status===413||status===422?"VALIDATION_FAILED":
+      status===409?"CONFLICT":status===423?"REQUEST_PENDING":
+      status===502?"SYNC_UNAVAILABLE":"SERVICE_UNAVAILABLE";
+    payload={...original,code};
+  }
+  const headers=new Headers(init?.headers);
+  headers.set("Cache-Control","private, no-store");
+  return NextResponse.json(payload,{...init,status,headers});
+}
