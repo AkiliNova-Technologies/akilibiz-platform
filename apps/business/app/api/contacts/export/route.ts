@@ -1,3 +1,4 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
@@ -13,13 +14,13 @@ export async function GET(request: NextRequest) {
   const headers = { "Cache-Control": "private, no-store" };
   const entity = request.nextUrl.searchParams.get("entity");
   if (entity !== "customers" && entity !== "suppliers") {
-    return NextResponse.json({ error: "Choose customers or suppliers." }, { status: 400, headers });
+    return apiCompatJson({ error: "Choose customers or suppliers." }, { status: 400, headers });
   }
   const kind: ExportEntity = entity;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401, headers });
+    return apiCompatJson({ error: "Sign in required." }, { status: 401, headers });
   }
   const business = await requireActiveBusiness();
   const table = kind === "customers" ? "desktop_customers" : "desktop_suppliers";
@@ -30,10 +31,10 @@ export async function GET(request: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("business_id", business.id);
   if (count.error || count.count == null) {
-    return NextResponse.json({ error: "Could not verify contact export." }, { status: 502, headers });
+    return apiCompatJson({ error: "Could not verify contact export." }, { status: 502, headers });
   }
   if (count.count > EXPORT_MAX_ROWS) {
-    return NextResponse.json(
+    return apiCompatJson(
       { error: "This directory is too large for a single export. Contact support for a larger export." },
       { status: 413, headers },
     );
@@ -46,19 +47,19 @@ export async function GET(request: NextRequest) {
       .order("id", { ascending: true })
       .range(offset, offset + EXPORT_BATCH_SIZE - 1);
     if (result.error || !result.data) {
-      return NextResponse.json({ error: "Could not complete this export." }, { status: 502, headers });
+      return apiCompatJson({ error: "Could not complete this export." }, { status: 502, headers });
     }
     // Dynamic field selection is not inferred by the Supabase client types.
     // Check the response shape before treating these values as export rows.
     const batch: unknown = result.data;
     if (!Array.isArray(batch) || batch.some(row => row === null || typeof row !== "object" || Array.isArray(row))) {
-      return NextResponse.json({ error: "Could not validate contact export." }, { status: 502, headers });
+      return apiCompatJson({ error: "Could not validate contact export." }, { status: 502, headers });
     }
     rows.push(...(batch as Record<string, unknown>[]));
   }
   // Do not hand out a silently partial dataset if rows changed while fetching.
   if (rows.length !== count.count) {
-    return NextResponse.json(
+    return apiCompatJson(
       { error: "Contacts changed during export. Please try again." },
       { status: 409, headers },
     );
