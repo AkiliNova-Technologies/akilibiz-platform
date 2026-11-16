@@ -59,9 +59,15 @@ filters/RPC arguments. Transaction endpoints must validate input before data
 access, accept durable UUID request identities, and return the authoritative
 lifecycle state. `lib/api-response.ts` defines private no-store JSON responses
 and stable error codes. New and modified endpoints should use these codes:
-`UNAUTHORIZED`, `FORBIDDEN`, `BUSINESS_ACCESS_REVOKED`, `VALIDATION_FAILED`,
+`UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `BUSINESS_ACCESS_REVOKED`, `VALIDATION_FAILED`,
 `CONFLICT`, `SYNC_UNAVAILABLE`, `REQUEST_PENDING`, `STALE_DATA`, and
 `SERVICE_UNAVAILABLE`.
+
+The compatible `apiCompatJson` and `apiLegacyJson` adapters preserve the previous
+`error` strings, response data, status codes and caller-specific headers while
+adding a stable error code. Core POS, catalogue, exports, purchasing drafts,
+financial mirrors, tax reads and synchronization endpoints have been migrated
+incrementally. New endpoints should prefer `apiError` and `apiSuccess` directly.
 
 Do not expose Postgres messages to users. Keep exact diagnostics in protected
 logs and translate expected failures into plain business language. Lists must
@@ -82,6 +88,15 @@ and other incomplete command paths remain independently default-off. Draft
 saving does not post stock, money, VAT or journals.
 
 ## UI, forms and feedback
+
+The authenticated application shell resolves the active business from Supabase
+membership on the server and passes its verified role to
+`navigationForBusinessRole`. Owners retain the complete desktop navigation.
+Non-owners see only conservatively approved groups; manager and cashier may
+see the supported POS entry. A missing business selection produces no
+privileged sidebar. This is presentation only: it does not replace route/API
+permission checks. Other staff routes must not be exposed until their
+individual database read permissions and server guards are qualified.
 
 The shared application shell and `desktop-navigation.ts` preserve desktop
 labels and grouping. Nested routes use the shared header and sidebar. Loading,
@@ -115,9 +130,10 @@ are required only when desktop/Rust source changes.
 
 ## Remaining boundaries
 
-- Complete API error-envelope adoption across older read endpoints.
-- Database-backed permission navigation for non-owner roles without weakening
-  existing RLS.
+- Finish auditing any remaining old API endpoints and migrate them to direct
+  stable `apiError`/`apiSuccess` contracts when domain-specific errors matter.
+- Qualify server-page access and database permissions for further non-owner
+  navigation groups; role-filtered links alone are not authorization.
 - Disposable end-to-end qualification of purchase approval and acknowledgement.
 - Desktop-authoritative goods receiving, supplier settlement, expense, complete
   POS, inventory adjustment, accounting and tax command lifecycles.
