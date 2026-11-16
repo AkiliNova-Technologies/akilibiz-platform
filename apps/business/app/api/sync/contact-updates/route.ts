@@ -1,3 +1,4 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
@@ -8,21 +9,21 @@ import { validateContactChanges } from "@/lib/contact-update-validation";
 export async function POST(request: NextRequest) {
   const headers = { "Cache-Control": "private, no-store" };
   if (process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS !== "1") {
-    return NextResponse.json({ error: "Two-way contact editing is not enabled." },
+    return apiCompatJson({ error: "Two-way contact editing is not enabled." },
       { status: 503, headers });
   }
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in required." },
+  if (authError || !user) return apiCompatJson({ error: "Sign in required." },
     { status: 401, headers });
   const business = await requireActiveBusiness();
-  if (business.role !== "owner") return NextResponse.json(
+  if (business.role !== "owner") return apiCompatJson(
     { error: "Only the business owner may request contact updates." }, { status: 403, headers });
   let body: unknown;
   try { body = await request.json(); } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400, headers });
+    return apiCompatJson({ error: "Invalid request body." }, { status: 400, headers });
   }
-  if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json(
+  if (!body || typeof body !== "object" || Array.isArray(body)) return apiCompatJson(
     { error: "Invalid contact update." }, { status: 400, headers });
   const input = body as Record<string, unknown>;
   const allowed = input.entity === "customer"
@@ -35,12 +36,12 @@ export async function POST(request: NextRequest) {
       typeof input.expectedUpdatedAt !== "string" ||
       !Number.isFinite(Date.parse(input.expectedUpdatedAt)) ||
       !input.changes || typeof input.changes !== "object" || Array.isArray(input.changes)) {
-    return NextResponse.json({ error: "Invalid contact update." }, { status: 400, headers });
+    return apiCompatJson({ error: "Invalid contact update." }, { status: 400, headers });
   }
   const changes = input.changes as Record<string, unknown>;
   const validationError = validateContactChanges(input.entity as "customer" | "supplier", changes);
   if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400, headers });
+    return apiCompatJson({ error: validationError }, { status: 400, headers });
   }
   const { data, error } = await supabase.rpc("request_desktop_contact_update", {
     target_business_id: business.id,
@@ -54,14 +55,14 @@ export async function POST(request: NextRequest) {
       : error.code === "23503" ? 404
       : error.code === "42501" ? 403
       : error.code === "55000" ? 503 : 422;
-    return NextResponse.json({
+    return apiCompatJson({
       error: status === 409 ? "This contact has changed or has a pending edit. Refresh before retrying."
         : status === 503 ? "Two-way contact editing is not enabled for this business."
         : status === 403 ? "Contact edit is not authorized."
         : "The contact update could not be queued.",
     }, { status, headers });
   }
-  return NextResponse.json({
+  return apiCompatJson({
     commandId: data,
     state: "pending",
     message: "Change queued for the paired desktop. It is not applied until the desktop confirms it.",
@@ -73,30 +74,30 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const headers = { "Cache-Control": "private, no-store" };
   if (process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS !== "1") {
-    return NextResponse.json({ error: "Two-way contact editing is not enabled." },
+    return apiCompatJson({ error: "Two-way contact editing is not enabled." },
       { status: 503, headers });
   }
   const commandId = request.nextUrl.searchParams.get("id");
   if (!commandId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(commandId)) {
-    return NextResponse.json({ error: "Invalid contact command ID." }, { status: 400, headers });
+    return apiCompatJson({ error: "Invalid contact command ID." }, { status: 400, headers });
   }
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json(
+  if (authError || !user) return apiCompatJson(
     { error: "Sign in required." }, { status: 401, headers });
   const business = await requireActiveBusiness();
-  if (business.role !== "owner") return NextResponse.json(
+  if (business.role !== "owner") return apiCompatJson(
     { error: "Owner access required." }, { status: 403, headers });
   const { data, error } = await supabase.rpc("desktop_contact_update_status", {
     target_business_id: business.id,
     target_command_id: commandId,
   });
-  if (error) return NextResponse.json(
+  if (error) return apiCompatJson(
     { error: "Contact update status could not be loaded." }, { status: 502, headers });
   const command = Array.isArray(data) ? data[0] : null;
-  if (!command) return NextResponse.json(
+  if (!command) return apiCompatJson(
     { error: "Contact update not found." }, { status: 404, headers });
-  return NextResponse.json({
+  return apiCompatJson({
     commandId: command.command_id,
     state: command.state,
     requestedAt: command.requested_at,
