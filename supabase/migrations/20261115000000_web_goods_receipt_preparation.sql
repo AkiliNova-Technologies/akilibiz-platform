@@ -17,7 +17,8 @@ create table public.web_goods_receipt_drafts(
    (jsonb_typeof(supplier_vat)='object' and pg_column_size(supplier_vat)<=16384)),
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
- unique(business_id,id)
+ unique(business_id,id),
+ unique(business_id,source_business_public_id,receipt_number)
 );
 create index web_goods_receipt_drafts_owner_idx on
  public.web_goods_receipt_drafts(business_id,created_by,updated_at desc,id);
@@ -153,6 +154,10 @@ begin
     jsonb_typeof(new.supplier_vat->'lines')<>'array' or
     jsonb_array_length(new.supplier_vat->'lines')<>jsonb_array_length(new.lines) then
      raise exception 'Supplier invoice evidence is incomplete' using errcode='22023';
+   end if;
+   if to_char((new.supplier_vat->>'invoice_date')::date,'YYYY-MM-DD')
+      is distinct from new.supplier_vat->>'invoice_date' then
+      raise exception 'Supplier invoice date is invalid' using errcode='22023';
    end if;
    i:=0;
    for invoice_line in select value from jsonb_array_elements(new.supplier_vat->'lines') loop
