@@ -2,6 +2,14 @@
 
 Status: source implemented on `dev`; **NOT deployed, not transaction posting, not end-to-end qualified**.
 
+Qualification update (2026-11-16): desktop Rust formatting, compilation and
+three focused inbox/receipt tests pass. The hosted request/ACK migrations also
+pass a disposable PostgreSQL 17 suite covering identity snapshotting,
+idempotency, pairing revocation, conflicting ACKs and tenant isolation. These
+were independent layer tests, not a connected desktop-worker/PostgREST run, so
+all gates remain off. See
+`docs/qualification/purchase-order-approval-20261116.md`.
+
 ## Feature and safety boundary
 
 - `/dashboard/suppliers/orders/prepare` is linked from Purchase Orders.

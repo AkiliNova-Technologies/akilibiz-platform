@@ -2,6 +2,16 @@
 
 Updated: 2026-11-16. Branch: `dev`.
 
+## Purchase-order approval qualification update
+
+Desktop Rust formatting and compilation pass, as do the three focused
+purchase-review inbox tests. A new disposable PostgreSQL 17 acceptance suite
+passes request replay, identity snapshotting, ACK replay/conflict, device
+revocation and tenant isolation. The actual desktop transport has not yet been
+connected to that disposable hosted stack, so purchase approval remains
+integration-unqualified and all runtime gates remain disabled. See
+`docs/qualification/purchase-order-approval-20261116.md`.
+
 ## Important distinction
 
 Navigation parity with AkiliBiz Desktop is **not** functional parity. Web screens must not report zero business records when no hosted API has been implemented. The desktop and web systems also use different persistence (local per-business SQLite versus hosted authenticated business-scoped records).

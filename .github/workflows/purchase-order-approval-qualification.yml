@@ -1,0 +1,47 @@
+name: Purchase order approval isolated qualification
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "supabase/migrations/2026111422*.sql"
+      - "supabase/migrations/2026111423*.sql"
+      - "supabase/migrations/2026111424*.sql"
+      - "supabase/tests/purchase_order_approval_isolated_*.sql"
+      - ".github/workflows/purchase-order-approval-qualification.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: akilibiz_purchase_approval_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local_ci_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d akilibiz_purchase_approval_ci"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: akilibiz_purchase_approval_ci
+      PGUSER: postgres
+      PGPASSWORD: local_ci_only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Bootstrap isolated owner, tenant, device and catalogue
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/purchase_order_approval_isolated_bootstrap.sql
+      - name: Install purchase preparation, request and ACK contracts
+        run: |
+          psql -v ON_ERROR_STOP=1 -1 -f supabase/migrations/20261114220000_web_purchase_order_preparation.sql
+          psql -v ON_ERROR_STOP=1 -1 -f supabase/migrations/20261114230000_web_purchase_order_review_requests.sql
+          psql -v ON_ERROR_STOP=1 -1 -f supabase/migrations/20261114240000_purchase_order_approval_receipts.sql
+      - name: Verify isolation, replay, revocation and ACK recovery
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/purchase_order_approval_isolated_acceptance.sql
