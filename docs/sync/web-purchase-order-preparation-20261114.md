@@ -122,3 +122,65 @@ rechecks current hosted authorization and creates the purchase order plus
 immutable local receipt in **one** SQLite transaction, with replay-safe
 receipts and separate hosted ACK. Only after that may the web show applied.
 Goods receiving and VAT remain independent.
+
+## Desktop explicit approval and hosted acknowledgement — source increment
+
+The separate desktop `akilibiz` `dev` branch now contains:
+- `0120_cloud_purchase_order_approval_receipts.sql`, an immutable,
+  replay-safe local approval receipt keyed to the staged command.
+- `apply_staged_web_purchase_order` in the existing purchasing service.
+  It reuses desktop stock product/unit checks and commits one order,
+  all source lines and its approval receipt in the **same SQLite transaction**.
+  Supplier public UUID maps to the selected active local supplier.
+  Exact whole-UGX line totals, active stock products and PO number
+  uniqueness are rechecked; no receiving or finance posting occurs.
+- `approve_staged_purchase_order_review`, an explicit staff command
+  requiring `purchase_orders.create` permission, paired owner/source
+  verification, a fresh `verify_desktop_purchase_order_pending` hosted
+  check, and an independent
+  `AKILIBIZ_APPLY_PURCHASE_ORDER_REVIEW_INBOX=1` gate.
+- `acknowledge_approved`, a separately gated background ACK which sends
+  only previously committed order receipts. A lost network response
+  replays the same UUID receipt and local order identity. It is controlled
+  by `AKILIBIZ_ACK_PURCHASE_ORDER_REVIEW_INBOX=1`.
+- A source-only desktop review UI alongside the existing product-review
+  dialog, gated by
+  `VITE_AKILIBIZ_PURCHASE_ORDER_REVIEW_UI=1`. Staff must explicitly
+  confirm purchase-order creation, with stock/VAT/payables explicitly
+  excluded. Already approved requests are hidden from the list.
+- Hosted migration
+  `20261114240000_purchase_order_approval_receipts.sql` adds a fresh,
+  source-bound authorization RPC and an idempotent receipt ACK. The
+  hosted request becomes `applied` only after acknowledgement; there
+  is no hosted-side purchase or stock insertion.
+  
+**None of these runtime switches were enabled or hosted migrations applied.**
+The approval path has not yet been executed end-to-end against the local
+PostgreSQL/SQLite pair, and so is **not qualified for live orders**.
+Do not manually enable it against existing business data.
+
+### Developer source validation (both repositories)
+
+```bash
+cd ~/Desktop/akilibiz
+git pull --ff-only origin dev
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+cargo test --manifest-path src-tauri/Cargo.toml purchase_order_review_inbox --lib
+cargo check --manifest-path src-tauri/Cargo.toml
+pnpm exec tsc --noEmit
+
+cd ~/Desktop/akilibiz-platform
+git pull --ff-only origin dev
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+After source checks, Codex must run the full purchase approval against
+**disposable** PostgreSQL plus SQLite with isolated paired owner, staff roles,
+supplier/product sources, double approvals, revoked-device/owner failures,
+lost-ACK replay, and goods-receipt absence. The disposable database is
+deleted after the final full-system integration suite. Destructive tests
+remain last.
+
+Goods receiving, supplier VAT and supplier payable posting remain a
+separate, unfinished web-origin workflow.
