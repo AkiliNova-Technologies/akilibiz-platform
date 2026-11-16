@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/akilibiz/app-shell";
+import { getActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -25,11 +26,13 @@ export default async function AuthenticatedLayout({
     redirect("/sign-in?next=/dashboard");
   }
 
+  const activeBusiness = await getActiveBusiness();
   const email = user.email;
   const displayName = email.split("@")[0] || "AkiliBiz user";
 
   return (
     <AppShell
+      businessRole={activeBusiness?.role ?? null}
       account={{
         displayName,
         email,
