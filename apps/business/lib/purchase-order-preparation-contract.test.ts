@@ -58,3 +58,25 @@ describe("staging-only desktop purchasing review requests",()=>{
     expect(staging).toContain("grant execute on function public.list_pending_desktop_purchase_order_reviews");
   });
 });
+
+const approval=readFileSync(resolve(process.cwd(),
+  "../../supabase/migrations/20261114240000_purchase_order_approval_receipts.sql"),"utf8");
+describe("desktop purchase approval and acknowledgement boundaries",()=>{
+  it("checks fresh authorized pending requests before local approval",()=>{
+    expect(approval).toContain("private.require_desktop_inventory_source");
+    expect(approval).not.toContain("insert into public.purchase_orders");
+    expect(approval).toContain("ctl.requests_enabled");
+    expect(approval).toContain("c.requested_by=(select auth.uid())");
+    expect(approval).toContain("c.state='pending'");
+    expect(approval).toContain("verify_desktop_purchase_order_pending");
+  });
+  it("acknowledges only matching source and receipt identities",()=>{
+    expect(approval).toContain("local_purchase_order_public_id");
+    expect(approval).toContain("local_purchase_order_id");
+    expect(approval).toContain("local_receipt_id");
+    expect(approval).toContain("for update");
+    expect(approval).toContain("Conflicting purchase order receipt");
+    expect(approval).toContain("state='applied'");
+    expect(approval).not.toMatch(/insert\s+into\s+(?:public\.)?(?:purchase_orders|goods_receipts|stock_movements|supplier_payables)/i);
+  });
+});
