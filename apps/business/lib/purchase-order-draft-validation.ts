@@ -71,7 +71,7 @@ export function parsePurchaseOrderDraft(value:unknown):PurchaseOrderDraftInput|n
     if(!keys(row,["product_id","quantity_milli","unit_price_ugx"])||
       typeof row.product_id!=="string"||!uuid.test(row.product_id)||
       products.has(row.product_id.toLowerCase())||
-      !exact(row.quantity_milli)||row.quantity_milli<=0||
+      !exact(row.quantity_milli)||Number(row.quantity_milli)<=0||
       !exact(row.unit_price_ugx))return null;
     const line={product_id:row.product_id,quantity_milli:row.quantity_milli as number,
       unit_price_ugx:row.unit_price_ugx as number};
