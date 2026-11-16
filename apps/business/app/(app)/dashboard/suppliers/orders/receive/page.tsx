@@ -11,7 +11,7 @@ import {mapHostedPurchaseOrder} from "@/components/akilibiz/suppliers/purchase-o
 import {mapPurchaseOrderLines} from "@/components/akilibiz/suppliers/purchase-order-detail";
 import {
   type PreparedGoodsReceipt, type PreparedSupplierInvoice,
-  type PreparedReceiptLine,preparedReceiptTotal,
+  preparedReceiptTotal,
 } from "@/lib/goods-receipt-draft-validation";
 import {parseMilliQuantityInput} from "@/lib/purchase-order-draft-validation";
 
@@ -21,7 +21,13 @@ type SavedDraft=PreparedGoodsReceipt&{updated_at:string};
 const currency=(amount:number)=>new Intl.NumberFormat("en-UG",{
   style:"currency",currency:"UGX",maximumFractionDigits:0,
 }).format(amount);
-const today=()=>new Date().toLocaleDateString("en-CA",{timeZone:"Africa/Kampala"});
+const today=()=>{
+  const pieces=new Intl.DateTimeFormat("en-GB",{
+    timeZone:"Africa/Kampala",year:"numeric",month:"2-digit",day:"2-digit",
+  }).formatToParts(new Date());
+  const read=(kind:string)=>pieces.find(piece=>piece.type===kind)?.value??"";
+  return `${read("year")}-${read("month")}-${read("day")}`;
+};
 const emptyReceipt=(order:Order):PreparedGoodsReceipt=>({
   id:crypto.randomUUID(),
   source_business_public_id:order.source,
@@ -37,7 +43,7 @@ const initialInvoice=(receipt:PreparedGoodsReceipt):PreparedSupplierInvoice=>({
   source_kind:"TAX_INVOICE",invoice_number:"",invoice_date:receipt.receipt_date,
   evidence_reference:"",supplier_tin:null,declared_vat_ugx:0,
   lines:receipt.lines.map(line=>({
-    product_id:line.product_id,classification_code:"OUT_OF_SCOPE",tax_inclusive:false,
+    product_id:line.product_id,classification_code:"" as PreparedSupplierInvoice["lines"][number]["classification_code"],tax_inclusive:false,
   })),
 });
 
@@ -217,6 +223,11 @@ export default function PrepareGoodsReceiptPage(){
                 onChange={event=>{
                   const text=event.target.value;
                   const qty=text==="0"||text===""?0:(parseMilliQuantityInput(text)??Number.NaN);
+                  if(!Number.isSafeInteger(qty)||qty<0||qty>line.remaining){
+                    setError("Enter a valid delivered quantity within the remaining order balance (up to three decimal places).");
+                    return;
+                  }
+                  setError(null);
                   setLine(line,qty,chosen?.unit_cost_ugx??line.price);
                 }}/>
             </label>
@@ -283,12 +294,12 @@ export default function PrepareGoodsReceiptPage(){
             {evidence.lines.map((entry,index)=><div key={entry.product_id}
               className="flex flex-wrap items-center gap-3 rounded-md border p-3">
               <span className="text-sm">Product #{entry.product_id}</span>
-              <Select value={entry.classification_code} onValueChange={value=>{
+              <Select value={entry.classification_code||undefined} onValueChange={value=>{
                 change({lines:evidence.lines.map((line,i)=>i===index?{
                   ...line,classification_code:value as typeof line.classification_code,
                 }:line)});
               }}>
-                <SelectTrigger className="w-[190px]"><SelectValue/></SelectTrigger>
+                <SelectTrigger className="w-[190px]"><SelectValue placeholder="Choose VAT treatment"/></SelectTrigger>
                 <SelectContent>
                   {(["STANDARD_RATED","ZERO_RATED","EXEMPT","OUT_OF_SCOPE"] as const)
                     .map(code=><SelectItem key={code} value={code}>
