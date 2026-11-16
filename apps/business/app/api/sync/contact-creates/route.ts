@@ -1,10 +1,11 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { validateContactChanges } from "@/lib/contact-update-validation";
 
 const headers = { "Cache-Control": "private, no-store" };
-const reply = (value: unknown, status: number) => NextResponse.json(value,{ status, headers });
+const reply = (value: unknown, status: number) => apiCompatJson(value,{ status, headers });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: NextRequest) {
