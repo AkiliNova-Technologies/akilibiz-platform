@@ -1,3 +1,4 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
@@ -6,11 +7,11 @@ import { canReadFinancialMirrors, financialMirrorPagination, FINANCIAL_MIRROR_EN
 export async function GET(request: NextRequest) {
   const business = await requireActiveBusiness();
   if (!canReadFinancialMirrors(business.role)) {
-    return NextResponse.json({ error: "Financial mirrors are restricted to the business owner." }, { status: 403 });
+    return apiCompatJson({ error: "Financial mirrors are restricted to the business owner." }, { status: 403 });
   }
   const entity = request.nextUrl.searchParams.get("entity") ?? "";
   if (!FINANCIAL_MIRROR_ENTITIES.has(entity)) {
-    return NextResponse.json({ error: "Unsupported financial mirror." }, { status: 400 });
+    return apiCompatJson({ error: "Unsupported financial mirror." }, { status: 400 });
   }
   const { page, pageSize, from } = financialMirrorPagination(request.nextUrl.searchParams.get("page"), request.nextUrl.searchParams.get("pageSize"));
   const supabase = await createClient();
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
   ]);
   const { data, error, count } = pageResult;
   if (publicationResult.error) {
-    return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
+    return apiCompatJson({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
   }
 
   // PostgREST returns PGRST103 (HTTP 416) for a page beyond the final row.
@@ -52,15 +53,15 @@ export async function GET(request: NextRequest) {
       .eq("entity_type", entity);
     if (countResult.error || countResult.count === null || countResult.count === undefined ||
         from < countResult.count) {
-      return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
+      return apiCompatJson({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
     }
     total = countResult.count;
   } else if (error) {
-    return NextResponse.json({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
+    return apiCompatJson({ error: "The synchronized financial mirror could not be loaded." }, { status: 502 });
   }
   const rows = (error ? [] : (data ?? [])).map((row) => ({ localRecordId: row.local_record_id, localBusinessPublicId: row.local_business_public_id, capturedAt: row.captured_at, record: row.record }));
   const lastSuccessfulSync = publicationResult.data?.captured_at ?? null;
   const syncTime = lastSuccessfulSync ? new Date(lastSuccessfulSync).getTime() : Number.NaN;
   const isStale = lastSuccessfulSync !== null && (Number.isNaN(syncTime) || Date.now() - syncTime > 24 * 60 * 60 * 1000);
-  return NextResponse.json({ entity, rows, page, pageSize, total, lastSuccessfulSync, isStale, readOnly: true });
+  return apiCompatJson({ entity, rows, page, pageSize, total, lastSuccessfulSync, isStale, readOnly: true });
 }
