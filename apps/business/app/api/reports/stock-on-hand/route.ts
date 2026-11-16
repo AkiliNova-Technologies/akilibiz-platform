@@ -1,13 +1,12 @@
-import { NextResponse } from "next/server";
+import {apiError,apiSuccess} from "@/lib/api-response";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 import { mapHostedStockReport } from "@/lib/hosted-inventory-report";
 
-const headers = { "Cache-Control": "private, no-store" };
 export async function GET() {
   const supabase=await createClient();
   const {data:{user},error:authError}=await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({error:"Authentication required."},{status:401,headers});
+  if (authError || !user) return apiError("UNAUTHORIZED","Authentication required.",401);
   const business=await requireActiveBusiness();
   const [products,categories,inventory]=await Promise.all([
     supabase.from("desktop_products")
@@ -18,14 +17,14 @@ export async function GET() {
     supabase.rpc("list_desktop_effective_inventory",{target_business_id:business.id}),
   ]);
   if (products.error || categories.error || inventory.error) {
-    return NextResponse.json({error:"Synchronized stock positions could not be loaded."},{status:502,headers});
+    return apiError("SYNC_UNAVAILABLE","Synchronized stock positions could not be loaded.",502);
   }
   try {
     const {rows,skipped}=mapHostedStockReport(
       products.data??[],categories.data??[],inventory.data??[]
     );
-    return NextResponse.json({rows,skipped,readOnly:true},{headers});
+    return apiSuccess({rows,skipped,readOnly:true});
   } catch {
-    return NextResponse.json({error:"Some stock positions are incomplete and cannot be reported reliably."},{status:422,headers});
+    return apiError("STALE_DATA","Some stock positions are incomplete and cannot be reported reliably.",422);
   }
 }
