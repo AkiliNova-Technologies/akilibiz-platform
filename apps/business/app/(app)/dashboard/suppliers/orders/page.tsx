@@ -232,6 +232,11 @@ export default function SupplierPurchaseOrdersPage() {
                       Refresh
                     </Button>
                     <Button asChild variant="outline">
+                      <Link href="/dashboard/suppliers/orders/receive">
+                        Prepare Goods Receiving
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline">
                       <Link href="/dashboard/suppliers/orders/prepare">
                         <Plus className="mr-2 size-4" />
                         Prepare Purchase Order
