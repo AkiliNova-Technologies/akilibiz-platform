@@ -185,3 +185,30 @@ qualification. No hosted migrations have been applied, no business data was
 changed, and no feature gate was activated.
 
 See `docs/sync/web-purchase-order-preparation-20261114.md`.
+
+## Goods receiving preparation — source implemented, not posting
+
+A new owner-only, default-off goods receiving preparation flow at
+`/dashboard/suppliers/orders/receive` provides actual delivered
+quantities, receipt details and optional explicit supplier invoice evidence.
+It binds to a desktop-published Pending/Partially Received order and validates
+every line against the synchronized remaining quantity. The draft validator,
+API and migration independently check whole-UGX arithmetic and reject
+duplicate items, identity changes and unverified invoice line treatments.
+
+Files: `apps/business/lib/goods-receipt-draft-validation.ts`,
+`apps/business/app/api/purchasing/receipts/drafts/route.ts`,
+`supabase/migrations/20261115000000_web_goods_receipt_preparation.sql`,
+plus the new UI and targeted tests. `AKILIBIZ_ENABLE_WEB_GOODS_RECEIPT_DRAFTS`
+remains OFF by default. No actual stock, payable, VAT or journal posting
+occurs through this draft pathway.
+
+**Important:** The previous desktop purchase-order approval source has not
+yet been built or tested against the disposable paired PostgreSQL/SQLite
+environment. Do not enable that or this new goods receiving flow in
+production. The next receiving increment must add an independently gated
+staff-approved desktop receiving queue and durable ACK, reusing the existing
+`purchase_order_service` goods receipt implementation instead of
+introducing separate financial posting rules.
+
+See `docs/sync/web-goods-receipt-preparation-20261116.md`.
