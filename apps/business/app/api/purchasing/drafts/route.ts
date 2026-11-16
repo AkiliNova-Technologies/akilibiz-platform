@@ -1,10 +1,10 @@
-import {NextRequest,NextResponse} from "next/server";
+import {NextRequest} from "next/server";
+import {apiLegacyJson} from "@/lib/api-response";
 import {requireActiveBusiness} from "@/lib/business-context";
 import {createClient} from "@/lib/supabase/server";
 import {parsePurchaseOrderDraft,purchaseOrderDraftTotal} from "@/lib/purchase-order-draft-validation";
 
-const headers={"Cache-Control":"private, no-store"};
-const fail=(error:string,status:number)=>NextResponse.json({error},{status,headers});
+const fail=(error:string,status:number)=>apiLegacyJson({error},status);
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 async function context(){
   const supabase=await createClient();
@@ -41,10 +41,10 @@ export async function GET(){
     return fail("Could not verify the purchase order draft register.",503);
   if(drafts.count>100||suppliers.count>1000||products.count>5000)
     return fail("The register is too large for a complete list. Narrowing and pagination are required.",413);
-  return NextResponse.json({drafts:drafts.data??[],suppliers:suppliers.data??[],
+  return apiLegacyJson({drafts:drafts.data??[],suppliers:suppliers.data??[],
     products:products.data??[],canPost:false,
     reviewRequestsEnabled:business.role==="owner" &&
-      process.env.AKILIBIZ_ENABLE_PURCHASE_ORDER_REVIEW_REQUESTS==="1"},{headers});
+      process.env.AKILIBIZ_ENABLE_PURCHASE_ORDER_REVIEW_REQUESTS==="1"});
 }
 export async function POST(request:NextRequest){
   if(process.env.AKILIBIZ_ENABLE_WEB_PURCHASE_ORDER_DRAFTS!=="1")
@@ -78,10 +78,10 @@ export async function POST(request:NextRequest){
     result.error.code==="42501"?
     "This draft belongs to a different business, owner, or supplier. Start a new draft.":
     "The purchase order could not be saved. Check the selected products and amounts.",409);
-  return NextResponse.json({id:result.data.id,updatedAt:result.data.updated_at,
+  return apiLegacyJson({id:result.data.id,updatedAt:result.data.updated_at,
     totalUgx:purchaseOrderDraftTotal(draft.lines),state:"draft",
     message:"Purchase order draft saved. No stock, supplier balance, VAT or desktop order was changed."},
-    {status:200,headers});
+    200);
 }
 export async function DELETE(request:NextRequest){
   if(process.env.AKILIBIZ_ENABLE_WEB_PURCHASE_ORDER_DRAFTS!=="1")
@@ -98,5 +98,5 @@ export async function DELETE(request:NextRequest){
     "This purchase order was already sent for desktop review and cannot be discarded.":
     "This purchase order draft could not be discarded.",409);
   if(!result.data?.length)return fail("Draft not found.",404);
-  return NextResponse.json({discarded:true},{headers});
+  return apiLegacyJson({discarded:true});
 }
