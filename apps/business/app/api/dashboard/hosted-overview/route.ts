@@ -1,3 +1,4 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextResponse } from "next/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +43,7 @@ export async function GET(){
       out_of_stock_product_count=known.filter(p=>p.on_hand_milli===0).length;
     }
   }
-  return NextResponse.json({
+  return apiCompatJson({
     customers_count,suppliers_count,stock_on_hand_product_count,
     low_stock_product_count,out_of_stock_product_count
   },{headers:{"Cache-Control":"private, no-store"}});
