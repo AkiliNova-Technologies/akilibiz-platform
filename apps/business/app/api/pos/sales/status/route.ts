@@ -1,5 +1,5 @@
 import { apiCompatJson } from "@/lib/api-response";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 
