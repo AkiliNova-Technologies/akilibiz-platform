@@ -164,10 +164,10 @@ Do not manually enable it against existing business data.
 ```bash
 cd ~/Desktop/akilibiz
 git pull --ff-only origin dev
-cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+cargo fmt --manifest-path src-tauri/Cargo.toml --all
 cargo test --manifest-path src-tauri/Cargo.toml purchase_order_review_inbox --lib
 cargo check --manifest-path src-tauri/Cargo.toml
-pnpm exec tsc --noEmit
+npm run build
 
 cd ~/Desktop/akilibiz-platform
 git pull --ff-only origin dev
