@@ -1,5 +1,5 @@
 import {describe,expect,it} from "vitest";
-import {apiError,apiSuccess,apiLegacyJson} from "./api-response";
+import {apiError,apiSuccess,apiLegacyJson,apiCompatJson} from "./api-response";
 
 describe("private stable API responses",()=>{
   it("preserves old error messages while adding machine-readable errors",async()=>{
@@ -26,6 +26,20 @@ describe("private stable API responses",()=>{
     const response=apiLegacyJson(body);
     expect(await response.json()).toEqual(body);
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("preserves legacy HTTP status, reasons and custom headers",async()=>{
+    const response=apiCompatJson({error:"Retry with a newer snapshot.",reason:"stale"},
+      {status:409,headers:{"X-Request-Source":"mirror","Cache-Control":"public, max-age=3600"}});
+    expect(response.status).toBe(409);
+    expect(response.headers.get("X-Request-Source")).toBe("mirror");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(await response.json()).toEqual({
+      error:"Retry with a newer snapshot.",reason:"stale",code:"CONFLICT",
+    });
+    const success=apiCompatJson({rows:[1,2]},{status:201});
+    expect(success.status).toBe(201);
+    expect(await success.json()).toEqual({rows:[1,2]});
   });
   it("keeps existing canonical error and success response contracts",async()=>{
     expect(await apiError("FORBIDDEN","Not allowed.",403).json()).toEqual({
