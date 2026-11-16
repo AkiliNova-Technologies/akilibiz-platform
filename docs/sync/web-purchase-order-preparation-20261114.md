@@ -74,3 +74,51 @@ git pull --ff-only origin dev
 pnpm --filter @akilibiz/business-web exec tsc --noEmit
 pnpm --filter @akilibiz/business-web test
 ```
+
+## Desktop intake source increment — November 16, 2026
+
+The separate desktop repository `AkiliNova-Technologies/akilibiz` `dev`
+now includes source-only intake for the staged purchase-order review queue:
+
+- `src-tauri/src/migrations/0119_cloud_inbound_purchase_order_reviews.sql`
+  adds a staged-only immutable SQLite inbox with source-scoped unique
+  command IDs and update/delete denial.
+- `cloud_sync_handler/purchase_order_review_inbox.rs` polls
+  `list_pending_desktop_purchase_order_reviews` only when the independent
+  `AKILIBIZ_ENABLE_PURCHASE_ORDER_REVIEW_INBOX=1` switch is enabled.
+  It verifies the active paired source and owner, checks a bounded batch,
+  rejects malformed UUIDs, supplier identities, dates, duplicate products,
+  fractional UGX line totals, unsafe arithmetic and changed replay payloads.
+- `list_staged_purchase_order_reviews` is a read-only permission-checked
+  Tauri command scoped to the selected local business and active paired device.
+- The cloud sync tick now invokes stage-only purchase review intake without
+  calling the purchase order posting service.
+
+The web request and desktop staged queue are separate source increments.
+They have not been run together on a disposable test database. Both the
+web review flag and desktop intake flag remain disabled.
+
+**No approval, purchase-order insertion, application receipt, hosted ACK,
+goods receiving, stock movement, supplier payable, tax or journal mutation
+is enabled by this change.** Never change the pending status in SQL by hand
+or treat a staged row as an approved purchase.
+
+### Developer validation after pulling both repos
+
+```bash
+cd ~/Desktop/akilibiz
+git pull --ff-only origin dev
+cargo test --manifest-path src-tauri/Cargo.toml purchase_order_review_inbox --lib
+cargo check --manifest-path src-tauri/Cargo.toml
+
+cd ~/Desktop/akilibiz-platform
+git pull --ff-only origin dev
+pnpm --filter @akilibiz/business-web exec tsc --noEmit
+pnpm --filter @akilibiz/business-web test
+```
+
+Next: implement an explicit, permissioned desktop approval operation which
+rechecks current hosted authorization and creates the purchase order plus
+immutable local receipt in **one** SQLite transaction, with replay-safe
+receipts and separate hosted ACK. Only after that may the web show applied.
+Goods receiving and VAT remain independent.
