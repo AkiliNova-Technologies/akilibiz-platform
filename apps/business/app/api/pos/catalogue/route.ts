@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { apiError,apiSuccess } from "@/lib/api-response";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { mapHostedPosCatalogue } from "../../../../lib/pos-catalogue";
 import { createClient } from "@/lib/supabase/server";
@@ -7,10 +7,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    return NextResponse.json(
-      { error: "Authentication required." },
-      { status: 401, headers: { "Cache-Control": "private, no-store" } },
-    );
+    return apiError("UNAUTHORIZED","Authentication required.",401);
   }
   const business = await requireActiveBusiness();
   const [categoryResult, productResult, inventoryResult] = await Promise.all([
@@ -33,21 +30,15 @@ export async function GET() {
   ]);
 
   if (categoryResult.error || productResult.error || inventoryResult.error) {
-    return NextResponse.json(
-      { error: "The synchronized catalogue could not be loaded." },
-      { status: 500, headers: { "Cache-Control": "private, no-store" } },
-    );
+    return apiError("SYNC_UNAVAILABLE","The synchronized catalogue could not be loaded.",503);
   }
 
-  return NextResponse.json(
-    {
-      business_id: business.id,
-      ...mapHostedPosCatalogue(
-        productResult.data ?? [],
-        categoryResult.data ?? [],
-        inventoryResult.data ?? [],
-      ),
-    },
-    { headers: { "Cache-Control": "private, no-store" } },
-  );
+  return apiSuccess({
+    business_id: business.id,
+    ...mapHostedPosCatalogue(
+      productResult.data ?? [],
+      categoryResult.data ?? [],
+      inventoryResult.data ?? [],
+    ),
+  });
 }
