@@ -19,6 +19,7 @@ describe("source-only receiving preparation contract",()=>{
     expect(sql).toContain("private.is_active_business_owner(web_goods_receipt_drafts.business_id)");
     expect(sql).toContain("new.source_business_public_id is distinct from old.source_business_public_id");
     expect(sql).toContain("new.purchase_order_id is distinct from old.purchase_order_id");
+    expect(sql).toContain("unique(business_id,source_business_public_id,receipt_number)");
     expect(sql).toContain("r.entity_type='purchase_orders'");
     expect(sql).toContain("r.entity_type='purchase_order_lines'");
   });
