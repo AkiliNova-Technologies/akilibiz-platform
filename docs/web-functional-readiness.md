@@ -377,3 +377,22 @@ entries are still pending. The migration SQL has not been applied anywhere
 through this workstream. Both independent switches remain OFF, including in
 production. Validation is source-only pending local TypeScript and Vitest.
 See `docs/sync/web-purchase-order-preparation-20261114.md`.
+
+## Goods-receipt preparation (default-off source increment)
+
+The `/dashboard/suppliers/orders/receive` route now prepares delivered
+quantities and explicit supplier invoice evidence against owner-scoped
+desktop purchasing mirrors. `/api/purchasing/receipts/drafts` saves,
+lists and discards these drafts, gated by
+`AKILIBIZ_ENABLE_WEB_GOODS_RECEIPT_DRAFTS=1` (OFF by default).
+
+The new `20261115000000_web_goods_receipt_preparation.sql` migration
+enforces owner RLS, immutable order/source identity, source-matched
+purchase-order lines, exact whole-UGX arithmetic, remaining quantities,
+supplier invoice evidence and receipt-number uniqueness. The source
+tests cover validation, API permissions and SQL boundaries.
+
+This adds **no** stock receipt, payable, tax claim, or journal posting;
+the desktop receiving service remains the only authority. Source
+qualification and the final disposable-database test are still pending.
+No existing business database or production feature gates changed.
