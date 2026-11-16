@@ -76,14 +76,17 @@ export default function SupplierPurchaseOrdersPage() {
   const [detailLoading,setDetailLoading]=useState(false);
   const [detailError,setDetailError]=useState<string|null>(null);
   useEffect(()=>{
-    if(!detail||!selected){setOrderDetail(null);setDetailError(null);return;}
     let active=true;
+    queueMicrotask(()=>{
+    if(!active)return;
+    if(!detail||!selected){setOrderDetail(null);setDetailError(null);return;}
     setOrderDetail(null);setDetailError(null);setDetailLoading(true);
     void getOrderDetail(selected).then(result=>{
       if(active)setOrderDetail(result);
     }).catch(cause=>{
       if(active)setDetailError(cause instanceof Error?cause.message:"Order details could not be loaded.");
     }).finally(()=>{if(active)setDetailLoading(false);});
+    });
     return ()=>{active=false;};
   },[detail,selected,getOrderDetail]);
   const [data, setData] = useState({

@@ -86,12 +86,12 @@ export default function DashboardPage() {
   const [error, setError] = React.useState<string | null>(null);
   React.useEffect(() => {
     let active = true;
-    // A new date range must not retain old-business-period figures while
-    // loading, or show stale figures if the new request fails.
-    setLoading(true);
-    setError(null);
-    setD(null);
-    void getDashboardOverview({
+    queueMicrotask(() => {
+      if (!active) return;
+      // A new date range must not retain old-business-period figures while
+      // loading, or show stale figures if the new request fails.
+      setLoading(true); setError(null); setD(null);
+      void getDashboardOverview({
       date_from: appliedPeriod.from,
       date_to: appliedPeriod.to,
     })
@@ -102,7 +102,8 @@ export default function DashboardPage() {
           setError(cause instanceof Error ? cause.message : "Dashboard data is unavailable.");
         }
       })
-      .finally(() => { if (active) setLoading(false); });
+        .finally(() => { if (active) setLoading(false); });
+    });
     return () => { active = false; };
   }, [appliedPeriod]);
   const pendingValue = loading ? "—" : "Unavailable";

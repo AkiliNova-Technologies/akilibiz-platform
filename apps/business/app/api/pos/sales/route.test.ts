@@ -45,7 +45,9 @@ describe("POST /api/pos/sales (gated)", () => {
 
   it("checks authentication before selecting the business", async () => {
     const fixture = client({ signedIn: false });
-    expect((await POST(request(payload))).status).toBe(401);
+    const response = await POST(request(payload));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({ code: "UNAUTHORIZED" });
     expect(mocks.requireActiveBusiness).not.toHaveBeenCalled();
     expect(fixture.rpc).not.toHaveBeenCalled();
   });

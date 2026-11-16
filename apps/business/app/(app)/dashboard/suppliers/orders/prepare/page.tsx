@@ -64,7 +64,7 @@ export default function PreparePurchaseOrderPage(){
       setError(cause instanceof Error?cause.message:"Purchase order preparation is unavailable.");
     }finally{setLoading(false);}
   },[]);
-  useEffect(()=>{void reload();},[reload]);
+  useEffect(()=>{queueMicrotask(()=>void reload());},[reload]);
   const selectedSupplier=suppliers.find(s=>s.id===draft?.supplier_id);
   const currentSubmitted=Boolean(draft&&requests.some(request=>request.draft_id===draft.id));
   const availableProducts=useMemo(()=>products.filter(p=>
@@ -176,7 +176,7 @@ export default function PreparePurchaseOrderPage(){
             onChange={event=>setDraft({...draft,expected_delivery:event.target.value||null})}/>
         </label>
       </div>
-      {draft.supplier_id&&<p className="text-xs text-muted-foreground">Products are restricted to the selected supplier's desktop business.</p>}
+      {draft.supplier_id&&<p className="text-xs text-muted-foreground">Products are restricted to the selected supplier&apos;s desktop business.</p>}
       <div className="space-y-3">
         <h3 className="font-semibold">Order lines</h3>
         {draft.lines.map((line,index)=>{

@@ -6,6 +6,8 @@ import { LogOut } from "lucide-react";
 import { AkiliButton } from "@/components/akilibiz/akili-button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
+import { signOut as signOutServer } from "@/app/(app)/dashboard/auth-actions";
+import { clearAccountOperationStorage } from "@/lib/account-storage";
 
 export function SignOutButton({
   menuItem = false,
@@ -19,7 +21,17 @@ export function SignOutButton({
 
   async function signOut() {
     setIsSigningOut(true);
-    await createClient().auth.signOut();
+    const result = await signOutServer();
+    if (!result.ok) {
+      // Also attempt the browser client so a transient server failure cannot
+      // leave an already-expired local session appearing active.
+      await createClient().auth.signOut({ scope: "local" });
+    }
+    try {
+      clearAccountOperationStorage(window.sessionStorage);
+    } catch {
+      // Storage may be disabled. Server cookies remain the security boundary.
+    }
     router.replace("/sign-in");
     router.refresh();
   }

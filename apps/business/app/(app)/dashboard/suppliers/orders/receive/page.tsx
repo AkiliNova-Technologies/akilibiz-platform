@@ -76,7 +76,7 @@ export default function PrepareGoodsReceiptPage(){
       setError(cause instanceof Error?cause.message:"Could not load the receipt preparation register.");
     }finally{setLoading(false);}
   },[]);
-  React.useEffect(()=>{void reload();},[reload]);
+  React.useEffect(()=>{queueMicrotask(()=>void reload());},[reload]);
   const selectedOrder=orders.find(o=>draft&&o.id===draft.purchase_order_id&&
     o.source===draft.source_business_public_id);
   const loadLines=React.useCallback(async(order:Order)=>{

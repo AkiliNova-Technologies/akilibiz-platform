@@ -48,7 +48,7 @@ export default function ProductDraftsPage() {
       setError(cause instanceof Error?cause.message:"Could not load drafts.");
     }finally{setLoading(false);}
   },[]);
-  useEffect(()=>{void reload();},[reload]);
+  useEffect(()=>{queueMicrotask(()=>void reload());},[reload]);
 
   const requestFor=(draftId:string)=>publicationRequests.find(request=>request.draft_id===draftId);
   const draftIsSubmitted=(draftId:string)=>Boolean(requestFor(draftId));

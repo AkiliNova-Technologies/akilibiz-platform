@@ -15,6 +15,9 @@ export function ProductDesktopRequest({draftId,initialRequest,onRequested}:{
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
   useEffect(()=>{
+    let active=true;
+    queueMicrotask(()=>{
+    if(!active)return;
     let cached:Saved|null=null;
     try{
       const raw=window.sessionStorage.getItem(key);
@@ -31,6 +34,8 @@ export function ProductDesktopRequest({draftId,initialRequest,onRequested}:{
         commandId:initialRequest.command_id,state:initialRequest.state});
     }else setSaved(cached);
     setLoaded(true);
+    });
+    return()=>{active=false;};
   },[key,initialRequest?.command_id,initialRequest?.state]);
   const persist=(value:Saved)=>{
     // Refuse the network request if its identity cannot survive a refresh.

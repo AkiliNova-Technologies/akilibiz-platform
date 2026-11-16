@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { apiError, apiSuccess } from "@/lib/api-response";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
-import { classifySalePostError, parseCashSaleSubmission } from "@/lib/pos-sale-submission";
-
-const headers = { "Cache-Control": "private, no-store" };
-const reply = (body: unknown, status: number) =>
-  NextResponse.json(body, { status, headers });
+import {
+  classifySalePostError,
+  parseCashSaleSubmission,
+} from "@/lib/pos-sale-submission";
 
 /**
  * Staged hosted cash posting endpoint.
@@ -18,15 +18,26 @@ const reply = (body: unknown, status: number) =>
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return reply({ error: "Authentication required." }, 401);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user)
+    return apiError("UNAUTHORIZED", "Authentication required.", 401);
 
-  const submission = parseCashSaleSubmission(await request.json().catch(() => null));
-  if (!submission) return reply({ error: "Invalid cash sale submission." }, 400);
+  const submission = parseCashSaleSubmission(
+    await request.json().catch(() => null),
+  );
+  if (!submission)
+    return apiError("VALIDATION_FAILED", "Invalid cash sale submission.", 400);
 
   const business = await requireActiveBusiness();
   if (!["owner", "manager", "cashier"].includes(business.role)) {
-    return reply({ error: "You cannot record sales for this business." }, 403);
+    return apiError(
+      "FORBIDDEN",
+      "You cannot record sales for this business.",
+      403,
+    );
   }
 
   // A single database RPC performs authorization, lock acquisition, stock and
@@ -40,8 +51,19 @@ export async function POST(request: NextRequest) {
   });
   if (error) {
     const status = classifySalePostError(error.code);
-    return reply({
-      error: status === 423
+    const code =
+      status === 423
+        ? "SYNC_UNAVAILABLE"
+        : status === 409
+          ? "CONFLICT"
+          : status === 403
+            ? "FORBIDDEN"
+            : status === 400
+              ? "VALIDATION_FAILED"
+              : "SERVICE_UNAVAILABLE";
+    return apiError(
+      code,
+      status === 423
         ? "Web sale posting is not yet available for this business."
         : status === 409
           ? "The sale cannot be completed with its current items or stock."
@@ -50,18 +72,23 @@ export async function POST(request: NextRequest) {
             : status === 400
               ? "Invalid sale details."
               : "Sales are temporarily unavailable.",
-    }, status);
+      status,
+    );
   }
   const sale = Array.isArray(data) ? data[0] : null;
   if (!sale || typeof sale.sale_id !== "string") {
-    return reply({ error: "The sale receipt could not be confirmed." }, 503);
+    return apiError(
+      "SERVICE_UNAVAILABLE",
+      "The sale receipt could not be confirmed.",
+      503,
+    );
   }
-  return reply({
+  return apiSuccess({
     sale_id: sale.sale_id,
     receipt_number: sale.receipt_number,
     total_ugx: sale.total_ugx,
     change_ugx: sale.change_ugx,
     replayed: sale.replayed,
     status: "pending_desktop",
-  }, 200);
+  });
 }

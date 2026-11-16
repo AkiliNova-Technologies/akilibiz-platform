@@ -59,6 +59,7 @@ describe("POST /api/pos/quote", () => {
     const fixture = client({ user: false });
     const response = await POST(request({ items: [{ product_id: productId, quantity_milli: 1000 }] }));
     expect(response.status).toBe(401);
+    expect(await response.json()).toMatchObject({ code: "UNAUTHORIZED" });
     expect(fixture.from).not.toHaveBeenCalled();
     expect(mocks.requireActiveBusiness).not.toHaveBeenCalled();
   });

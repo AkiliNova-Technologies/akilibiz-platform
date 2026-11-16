@@ -51,7 +51,8 @@ export function CashSalePilot({
   const [restored, setRestored] = useState(false);
   const storageKey = `akilibiz.cash-pilot.${businessId}`;
   useEffect(() => {
-    try {
+    queueMicrotask(() => {
+      try {
       const raw = window.sessionStorage.getItem(storageKey);
       if (raw) {
         const saved = JSON.parse(raw) as { attempt?: Attempt; cash?: string; quote?: { fingerprint: string; total: number } };
@@ -66,8 +67,9 @@ export function CashSalePilot({
           setOpen(true);
         }
       }
-    } catch { /* Browser storage is optional; never create a new ID automatically for an unverified sale. */ }
-    setRestored(true);
+      } catch { /* Browser storage is optional; never create a new ID automatically for an unverified sale. */ }
+      setRestored(true);
+    });
   }, [storageKey]);
   useEffect(() => {
     if (!restored) return;

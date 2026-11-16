@@ -1,6 +1,6 @@
 # AkiliBiz Web — Functional Readiness Register
 
-Updated: 2026-11-14. Branch: `dev`.
+Updated: 2026-11-16. Branch: `dev`.
 
 ## Important distinction
 
@@ -20,6 +20,17 @@ Navigation parity with AkiliBiz Desktop is **not** functional parity. Web screen
 
 ## Changes in this increment
 
+- Sign-out now invalidates the server-held active-business selection and clears
+  account-scoped browser recovery identifiers, preventing state reuse after an
+  account switch while preserving non-sensitive preferences.
+- Added a stable, private/no-store API error envelope and applied it to the POS
+  quote and staged-sale boundaries without enabling sale posting.
+- Corrected effect-driven loading and recovery flows across dashboard,
+  purchasing, product drafts and POS so they are cancellation-safe and pass the
+  React hooks lint rules without displaying stale replacement data.
+- Added `docs/architecture/web-application-foundation.md` as the maintained
+  contract for auth, business isolation, permissions, API errors, sync states,
+  UI conventions and non-destructive validation.
 - On dashboard range changes/fetch failures, clear prior data instead of displaying old period values as though they belonged to the new period.
 - Customer/supplier directory fails explicitly if it exceeds the current 5,000-row limit; it no longer silently displays an incomplete list.
 - Generic desktop-module placeholder says the web workflow is not implemented and points users to implemented areas, rather than implying no records exist.

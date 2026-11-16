@@ -52,14 +52,17 @@ export default function ReportsPurchasingPage() {
   const [receiptLoading,setReceiptLoading]=useState(false);
   const [receiptError,setReceiptError]=useState<string|null>(null);
   useEffect(()=>{
-    if(!selected){setReceiptLines(null);setReceiptError(null);return;}
     let active=true;
+    queueMicrotask(()=>{
+    if(!active)return;
+    if(!selected){setReceiptLines(null);setReceiptError(null);return;}
     setReceiptLoading(true);setReceiptLines(null);setReceiptError(null);
     void getGoodsReceiptLines(selected.source).then(lines=>{
       if(active)setReceiptLines(lines);
     }).catch(cause=>{
       if(active)setReceiptError(cause instanceof Error?cause.message:"Receipt items are unavailable.");
     }).finally(()=>{if(active)setReceiptLoading(false);});
+    });
     return ()=>{active=false;};
   },[selected,getGoodsReceiptLines]);
   const [dateFrom, setDateFrom] = useState("");
