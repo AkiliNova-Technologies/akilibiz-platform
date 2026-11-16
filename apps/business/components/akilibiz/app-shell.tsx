@@ -3,15 +3,18 @@
 import { AppSidebar } from "@/components/akilibiz/app-sidebar";
 import { type AccountDisplay } from "@/components/akilibiz/account-menu";
 import { SiteHeader } from "@/components/akilibiz/site-header";
+import type {BusinessMembership} from "@/lib/business-context";
 import { PosHeaderProvider } from "@/components/akilibiz/pos/pos-header-actions";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/use-theme";
 
 export function AppShell({
   account,
+  businessRole,
   children,
 }: {
   account: AccountDisplay;
+  businessRole:BusinessMembership["role"]|null;
   children: React.ReactNode;
 }) {
   const { theme } = useTheme();
@@ -19,7 +22,7 @@ export function AppShell({
   return (
     <PosHeaderProvider>
     <SidebarProvider className="bg-background">
-      <AppSidebar account={account} />
+      <AppSidebar account={account} businessRole={businessRole} />
       <SidebarInset className="min-h-svh min-w-0 max-w-full bg-background">
         <SiteHeader
           account={account}
