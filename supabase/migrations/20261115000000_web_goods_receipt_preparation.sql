@@ -51,7 +51,6 @@ create function private.validate_web_goods_receipt_draft()
 returns trigger language plpgsql set search_path='' as $$
 declare
  po jsonb;
- po_supplier bigint;
  row_item jsonb;
  order_line jsonb;
  invoice_line jsonb;
@@ -90,7 +89,6 @@ begin
  if (po->>'supplier_id') !~ '^[1-9][0-9]*$' then
   raise exception 'Purchase order supplier is invalid' using errcode='22023';
  end if;
- po_supplier:=(po->>'supplier_id')::bigint;
  for row_item in select value from jsonb_array_elements(new.lines) loop
   if jsonb_typeof(row_item)<>'object' or
    (select count(*) from jsonb_object_keys(row_item))<>4 or
@@ -150,7 +148,100 @@ begin
     (new.supplier_vat->>'source_kind') not in ('EFRIS_E_INVOICE','TAX_INVOICE') or
     length(btrim(new.supplier_vat->>'invoice_number')) not between 1 and 100 or
     length(btrim(new.supplier_vat->>'evidence_reference')) not between 1 and 160 or
-    (new.supplier_vat->>'invoice_date') !~ '^\\d{4}-\\d{2}-\\d{2}$' or
+    (new.supplier_vat->>'invoice_date') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2} or
+    (new.supplier_vat->>'declared_vat_ugx') !~ '^[0-9]+
+    jsonb_typeof(new.supplier_vat->'lines')<>'array' or
+    jsonb_array_length(new.supplier_vat->'lines')<>jsonb_array_length(new.lines) then
+     raise exception 'Supplier invoice evidence is incomplete' using errcode='22023';
+   end if;
+   i:=0;
+   for invoice_line in select value from jsonb_array_elements(new.supplier_vat->'lines') loop
+    i:=i+1;
+    if jsonb_typeof(invoice_line)<>'object' or
+      (select count(*) from jsonb_object_keys(invoice_line))<>3 or
+      not (invoice_line ?& array['product_id','classification_code','tax_inclusive']) or
+      (invoice_line->>'product_id')::text is distinct from
+        (new.lines->(i-1)->>'product_id')::text or
+      (invoice_line->>'classification_code') not in
+        ('STANDARD_RATED','ZERO_RATED','EXEMPT','OUT_OF_SCOPE') or
+      jsonb_typeof(invoice_line->'tax_inclusive')<>'boolean' then
+      raise exception 'Supplier invoice item evidence does not match the delivery'
+        using errcode='22023';
+    end if;
+   end loop;
+ end if;
+ new.updated_at=now();
+ return new;
+end $$;
+revoke all on function private.validate_web_goods_receipt_draft()
+ from public,anon,authenticated,service_role;
+create trigger validate_web_goods_receipt_draft
+ before insert or update on public.web_goods_receipt_drafts
+ for each row execute function private.validate_web_goods_receipt_draft();
+ or
+    (new.supplier_vat->>'declared_vat_ugx') !~ '^[0-9]+$' or
+    jsonb_typeof(new.supplier_vat->'lines')<>'array' or
+    jsonb_array_length(new.supplier_vat->'lines')<>jsonb_array_length(new.lines) then
+     raise exception 'Supplier invoice evidence is incomplete' using errcode='22023';
+   end if;
+   i:=0;
+   for invoice_line in select value from jsonb_array_elements(new.supplier_vat->'lines') loop
+    i:=i+1;
+    if jsonb_typeof(invoice_line)<>'object' or
+      (select count(*) from jsonb_object_keys(invoice_line))<>3 or
+      not (invoice_line ?& array['product_id','classification_code','tax_inclusive']) or
+      (invoice_line->>'product_id')::text is distinct from
+        (new.lines->(i-1)->>'product_id')::text or
+      (invoice_line->>'classification_code') not in
+        ('STANDARD_RATED','ZERO_RATED','EXEMPT','OUT_OF_SCOPE') or
+      jsonb_typeof(invoice_line->'tax_inclusive')<>'boolean' then
+      raise exception 'Supplier invoice item evidence does not match the delivery'
+        using errcode='22023';
+    end if;
+   end loop;
+ end if;
+ new.updated_at=now();
+ return new;
+end $$;
+revoke all on function private.validate_web_goods_receipt_draft()
+ from public,anon,authenticated,service_role;
+create trigger validate_web_goods_receipt_draft
+ before insert or update on public.web_goods_receipt_drafts
+ for each row execute function private.validate_web_goods_receipt_draft();
+ or
+    length(new.supplier_vat->>'declared_vat_ugx')>16 or
+    (new.supplier_vat->>'declared_vat_ugx')::numeric>9007199254740991 or
+    (new.supplier_vat->>'supplier_tin')~'[[:cntrl:]]' or
+    length(coalesce(new.supplier_vat->>'supplier_tin',''))>100 or
+    jsonb_typeof(new.supplier_vat->'lines')<>'array' or
+    jsonb_array_length(new.supplier_vat->'lines')<>jsonb_array_length(new.lines) then
+     raise exception 'Supplier invoice evidence is incomplete' using errcode='22023';
+   end if;
+   i:=0;
+   for invoice_line in select value from jsonb_array_elements(new.supplier_vat->'lines') loop
+    i:=i+1;
+    if jsonb_typeof(invoice_line)<>'object' or
+      (select count(*) from jsonb_object_keys(invoice_line))<>3 or
+      not (invoice_line ?& array['product_id','classification_code','tax_inclusive']) or
+      (invoice_line->>'product_id')::text is distinct from
+        (new.lines->(i-1)->>'product_id')::text or
+      (invoice_line->>'classification_code') not in
+        ('STANDARD_RATED','ZERO_RATED','EXEMPT','OUT_OF_SCOPE') or
+      jsonb_typeof(invoice_line->'tax_inclusive')<>'boolean' then
+      raise exception 'Supplier invoice item evidence does not match the delivery'
+        using errcode='22023';
+    end if;
+   end loop;
+ end if;
+ new.updated_at=now();
+ return new;
+end $$;
+revoke all on function private.validate_web_goods_receipt_draft()
+ from public,anon,authenticated,service_role;
+create trigger validate_web_goods_receipt_draft
+ before insert or update on public.web_goods_receipt_drafts
+ for each row execute function private.validate_web_goods_receipt_draft();
+ or
     (new.supplier_vat->>'declared_vat_ugx') !~ '^[0-9]+$' or
     jsonb_typeof(new.supplier_vat->'lines')<>'array' or
     jsonb_array_length(new.supplier_vat->'lines')<>jsonb_array_length(new.lines) then
