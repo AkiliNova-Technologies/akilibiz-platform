@@ -29,9 +29,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  desktopNavigation,
   type NavigationGroup,
 } from "@/lib/desktop-navigation";
+import { navigationForBusinessRole } from "@/lib/navigation-access";
+import type {BusinessMembership} from "@/lib/business-context";
 
 const icons: Record<NavigationGroup["icon"], LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -46,17 +47,18 @@ const icons: Record<NavigationGroup["icon"], LucideIcon> = {
   settings: Settings,
 };
 
-const navMain: NavItem[] = desktopNavigation.map((item) => ({
-  title: item.label,
-  url: item.label === "POS" ? "/dashboard/pos" : item.items[0].href,
-  icon: icons[item.icon],
-  items: item.items.map((subItem) => ({
-    title: subItem.label,
-    url: subItem.href,
-  })),
-}));
-
-export function AppSidebar({ account }: { account: AccountDisplay }) {
+export function AppSidebar({
+  account,businessRole,
+}:{
+  account:AccountDisplay;
+  businessRole:BusinessMembership["role"]|null;
+}){
+  const navMain:NavItem[]=navigationForBusinessRole(businessRole).map(item=>({
+    title:item.label,
+    url:item.label==="POS"?"/dashboard/pos":item.items[0].href,
+    icon:icons[item.icon],
+    items:item.items.map(subItem=>({title:subItem.label,url:subItem.href})),
+  }));
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
