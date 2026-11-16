@@ -116,9 +116,11 @@ describe("GET /api/pos/catalogue", () => {
     const fixture = clientFor({ productError: { message: "database unavailable" } });
     mocks.createClient.mockResolvedValue(fixture.client);
     const response = await GET();
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(await response.json()).toEqual({
       error: "The synchronized catalogue could not be loaded.",
+      code: "SYNC_UNAVAILABLE",
     });
   });
 });
