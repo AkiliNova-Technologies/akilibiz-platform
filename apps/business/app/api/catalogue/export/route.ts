@@ -1,3 +1,4 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +12,7 @@ import {
 
 const headers = { "Cache-Control": "private, no-store" };
 const fail = (message: string, status: number) =>
-  NextResponse.json({ error: message }, { status, headers });
+  apiCompatJson({ error: message }, { status, headers });
 
 export async function GET(request: NextRequest) {
   const entity = request.nextUrl.searchParams.get("entity");
