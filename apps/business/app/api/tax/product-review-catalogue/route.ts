@@ -1,5 +1,4 @@
 import { apiCompatJson } from "@/lib/api-response";
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { canReadFinancialMirrors } from "@/lib/financial-mirror-policy";
