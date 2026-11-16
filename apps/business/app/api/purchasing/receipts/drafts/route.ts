@@ -1,10 +1,11 @@
-import {NextRequest,NextResponse} from "next/server";
+import {NextRequest} from "next/server";
+import {apiLegacyJson} from "@/lib/api-response";
 import {requireActiveBusiness} from "@/lib/business-context";
 import {createClient} from "@/lib/supabase/server";
 import {parsePreparedGoodsReceipt,preparedReceiptTotal} from "@/lib/goods-receipt-draft-validation";
 
 const headers={"Cache-Control":"private, no-store"};
-const respond=(body:unknown,status:number)=>NextResponse.json(body,{status,headers});
+const respond=(body:unknown,status:number)=>apiLegacyJson(body,status);
 const error=(message:string,status:number)=>respond({error:message},status);
 const uuidV4=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 async function authorized(){
