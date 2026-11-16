@@ -1,10 +1,11 @@
+import { apiCompatJson } from "@/lib/api-response";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 
 const headers = { "Cache-Control": "private, no-store" };
 const response = (body: unknown, status: number) =>
-  NextResponse.json(body, {status, headers});
+  apiCompatJson(body, {status, headers});
 const v4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function GET(request: NextRequest) {
