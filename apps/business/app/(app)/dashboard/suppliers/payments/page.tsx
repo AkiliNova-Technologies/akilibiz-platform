@@ -28,6 +28,7 @@ import {
   useSupplierPaymentsData,
 } from "@/components/akilibiz/suppliers/supplier-payments-data";
 import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
+import {WebSupplierPaymentRequests} from "@/components/akilibiz/suppliers/web-supplier-payment-requests";
 import { usePurchaseOrdersData } from "@/components/akilibiz/suppliers/purchase-orders-data";
 import {
   formatSupplierCurrency,
@@ -361,6 +362,7 @@ export default function SupplierPaymentsPage() {
               icon={<TrendingDown className="size-5" />}
             />
           </section>
+          <WebSupplierPaymentRequests />
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable<PaymentRow>

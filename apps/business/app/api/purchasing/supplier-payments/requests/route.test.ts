@@ -1,0 +1,9 @@
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";import {NextRequest} from "next/server";
+const mocks=vi.hoisted(()=>({createClient:vi.fn(),business:vi.fn(),rpc:vi.fn()}));vi.mock("@/lib/supabase/server",()=>({createClient:mocks.createClient}));vi.mock("@/lib/business-context",()=>({requireActiveBusiness:mocks.business}));import {GET,POST} from "./route";
+const valid={requestId:"11111111-1111-4111-8111-111111111111",sourceBusinessPublicId:"desktop-a",paymentRef:"PAY-1",paymentDate:"2026-11-17",paymentMethod:"Bank Transfer",notes:null,allocations:[{supplierPayableId:7,amountUgx:5000}]};
+const post=(x:unknown)=>new NextRequest("http://local/api",{method:"POST",body:JSON.stringify(x)});
+describe("supplier payment requests",()=>{beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("AKILIBIZ_ENABLE_WEB_SUPPLIER_PAYMENT_REQUESTS","1");mocks.business.mockResolvedValue({id:"tenant",role:"owner"});mocks.createClient.mockResolvedValue({auth:{getUser:vi.fn().mockResolvedValue({data:{user:{id:"owner"}},error:null})},rpc:mocks.rpc});});afterEach(()=>vi.unstubAllEnvs());
+it("defaults off",async()=>{vi.stubEnv("AKILIBIZ_ENABLE_WEB_SUPPLIER_PAYMENT_REQUESTS","0");expect((await POST(post(valid))).status).toBe(503);expect(mocks.rpc).not.toHaveBeenCalled();});
+it("rejects invalid and unsupported payment inputs",async()=>{expect((await POST(post({...valid,paymentMethod:"Mobile Money"}))).status).toBe(400);expect((await POST(post({...valid,allocations:[{supplierPayableId:7,amountUgx:0}]}))).status).toBe(400);});
+it("submits exact allocations",async()=>{mocks.rpc.mockResolvedValue({data:"command",error:null});expect((await POST(post(valid))).status).toBe(202);expect(mocks.rpc).toHaveBeenCalledWith("request_desktop_supplier_payment_review",expect.objectContaining({allocations:[{supplier_payable_id:7,amount_ugx:5000}]}));});
+it("loads statuses",async()=>{mocks.rpc.mockResolvedValue({data:[],error:null});expect((await GET()).status).toBe(200);});});
