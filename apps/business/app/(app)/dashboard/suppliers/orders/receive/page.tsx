@@ -18,6 +18,7 @@ import {parseMilliQuantityInput} from "@/lib/purchase-order-draft-validation";
 type Order={id:number;source:string;number:string;supplier:string;status:string};
 type OrderLine={id:number;product_id:number;remaining:number;price:number;unit:string|null};
 type SavedDraft=PreparedGoodsReceipt&{updated_at:string};
+type ReceiptRequest={command_id:string;draft_id:string;state:"pending"|"applied"|"rejected";reason:string|null;receipt_number:string|null};
 const currency=(amount:number)=>new Intl.NumberFormat("en-UG",{
   style:"currency",currency:"UGX",maximumFractionDigits:0,
 }).format(amount);
@@ -51,6 +52,7 @@ export default function PrepareGoodsReceiptPage(){
   const [orders,setOrders]=React.useState<Order[]>([]);
   const [orderLines,setOrderLines]=React.useState<OrderLine[]>([]);
   const [saved,setSaved]=React.useState<SavedDraft[]>([]);
+  const [requests,setRequests]=React.useState<ReceiptRequest[]>([]);
   const [draft,setDraft]=React.useState<PreparedGoodsReceipt|null>(null);
   const [loading,setLoading]=React.useState(true);
   const [busy,setBusy]=React.useState(false);
@@ -63,7 +65,11 @@ export default function PrepareGoodsReceiptPage(){
       const body=await response.json() as {drafts?:SavedDraft[];error?:string};
       if(!response.ok||!Array.isArray(body.drafts))
         throw new Error(body.error??"Goods receipt preparation is unavailable.");
-      const rows=await loadAllFinancialMirrorRows("purchase_orders");
+      const [rows,requestResponse]=await Promise.all([
+        loadAllFinancialMirrorRows("purchase_orders"),
+        fetch("/api/purchasing/receipts/requests",{cache:"no-store"}),
+      ]);
+      const requestBody=await requestResponse.json() as {requests?:ReceiptRequest[]};
       const mapped=rows.map(mapHostedPurchaseOrder).filter((o):o is NonNullable<typeof o>=>o!==null)
         .filter(o=>o.status==="Pending"||o.status==="Partially Received");
       setOrders(mapped.map(o=>({
@@ -71,8 +77,9 @@ export default function PrepareGoodsReceiptPage(){
         supplier:o.supplier_name,status:o.status,
       })));
       setSaved(body.drafts);
+      setRequests(requestResponse.ok&&Array.isArray(requestBody.requests)?requestBody.requests:[]);
     }catch(cause){
-      setOrders([]);setSaved([]);
+      setOrders([]);setSaved([]);setRequests([]);
       setError(cause instanceof Error?cause.message:"Could not load the receipt preparation register.");
     }finally{setLoading(false);}
   },[]);
@@ -153,6 +160,17 @@ export default function PrepareGoodsReceiptPage(){
       if(draft?.id===item.id)setDraft(null);
       await reload();
     }catch(cause){setError(cause instanceof Error?cause.message:"Could not discard receipt draft.");}
+    finally{setBusy(false);}
+  };
+  const submit=async(item:SavedDraft)=>{
+    if(busy||!window.confirm("Send this delivery to desktop staff for review? The desktop will recheck and post it only after approval."))return;
+    setBusy(true);setError(null);setNotice(null);
+    try{
+      const response=await fetch("/api/purchasing/receipts/requests",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({draftId:item.id,requestId:crypto.randomUUID()})});
+      const body=await response.json() as {error?:string;message?:string};
+      if(!response.ok)throw new Error(body.error??"Could not request desktop review.");
+      setNotice(body.message??"Sent for desktop review.");await reload();
+    }catch(cause){setError(cause instanceof Error?cause.message:"Could not request desktop review.");}
     finally{setBusy(false);}
   };
   return <main className="flex min-w-0 flex-1 flex-col gap-5">
@@ -326,13 +344,13 @@ export default function PrepareGoodsReceiptPage(){
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Desktop receiving and approval are not connected to this form yet. Saving never posts stock, supplier payables, or VAT.
+        Saving never posts stock, supplier payables, or VAT. Submit the saved draft for a separate desktop staff decision.
       </p>
     </CardContent></Card>}
     <Card><CardContent className="space-y-3 p-5">
       <h2 className="font-semibold">Saved goods receipt drafts</h2>
       {!loading&&!saved.length&&<p className="text-sm text-muted-foreground">No receipt drafts yet.</p>}
-      {saved.map(item=><div key={item.id}
+      {saved.map(item=>{const request=requests.find(entry=>entry.draft_id===item.id);return <div key={item.id}
         className="flex flex-wrap items-center justify-between gap-2 border-b py-2">
         <div>
           <p className="font-medium">{item.receipt_number}</p>
@@ -340,15 +358,17 @@ export default function PrepareGoodsReceiptPage(){
             Purchase order #{item.purchase_order_id} · {item.receipt_date} ·
             {" "}{preparedReceiptTotal(item.lines)===null?"Invalid amount":currency(preparedReceiptTotal(item.lines)??0)}
           </p>
-          <p className="text-xs text-muted-foreground">Not received on desktop</p>
+          <p className="text-xs text-muted-foreground">{request?.state==="applied"?`Posted on desktop as ${request.receipt_number??item.receipt_number}`:request?.state==="rejected"?`Rejected on desktop${request.reason?`: ${request.reason}`:""}`:request?.state==="pending"?"Awaiting desktop staff review":"Draft only — not posted"}</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={busy}
+          {!request&&<Button size="sm" disabled={busy}
+            onClick={()=>void submit(item)}>Send to desktop</Button>}
+          <Button size="sm" variant="outline" disabled={busy||Boolean(request)}
             onClick={()=>void edit(item)}>Edit</Button>
-          <Button size="sm" variant="outline" disabled={busy}
+          <Button size="sm" variant="outline" disabled={busy||Boolean(request)}
             onClick={()=>void discard(item)}>Discard</Button>
         </div>
-      </div>)}
+      </div>;})}
     </CardContent></Card>
   </main>;
 }
