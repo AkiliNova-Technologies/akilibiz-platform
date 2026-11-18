@@ -29,6 +29,7 @@ import {
   type ExpenseStatus,
   useFinanceExpensesData,
 } from "@/components/akilibiz/finance/finance-expenses-data";
+import { ExpenseRequestStatus } from "@/components/akilibiz/finance/expense-request-status";
 import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 import { useSuppliersData } from "@/components/akilibiz/suppliers/suppliers-data";
 import { Badge } from "@/components/ui/badge";
@@ -107,9 +108,8 @@ function StatusBadge({ status }: { status: string }) {
             ? "secondary"
             : "outline"
       }
-      className={
-        status === "Paid" ? "bg-emerald-600 hover:bg-emerald-600" : ""
-      }>
+      className={status === "Paid" ? "bg-emerald-600 hover:bg-emerald-600" : ""}
+    >
       {status}
     </Badge>
   );
@@ -121,7 +121,9 @@ export default function FinanceExpensesPage() {
     expenseSummary,
     expenseCategories,
     loading,
-    error, lastSuccessfulSync, isStale,
+    error,
+    lastSuccessfulSync,
+    isStale,
     refreshExpenses,
     addExpense,
     settleExpense,
@@ -209,15 +211,18 @@ export default function FinanceExpensesPage() {
       description: form.description.trim() || undefined,
     };
     setSubmitting(true);
-    const result = await addExpense(payload);
-    setSubmitting(false);
-    if (!result) {
-      toast.error("Failed to record expense");
-      return;
+    try {
+      await addExpense(payload);
+      toast.success("Expense sent for desktop approval");
+      setFormOpen(false);
+      setForm(fresh());
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "Unable to save expense",
+      );
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Expense recorded successfully");
-    setFormOpen(false);
-    setForm(fresh());
   };
   const settle = async () => {
     if (
@@ -229,38 +234,35 @@ export default function FinanceExpensesPage() {
       toast.error("Enter a whole-UGX amount and payment reference.");
       return;
     }
-    const result = await settleExpense(
-      detail.id,
-      Number(settlementAmount),
-      settlementReference.trim(),
-    );
-    if (!result) {
-      toast.error("Payment cannot exceed the remaining balance.");
-      return;
+    try {
+      await settleExpense(
+        detail.id,
+        Number(settlementAmount),
+        settlementReference.trim(),
+      );
+      toast.success("Payment sent for desktop approval");
+      setSettlementAmount("");
+      setSettlementReference("");
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "Unable to request payment",
+      );
     }
-    toast.success("Supplier expense payment recorded");
-    setDetail((current) =>
-      current
-        ? {
-            ...current,
-            payable_outstanding_ugx: Math.max(
-              0,
-              (current.payable_outstanding_ugx ?? 0) - Number(settlementAmount),
-            ),
-          }
-        : null,
-    );
-    setSettlementAmount("");
-    setSettlementReference("");
   };
   const reverse = async () => {
     if (!detail || !reverseReason.trim()) {
       toast.error("A reversal reason is required.");
       return;
     }
-    await reverseExpense(detail.id, reverseReason.trim());
-    setDetail((current) => (current ? { ...current, state: "voided" } : null));
-    toast.success("Expense reversed successfully");
+    try {
+      await reverseExpense(detail.id, reverseReason.trim());
+      toast.success("Reversal sent for desktop approval");
+      setReverseReason("");
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "Unable to request reversal",
+      );
+    }
   };
   const fields: TableField<Row>[] = [
     { key: "reference", header: "Reference" },
@@ -271,8 +273,12 @@ export default function FinanceExpensesPage() {
       cell: (value) => formatFinanceDate(String(value)),
     },
     { key: "payee", header: "Supplier / Payee", enableSorting: true },
-    { key: "due_date", header: "Due date", enableSorting: true,
-      cell: (value) => value ? formatFinanceDate(String(value)) : "—" },
+    {
+      key: "due_date",
+      header: "Due date",
+      enableSorting: true,
+      cell: (value) => (value ? formatFinanceDate(String(value)) : "—"),
+    },
     { key: "category", header: "Category", enableSorting: true },
     {
       key: "gross_ugx",
@@ -307,7 +313,7 @@ export default function FinanceExpensesPage() {
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
-        <div>
+          <div>
             <h2 className="text-2xl font-semibold">Expenses</h2>
             <p className="text-sm text-muted-foreground">
               Record, review and manage business expenses.
@@ -324,25 +330,39 @@ export default function FinanceExpensesPage() {
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               title="Total Expenses"
-              value={expenseSummary ? formatFinanceCurrency(expenseSummary.total_expenses) : "—"}
+              value={
+                expenseSummary
+                  ? formatFinanceCurrency(expenseSummary.total_expenses)
+                  : "—"
+              }
               description="All approved and paid expenses"
               icon={<ArrowDown className="size-5" />}
             />
             <MetricCard
               title="Paid Expenses"
-              value={expenseSummary ? formatFinanceCurrency(expenseSummary.paid_expenses) : "—"}
+              value={
+                expenseSummary
+                  ? formatFinanceCurrency(expenseSummary.paid_expenses)
+                  : "—"
+              }
               description="Expenses already settled"
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
               title="Pending Expenses"
-              value={expenseSummary ? formatFinanceCurrency(expenseSummary.pending_expenses) : "—"}
+              value={
+                expenseSummary
+                  ? formatFinanceCurrency(expenseSummary.pending_expenses)
+                  : "—"
+              }
               description="Awaiting approval or settlement"
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
               title="Expense Categories"
-              value={expenseSummary ? String(expenseSummary.expense_categories) : "—"}
+              value={
+                expenseSummary ? String(expenseSummary.expense_categories) : "—"
+              }
               description="Tracked spending areas"
               icon={<CircleDollarSign className="size-5" />}
             />
@@ -360,13 +380,16 @@ export default function FinanceExpensesPage() {
                 pageSize={10}
                 loading={loading}
                 emptyMessage={
-                  loading ? "Loading expenses…" : "Expense records are unavailable until the hosted finance service is connected."
+                  loading
+                    ? "Loading expenses…"
+                    : "Expense records are unavailable until the hosted finance service is connected."
                 }
                 toolbarFilters={
                   <Select value={stateFilter} onValueChange={setStateFilter}>
                     <SelectTrigger
                       aria-label="Expense status"
-                      className="w-full sm:w-44">
+                      className="w-full sm:w-44"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -384,13 +407,12 @@ export default function FinanceExpensesPage() {
                 refreshing={loading}
                 toolbarActions={
                   <Button
-                    disabled
-                    title="Expense posting is not connected"
                     onClick={() => {
                       setForm(fresh());
                       setErrors({});
                       setFormOpen(true);
-                    }}>
+                    }}
+                  >
                     <Plus className="mr-2 size-4" />
                     Record expense
                   </Button>
@@ -398,8 +420,14 @@ export default function FinanceExpensesPage() {
               />
             </CardContent>
           </Card>
+          <ExpenseRequestStatus />
         </div>
-        <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
+        <FinancialMirrorStatus
+          loading={loading}
+          error={error}
+          lastSuccessfulSync={lastSuccessfulSync}
+          isStale={isStale}
+        />
       </div>
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg">
@@ -415,9 +443,11 @@ export default function FinanceExpensesPage() {
                 <FieldLabel required>Category</FieldLabel>
                 <Select
                   value={form.categoryId}
-                  onValueChange={(value) => setField("categoryId", value)}>
+                  onValueChange={(value) => setField("categoryId", value)}
+                >
                   <SelectTrigger
-                    className={`w-full ${errors.categoryId ? "border-red-500" : ""}`}>
+                    className={`w-full ${errors.categoryId ? "border-red-500" : ""}`}
+                  >
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -454,7 +484,8 @@ export default function FinanceExpensesPage() {
                 value={form.paymentBasis}
                 onValueChange={(value) =>
                   setField("paymentBasis", value as Form["paymentBasis"])
-                }>
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -471,9 +502,11 @@ export default function FinanceExpensesPage() {
                 <FieldLabel required>Supplier</FieldLabel>
                 <Select
                   value={form.supplierId}
-                  onValueChange={(value) => setField("supplierId", value)}>
+                  onValueChange={(value) => setField("supplierId", value)}
+                >
                   <SelectTrigger
-                    className={`w-full ${errors.supplierId ? "border-red-500" : ""}`}>
+                    className={`w-full ${errors.supplierId ? "border-red-500" : ""}`}
+                  >
                     <SelectValue placeholder="Select supplier" />
                   </SelectTrigger>
                   <SelectContent>
@@ -500,7 +533,8 @@ export default function FinanceExpensesPage() {
                 <Button
                   type="button"
                   variant={form.taxable ? "default" : "outline"}
-                  onClick={() => setField("taxable", !form.taxable)}>
+                  onClick={() => setField("taxable", !form.taxable)}
+                >
                   {form.taxable ? "Taxable" : "Non-taxable"}
                 </Button>
               </div>
@@ -581,7 +615,8 @@ export default function FinanceExpensesPage() {
                   value={form.method}
                   onValueChange={(value) =>
                     setField("method", value as FinancePaymentMethod)
-                  }>
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -609,7 +644,8 @@ export default function FinanceExpensesPage() {
                   value={form.status}
                   onValueChange={(value) =>
                     setField("status", value as ExpenseStatus)
-                  }>
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -638,21 +674,23 @@ export default function FinanceExpensesPage() {
             <Button
               variant="outline"
               onClick={() => setFormOpen(false)}
-              disabled={submitting}>
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button onClick={() => void submit()} disabled>
+            <Button onClick={() => void submit()} disabled={submitting}>
               {submitting ? (
                 <LoaderCircle className="mr-2 size-4 animate-spin" />
               ) : null}
-              Save Expense
+              Send for approval
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog
         open={Boolean(detail)}
-        onOpenChange={(open) => !open && setDetail(null)}>
+        onOpenChange={(open) => !open && setDetail(null)}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Expense details</DialogTitle>
@@ -730,7 +768,9 @@ export default function FinanceExpensesPage() {
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={() => void reverse()} disabled>
+                    onClick={() => void reverse()}
+                    disabled
+                  >
                     Reverse expense
                   </Button>
                 </div>
