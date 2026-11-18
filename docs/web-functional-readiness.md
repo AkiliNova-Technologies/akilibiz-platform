@@ -1,6 +1,14 @@
 # AkiliBiz Web — Functional Readiness Register
 
-Updated: 2026-11-16. Branch: `dev`.
+Updated: 2026-11-18. Branch: `dev`.
+
+## Phase 5 POS cash lifecycle qualification update
+
+The guarded web cash workflow now accepts cash tender above the authoritative total, preserves its request UUID across uncertain network outcomes, and waits for the desktop-authoritative receipt number. Desktop application uses the existing canonical sale, stock, tax, accounting, and receipt services; change is recorded on the receipt but excluded from retained payment and finance amounts. Durable hosted and SQLite receipts reject changed replays.
+
+Focused and full web tests, TypeScript, lint, and the production webpack build pass. Desktop canonical application/replay tests, inventory tests, receipt tests, `cargo check`, and the frontend production build pass. Disposable PostgreSQL 17 and SQLite qualifications pass the cash posting/apply/ACK path. The desktop frontend suite has one unrelated pre-existing translation assertion failure, lint has one unrelated backup-page hook error, and `cargo fmt --check` reports only the unrelated dirty `cloud_sync_handler.rs` file.
+
+Phase 5 is **not integration-qualified**: the disposable hosted and local databases were exercised separately, not through a live paired browser/desktop transport. Credit/split/provider payments, returns/refunds, variants/selling units, persisted quote expiry, cashier identity mapping, large-catalogue pagination, immediate receipt printing, and measured concurrency/latency acceptance remain incomplete. All production activation gates remain disabled. See `docs/qualification/pos-sales-phase5-qualification.md`.
 
 ## Purchase-order approval qualification update
 

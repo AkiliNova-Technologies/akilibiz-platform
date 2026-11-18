@@ -17,6 +17,12 @@ import {
  * checkout remains disabled.
  */
 export async function POST(request: NextRequest) {
+  if (process.env.AKILIBIZ_ENABLE_WEB_POS_SALES !== "1")
+    return apiError(
+      "SYNC_UNAVAILABLE",
+      "Web sale submission is not enabled for this environment.",
+      503,
+    );
   const supabase = await createClient();
   const {
     data: { user },

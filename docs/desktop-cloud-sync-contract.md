@@ -51,3 +51,11 @@ The hosted database still contains only the previously confirmed catalogue
 records until the owner's desktop explicitly uploads contact and stock data.
 Do not infer success solely from the existence of source code or migrations.
 No automatic post-restart sync without cloud sign-in is claimed.
+
+## Web POS cash acknowledgement v2 — 2026-11-18
+
+For the default-off web POS cash path, the desktop inbox applies a staged request through the canonical local sale transaction. Its immutable apply receipt makes the hosted sale ID replay-safe. Cash tender can exceed the total: the local receipt stores tender and change, while the payment, finance transaction, and accounting effects retain exactly the sale total.
+
+After local commit, the desktop sends the local authoritative sale number to `ack_applied_web_pos_sale_v2`. The hosted acknowledgement is device/tenant scoped and idempotent; an identical retry succeeds and a different local receipt identity conflicts. The web status read exposes the local number only after that acknowledgement. A later movement-evidence reconciliation remains responsible for releasing the hosted hold.
+
+This contract is qualified independently against disposable PostgreSQL 17 and SQLite databases, but it has not completed a paired transport acceptance. Inbound fetch, local apply, ACK, reconciliation, server API, browser UI, and hosted per-business posting gates remain disabled by default.

@@ -1,6 +1,16 @@
 # Web-originated POS sales — implementation contract
 
-**Status:** Implementation in progress on `dev`. No live web checkout.
+**Status:** Phase 5 cash lifecycle implemented on `dev` behind disabled gates. No live web checkout.
+
+## Phase 5 cash lifecycle increment — 2026-11-18
+
+The guarded web checkout now supports whole-UGX cash tender greater than or equal to the authoritative total. The desktop canonical sale service records the tender and change on the receipt while retaining only the sale total in payment, finance, and journal records. It applies a staged hosted request atomically and durably records the hosted sale ID before acknowledging it, so retries cannot create another sale.
+
+Hosted acknowledgement v2 records the authoritative local sale number. The originating cashier status endpoint exposes that number only after desktop application; it never presents the hosted `WEB-*` staging reference as a printable receipt. Identical POST and ACK retries return the prior result, while changed payloads or changed receipt identities fail as conflicts. All server and browser runtime switches remain default-off.
+
+Disposable PostgreSQL 17 qualification passed posting, change due, identical replay, changed-payload rejection, single stock hold/payment, ACK replay/conflict, and authoritative receipt status. Disposable SQLite integration tests passed canonical application with change and replay without duplicate sales or payments. These were independent database qualifications, not a paired browser-to-desktop network acceptance.
+
+This increment does **not** establish complete Phase 5 POS parity. Hosted credit/split/provider payments, web returns/refunds, product variants and selling-unit conversion, expiring persisted quotes, paginated high-volume catalogue search, cashier-to-local-staff identity mapping, immediate receipt rendering, and a real paired interruption/revocation run remain unqualified. Production gates must stay disabled.
 
 AkiliBiz Phase 1G established desktop-to-hosted synchronization, not bidirectional posting. The hosted catalogue and inventory RPC are authoritative read projections of the latest acknowledged desktop state. They are **not** a transactionally locked checkout balance.
 
@@ -34,7 +44,7 @@ AkiliBiz Phase 1G established desktop-to-hosted synchronization, not bidirection
 - Optional hold-aware POS read model: `20261110170000_web_pos_hold_aware_inventory_read.sql`.
 - Desktop inbound inbox, immutable product mapping, local applied-sale receipt, acknowledgement and hosted stock-reconciliation receipts: migrations `0105`–`0109` in `akilibiz`.
 - The desktop worker retains separate default-off flags for inbound fetching, local sale application, ACK, and movement-confirmed reconciliation. The web read model selects hold-aware stock only with `AKILIBIZ_WEB_POS_HOLDS_AWARE=1`.
-- **Pilot limitations:** cash must equal the exact sale total (no change due); credit, mobile money, tax/invoice mismatches and non-matching local pricing all fail closed rather than producing partially applied financial records.
+- **Current limitations:** cash tender may exceed the total and the canonical desktop receipt records change due. Credit, split tender, mobile money, web returns/refunds, tax/invoice mismatches and non-matching local pricing still fail closed rather than producing partially applied financial records.
 - **Still required:** isolated PostgreSQL migration and multi-session concurrency tests, real cross-repository browser/desktop acceptance, and renewed Supabase security review for the new authenticated RPCs. Do not enable the posting gate or production pilot flags until these checks pass.
 
 ## Release gates

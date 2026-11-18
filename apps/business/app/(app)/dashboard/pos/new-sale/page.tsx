@@ -24,7 +24,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, Plus, Minus, Trash2, Receipt, Banknote, ShoppingCart, Package, Smartphone, RefreshCw, AlertTriangle, Barcode, LayoutGrid, List, PanelsTopLeft } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  Receipt,
+  Banknote,
+  ShoppingCart,
+  Package,
+  Smartphone,
+  RefreshCw,
+  AlertTriangle,
+  Barcode,
+  LayoutGrid,
+  List,
+  PanelsTopLeft,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,10 +60,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { RiskBadge } from "@/components/akilibiz/risk-badge";
-import { CreateSalePayload, SalePaymentMethod, formatPosCurrency as formatCurrency, t, usePosData } from "@/components/akilibiz/pos/pos-data";
+import {
+  CreateSalePayload,
+  SalePaymentMethod,
+  formatPosCurrency as formatCurrency,
+  t,
+  usePosData,
+} from "@/components/akilibiz/pos/pos-data";
 import { toast } from "sonner";
 import { useActiveBusinessId } from "@/components/active-business-context";
-
 
 // ============================================================================
 // TYPES
@@ -87,7 +108,32 @@ const canSubmitSale = false;
 export default function POSPage() {
   const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
   const activeBusinessId = useActiveBusinessId();
-  const { products, loading, error, loadCatalogue, categories, addSale, saleLoading, customers, getCustomers, scores, getCustomerRisk, riskLoading, taxSettings, getTaxSettings, getTaxClassifications, cartItems, cartSubtotal, cartTotal, customerId, addToReduxCart, updateItemQuantity, removeFromCart, clearReduxCart, applyDiscount, assignCustomer } = usePosData(activeBusinessId);
+  const {
+    products,
+    loading,
+    error,
+    loadCatalogue,
+    categories,
+    addSale,
+    saleLoading,
+    customers,
+    getCustomers,
+    scores,
+    getCustomerRisk,
+    riskLoading,
+    getTaxSettings,
+    getTaxClassifications,
+    cartItems,
+    cartSubtotal,
+    cartTotal,
+    customerId,
+    addToReduxCart,
+    updateItemQuantity,
+    removeFromCart,
+    clearReduxCart,
+    applyDiscount,
+    assignCustomer,
+  } = usePosData(activeBusinessId);
 
   // Keep server and first client render identical; restore the browser preference after hydration.
   const [productView, setProductView] = useState<ProductView>("compact");
@@ -106,7 +152,9 @@ export default function POSPage() {
         // Display preferences are optional.
       }
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
   const changeProductView = (view: ProductView) => {
     setProductView(view);
@@ -143,12 +191,7 @@ export default function POSPage() {
       getTaxSettings(),
       getTaxClassifications(),
     ]);
-  }, [
-    loadCatalogue,
-    getCustomers,
-    getTaxSettings,
-    getTaxClassifications,
-  ]);
+  }, [loadCatalogue, getCustomers, getTaxSettings, getTaxClassifications]);
 
   const customerOptions = useMemo(() => {
     return customers
@@ -209,20 +252,9 @@ export default function POSPage() {
     return scores[customerId] || null;
   }, [customerId, scores]);
 
-  // Calculate estimated tax (will be recalculated server-side)
-  const estimatedTax = useMemo(() => {
-    if (!taxSettings?.vat_registered) return 0;
-
-    // Simple estimate: 18% VAT on taxable items
-    return cartItems.reduce((sum, item) => {
-      const product = localProducts.find((p) => p.id === item.product_id);
-      if (product?.isTaxable && product.taxClassificationId) {
-        const itemSubtotal = item.price * item.quantity;
-        return sum + itemSubtotal * 0.18; // 18% VAT estimate
-      }
-      return sum;
-    }, 0);
-  }, [cartItems, localProducts, taxSettings]);
+  // Never duplicate Uganda tax rules in the browser. The authoritative quote
+  // and desktop transaction provide exact VAT before a sale is accepted.
+  const estimatedTax = 0;
 
   const total = cartTotal + estimatedTax;
   const parsedCashReceived = parseFloat(cashReceived) || 0;
@@ -324,7 +356,10 @@ export default function POSPage() {
 
   // A stock-and-price verification only. It does not reserve stock, charge a
   // customer, create a receipt, or enable hosted checkout.
-  const quoteCartKey = JSON.stringify({ business: activeBusinessId, cartItems });
+  const quoteCartKey = JSON.stringify({
+    business: activeBusinessId,
+    cartItems,
+  });
   const checkCart = async () => {
     if (cartItems.length === 0) return;
     setQuoteLoading(true);
@@ -340,13 +375,16 @@ export default function POSPage() {
             const milli = Math.round(item.quantity * 1000);
             return {
               product_id: item.product_id,
-              quantity_milli: Number.isSafeInteger(milli) &&
-                Math.abs(item.quantity * 1000 - milli) < 0.000001 ? milli : null,
+              quantity_milli:
+                Number.isSafeInteger(milli) &&
+                Math.abs(item.quantity * 1000 - milli) < 0.000001
+                  ? milli
+                  : null,
             };
           }),
         }),
       });
-      const result = await response.json() as {
+      const result = (await response.json()) as {
         subtotal_ugx?: number;
         error?: string;
         message?: string;
@@ -484,7 +522,10 @@ export default function POSPage() {
       <div className="@container/pos min-h-0 min-w-0">
         <div className="grid min-w-0 items-start gap-4 @min-[1100px]/pos:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
           {/* PRODUCT AREA */}
-          <Card id="pos-products" className="min-w-0 overflow-hidden rounded-[28px] border-border/60">
+          <Card
+            id="pos-products"
+            className="min-w-0 overflow-hidden rounded-[28px] border-border/60"
+          >
             <CardHeader className="border-b">
               <div className="flex flex-col gap-3">
                 <div>
@@ -521,25 +562,45 @@ export default function POSPage() {
                     </SelectContent>
                   </Select>
 
-                  <div role="group" aria-label="Product display" className="flex w-fit max-w-full items-center gap-1 rounded-full border p-1">
-                    {([
-                      ["compact", PanelsTopLeft, "Compact"],
-                      ["grid", LayoutGrid, "Grid"],
-                      ["list", List, "List"],
-                    ] as const).map(([view, Icon, label]) => (
-                      <Button key={view} type="button" size="sm"
+                  <div
+                    role="group"
+                    aria-label="Product display"
+                    className="flex w-fit max-w-full items-center gap-1 rounded-full border p-1"
+                  >
+                    {(
+                      [
+                        ["compact", PanelsTopLeft, "Compact"],
+                        ["grid", LayoutGrid, "Grid"],
+                        ["list", List, "List"],
+                      ] as const
+                    ).map(([view, Icon, label]) => (
+                      <Button
+                        key={view}
+                        type="button"
+                        size="sm"
                         variant={productView === view ? "secondary" : "ghost"}
-                        aria-label={`${label} product view`} aria-pressed={productView === view}
-                        onClick={() => changeProductView(view)} className="gap-1.5 px-2">
+                        aria-label={`${label} product view`}
+                        aria-pressed={productView === view}
+                        onClick={() => changeProductView(view)}
+                        className="gap-1.5 px-2"
+                      >
                         <Icon className="size-4" />
                         <span className="hidden xl:inline">{label}</span>
                       </Button>
                     ))}
                   </div>
-                  <Button type="button" variant="outline" size="icon"
-                    title={t("pos.refresh")} aria-label={t("pos.refresh")}
-                    onClick={handleRefresh} disabled={loading}>
-                    <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title={t("pos.refresh")}
+                    aria-label={t("pos.refresh")}
+                    onClick={handleRefresh}
+                    disabled={loading}
+                  >
+                    <RefreshCw
+                      className={`size-4 ${loading ? "animate-spin" : ""}`}
+                    />
                   </Button>
                 </div>
               </div>
@@ -551,10 +612,17 @@ export default function POSPage() {
                   {t("pos.loadingProducts")}
                 </div>
               ) : error ? (
-                <div role="alert" className="flex h-64 flex-col items-center justify-center gap-3 text-center">
+                <div
+                  role="alert"
+                  className="flex h-64 flex-col items-center justify-center gap-3 text-center"
+                >
                   <AlertTriangle className="size-8 text-destructive" />
                   <p className="font-medium">{error}</p>
-                  <Button type="button" variant="outline" onClick={handleRefresh}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRefresh}
+                  >
                     {t("pos.refresh")}
                   </Button>
                 </div>
@@ -569,17 +637,26 @@ export default function POSPage() {
                   </p>
                 </div>
               ) : (
-                <div className={
-                  productView === "list"
-                    ? "flex flex-col gap-1.5"
-                    : productView === "compact"
-                      ? "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,150px),1fr))] items-stretch gap-2"
-                      : "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-stretch gap-2"
-                }>
+                <div
+                  className={
+                    productView === "list"
+                      ? "flex flex-col gap-1.5"
+                      : productView === "compact"
+                        ? "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,150px),1fr))] items-stretch gap-2"
+                        : "grid auto-rows-fr grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] items-stretch gap-2"
+                  }
+                >
                   {filteredProducts.map((product) => {
-                    const isLowStock = !product.isService && product.stock > 0 && product.stock <= 10;
-                    const isUnavailable = (!product.isService && !product.inventoryAvailable) || product.price === null;
-                    const isOutOfStock = (!product.isService && product.stock <= 0) || isUnavailable;
+                    const isLowStock =
+                      !product.isService &&
+                      product.stock > 0 &&
+                      product.stock <= 10;
+                    const isUnavailable =
+                      (!product.isService && !product.inventoryAvailable) ||
+                      product.price === null;
+                    const isOutOfStock =
+                      (!product.isService && product.stock <= 0) ||
+                      isUnavailable;
 
                     return (
                       <Card
@@ -588,59 +665,144 @@ export default function POSPage() {
                         tabIndex={isOutOfStock ? -1 : 0}
                         aria-disabled={isOutOfStock}
                         onKeyDown={(event) => {
-                          if (!isOutOfStock && (event.key === "Enter" || event.key === " ")) {
+                          if (
+                            !isOutOfStock &&
+                            (event.key === "Enter" || event.key === " ")
+                          ) {
                             event.preventDefault();
                             addToCart(product);
                           }
                         }}
-                        onClick={() => { if (!isOutOfStock) addToCart(product); }}
+                        onClick={() => {
+                          if (!isOutOfStock) addToCart(product);
+                        }}
                         className={`min-w-0 border-border/60 py-0 ${productView === "list" ? "" : productView === "compact" ? "h-[190px]" : "h-[360px]"} transition hover:border-border hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isOutOfStock ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                       >
-                        <CardContent className={productView === "compact" ? "flex h-full flex-col p-2.5" : productView === "list" ? "flex items-center gap-3 px-3 py-2.5" : "flex h-full flex-col p-3"}>
+                        <CardContent
+                          className={
+                            productView === "compact"
+                              ? "flex h-full flex-col p-2.5"
+                              : productView === "list"
+                                ? "flex items-center gap-3 px-3 py-2.5"
+                                : "flex h-full flex-col p-3"
+                          }
+                        >
                           {productView === "grid" ? (
                             product.image ? (
-                              <img src={product.image} alt="" className="mb-3 h-28 w-full rounded-md object-cover" />
+                              <img
+                                src={product.image}
+                                alt=""
+                                className="mb-3 h-28 w-full rounded-md object-cover"
+                              />
                             ) : (
-                              <div aria-hidden="true" className="mb-3 h-28 w-full rounded-md bg-muted/30" />
+                              <div
+                                aria-hidden="true"
+                                className="mb-3 h-28 w-full rounded-md bg-muted/30"
+                              />
                             )
                           ) : null}
-                          <div className={productView === "compact" ? "flex min-w-0 flex-1 flex-col gap-1.5" : productView === "list" ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3" : "flex min-w-0 flex-1 flex-col gap-2"}>
+                          <div
+                            className={
+                              productView === "compact"
+                                ? "flex min-w-0 flex-1 flex-col gap-1.5"
+                                : productView === "list"
+                                  ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(180px,auto)] items-center gap-3"
+                                  : "flex min-w-0 flex-1 flex-col gap-2"
+                            }
+                          >
                             <div>
-                              <h3 className="line-clamp-2 text-sm font-medium leading-snug" title={product.name}>{product.name}</h3>
+                              <h3
+                                className="line-clamp-2 text-sm font-medium leading-snug"
+                                title={product.name}
+                              >
+                                {product.name}
+                              </h3>
                               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                 <Barcode className="size-3.5" />
-                                <span className="min-w-0 truncate font-mono" title={product.sku}>{product.sku}</span>
+                                <span
+                                  className="min-w-0 truncate font-mono"
+                                  title={product.sku}
+                                >
+                                  {product.sku}
+                                </span>
                               </div>
                             </div>
-                            <div className={productView === "list" ? "flex min-w-0 flex-wrap items-start justify-between gap-1.5" : "mt-auto flex min-w-0 flex-wrap items-start justify-between gap-1.5 pt-2"}>
+                            <div
+                              className={
+                                productView === "list"
+                                  ? "flex min-w-0 flex-wrap items-start justify-between gap-1.5"
+                                  : "mt-auto flex min-w-0 flex-wrap items-start justify-between gap-1.5 pt-2"
+                              }
+                            >
                               <div className="min-w-0">
                                 <p className="text-base font-semibold">
-                                  {product.price === null ? t("pos.priceUnavailable") : formatCurrency(product.price)}
+                                  {product.price === null
+                                    ? t("pos.priceUnavailable")
+                                    : formatCurrency(product.price)}
                                 </p>
-                                <p className="truncate text-xs text-muted-foreground" title={product.category}>{product.category}</p>
+                                <p
+                                  className="truncate text-xs text-muted-foreground"
+                                  title={product.category}
+                                >
+                                  {product.category}
+                                </p>
                               </div>
                               {product.price === null ? (
-                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.priceUnavailable")}</Badge>
+                                <Badge
+                                  variant="destructive"
+                                  className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight"
+                                >
+                                  {t("pos.priceUnavailable")}
+                                </Badge>
                               ) : product.isService ? (
-                                <Badge variant="secondary" className="max-w-full min-w-0">Service</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="max-w-full min-w-0"
+                                >
+                                  Service
+                                </Badge>
                               ) : !product.inventoryAvailable ? (
-                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inventoryUnavailable")}</Badge>
+                                <Badge
+                                  variant="destructive"
+                                  className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight"
+                                >
+                                  {t("pos.inventoryUnavailable")}
+                                </Badge>
                               ) : isOutOfStock ? (
-                                <Badge variant="destructive" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.outOfStock")}</Badge>
+                                <Badge
+                                  variant="destructive"
+                                  className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight"
+                                >
+                                  {t("pos.outOfStock")}
+                                </Badge>
                               ) : isLowStock ? (
-                                <Badge variant="outline" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.lowStock", { count: product.stock })}</Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight"
+                                >
+                                  {t("pos.lowStock", { count: product.stock })}
+                                </Badge>
                               ) : (
-                                <Badge variant="secondary" className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight">{t("pos.inStock", { count: product.stock })}</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="max-w-full min-w-0 whitespace-normal break-words text-center leading-tight"
+                                >
+                                  {t("pos.inStock", { count: product.stock })}
+                                </Badge>
                               )}
                             </div>
-                            {productView === "grid" && isLowStock && !isOutOfStock ? (
+                            {productView === "grid" &&
+                            isLowStock &&
+                            !isOutOfStock ? (
                               <div className="flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs text-muted-foreground">
                                 <AlertTriangle className="size-3.5" />
                                 {t("pos.lowStockItem")}
                               </div>
                             ) : null}
                             {productView === "grid" && product.isTaxable ? (
-                              <Badge variant="outline" className="text-xs">{t("pos.taxable")}</Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {t("pos.taxable")}
+                              </Badge>
                             ) : null}
                           </div>
                         </CardContent>
@@ -653,18 +815,30 @@ export default function POSPage() {
           </Card>
 
           {cartItems.length > 0 && (
-          <div className="sticky bottom-3 z-20 -mt-1 flex justify-center @min-[1100px]/pos:hidden">
-            <Button type="button" className="max-w-full gap-2 shadow-lg"
-              onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              aria-label="Go to current sale">
-              <ShoppingCart className="size-4" />
-              <span className="truncate">{totalUnits} items · {formatCurrency(total)}</span>
-              <span className="font-semibold">View</span>
-            </Button>
-          </div>
+            <div className="sticky bottom-3 z-20 -mt-1 flex justify-center @min-[1100px]/pos:hidden">
+              <Button
+                type="button"
+                className="max-w-full gap-2 shadow-lg"
+                onClick={() =>
+                  document
+                    .getElementById("pos-cart")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+                aria-label="Go to current sale"
+              >
+                <ShoppingCart className="size-4" />
+                <span className="truncate">
+                  {totalUnits} items · {formatCurrency(total)}
+                </span>
+                <span className="font-semibold">View</span>
+              </Button>
+            </div>
           )}
           {/* CART AREA */}
-          <Card id="pos-cart" className="flex h-auto min-w-0 flex-col overflow-hidden rounded-[28px] border-border/60 @min-[1100px]/pos:h-[min(78dvh,850px)] @min-[1100px]/pos:min-h-[360px]">
+          <Card
+            id="pos-cart"
+            className="flex h-auto min-w-0 flex-col overflow-hidden rounded-[28px] border-border/60 @min-[1100px]/pos:h-[min(78dvh,850px)] @min-[1100px]/pos:min-h-[360px]"
+          >
             <CardHeader className="border-b">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -779,7 +953,10 @@ export default function POSPage() {
                                     item.quantity + 1,
                                   )
                                 }
-                                disabled={!product.isService && item.quantity >= product.stock}
+                                disabled={
+                                  !product.isService &&
+                                  item.quantity >= product.stock
+                                }
                               >
                                 <Plus className="size-3.5" />
                               </Button>
@@ -870,24 +1047,41 @@ export default function POSPage() {
                     onClick={() => void checkCart()}
                     disabled={cartItems.length === 0 || loading || quoteLoading}
                   >
-                    {quoteLoading ? "Checking current stock…" : "Check stock and prices"}
+                    {quoteLoading
+                      ? "Checking current stock…"
+                      : "Check stock and prices"}
                   </Button>
                   {quoteResult?.cartKey === quoteCartKey && (
-                    <div role="status" className="text-sm text-muted-foreground">
+                    <div
+                      role="status"
+                      className="text-sm text-muted-foreground"
+                    >
                       <p>{quoteResult.message}</p>
-                      {quoteResult.accepted && quoteResult.subtotal !== undefined && (
-                        <p>Verified subtotal: {formatCurrency(quoteResult.subtotal)}</p>
-                      )}
+                      {quoteResult.accepted &&
+                        quoteResult.subtotal !== undefined && (
+                          <p>
+                            Verified subtotal:{" "}
+                            {formatCurrency(quoteResult.subtotal)}
+                          </p>
+                        )}
                     </div>
                   )}
-                  {process.env.NEXT_PUBLIC_AKILIBIZ_CASH_SALE_PILOT === "1" && (
-                    <CashSalePilot key={activeBusinessId} businessId={activeBusinessId} cartItems={cartItems} />
+                  {process.env.NEXT_PUBLIC_AKILIBIZ_ENABLE_WEB_POS === "1" && (
+                    <CashSalePilot
+                      key={activeBusinessId}
+                      businessId={activeBusinessId}
+                      cartItems={cartItems}
+                    />
                   )}
                   <Button
                     className="h-12 text-base font-semibold"
                     onClick={() => handleCheckout("sale")}
                     disabled={cartItems.length === 0 || !canSubmitSale}
-                    title={!canSubmitSale ? "Checkout is unavailable until sales and tax posting are connected" : undefined}
+                    title={
+                      !canSubmitSale
+                        ? "Checkout is unavailable until sales and tax posting are connected"
+                        : undefined
+                    }
                   >
                     {t("pos.completeSale")}
                   </Button>
@@ -1243,7 +1437,8 @@ export default function POSPage() {
                 className="flex-1 h-10 text-base font-semibold"
                 onClick={completeSale}
                 disabled={
-                  !canSubmitSale || saleLoading ||
+                  !canSubmitSale ||
+                  saleLoading ||
                   (paymentMethod === "cash" && parsedCashReceived < total)
                 }
               >
@@ -1264,7 +1459,9 @@ export default function POSPage() {
                 variant="outline"
                 className="h-10 text-base font-semibold"
                 onClick={() => handleCheckout("order")}
-                disabled={!canSubmitSale || cartItems.length === 0 || !customerId}
+                disabled={
+                  !canSubmitSale || cartItems.length === 0 || !customerId
+                }
               >
                 {t("pos.switchCreditOrder")}
               </Button>
