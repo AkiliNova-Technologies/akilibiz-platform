@@ -143,6 +143,9 @@ set local session_replication_role=replica;
 delete from private.desktop_inbound_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
 delete from private.desktop_inbound_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
 delete from private.desktop_contact_create_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
+delete from private.desktop_product_create_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
+delete from private.desktop_product_create_controls where business_id in (:'business_a'::uuid,:'business_b'::uuid);
+delete from public.web_product_drafts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
 delete from private.desktop_inbound_controls where business_id in (:'business_a'::uuid,:'business_b'::uuid);
 delete from private.desktop_mirror_batch_rows r using private.desktop_mirror_batches b where r.batch_id=b.batch_id and b.business_id in (:'business_a'::uuid,:'business_b'::uuid);
 delete from private.desktop_inventory_checkpoint_product_balances r using private.desktop_inventory_checkpoints c where r.checkpoint_id=c.id and c.business_id in (:'business_a'::uuid,:'business_b'::uuid);
@@ -479,6 +482,60 @@ async function main() {
         throw new Error(`contact creation qualification failed\n${redact(`${createWorker.stdout ?? ""}\n${createWorker.stderr ?? ""}`)}`);
       }
       mark(results, "web-to-desktop contact creation (validation, idempotent request ID, permission, restart before/after apply, UUID conflict, publication, replay, offline)", "PASS");
+    }
+
+    // Phase 2C web product drafts -> desktop staff approval. Opt-in, disposable business only.
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_PRODUCT_CREATION === "1") {
+      const gateOff = await ownerB.rpc("request_desktop_product_create", { target_business_id: manifest.businessBId, target_draft_id: crypto.randomUUID(), request_id: crypto.randomUUID() });
+      assert(gateOff.error?.code === "55000", `product requests must be refused while the business gate is off (${gateOff.error?.code})`);
+      mark(results, "product request refused while gate is off", "PASS", "denied (55000)");
+      runSql(
+        `insert into private.desktop_product_create_controls(business_id,requests_enabled)
+         values (:'business'::uuid,true)
+         on conflict (business_id) do update set requests_enabled=true;`,
+        { business: manifest.businessBId },
+      );
+      // A real category of business A for the cross-business draft probe.
+      const otherCategory = runSql(
+        `with existing as (select id from public.desktop_categories where business_id=:'business'::uuid order by id limit 1),
+         created as (
+           insert into public.desktop_categories(business_id,local_business_public_id,local_category_id,name,slug)
+           select :'business'::uuid,:'source',999001,'Cross tenant probe','cross-tenant-probe'
+           where not exists(select 1 from existing) returning id)
+         select id from existing union all select id from created limit 1;`,
+        { business: manifest.businessAId, source: sourceA },
+      );
+      const fresh = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
+      assert(fresh.data.session, "fresh owner session for product qualification failed");
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      const productWorker = spawnSync("cargo", [
+        "test", "--manifest-path", resolve(desktopRepo, "src-tauri", "Cargo.toml"),
+        "--test", "hosted_product_create_qualification",
+        "web_product_requests_round_trip_through_desktop_approval",
+        "--", "--ignored", "--exact", "--nocapture",
+      ], {
+        cwd: desktopRepo,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        env: {
+          ...qualificationChildEnv("rust"),
+          AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+          AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+          AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+          AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceB,
+          AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessBId,
+          AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceB,
+          AKILIBIZ_QUALIFICATION_USER_ID: fresh.data.user.id,
+          AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: fresh.data.session.access_token,
+          AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: fresh.data.session.refresh_token,
+          AKILIBIZ_QUALIFICATION_OTHER_BUSINESS_ID: manifest.businessAId,
+          AKILIBIZ_QUALIFICATION_OTHER_CATEGORY_ID: otherCategory,
+        },
+      });
+      if (productWorker.status !== 0) {
+        throw new Error(`product creation qualification failed\n${redact(`${productWorker.stdout ?? ""}\n${productWorker.stderr ?? ""}`)}`);
+      }
+      mark(results, "web-to-desktop product creation (tenant isolation, settings validation, idempotent request, draft freeze, staff permission, offline approval, atomic zero-stock product, approval replay, ACK, published status, SKU clash)", "PASS");
     }
 
     // The protected Vercel browser check is opt-in. It shares this disposable

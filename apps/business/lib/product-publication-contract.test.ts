@@ -64,3 +64,20 @@ describe("desktop product creation migration compatibility (source contract)",()
     expect(ackMigration).toContain("p.sku=(c.payload->>'sku')");
   });
 });
+
+// SQL comments explain the original defect, so check executable SQL only.
+const isolationMigration = readFileSync(resolve(process.cwd(),
+  "../../supabase/migrations/20261127090000_web_product_drafts_tenant_isolation.sql"
+),"utf8").replace(/--.*$/gm,"");
+
+describe("web product draft tenant isolation (source contract)",()=>{
+  it("recreates every draft policy against the draft's own business",()=>{
+    for(const action of ["select","insert","update","delete"]){
+      expect(isolationMigration).toContain(`create policy web_product_drafts_${action} on public.web_product_drafts`);
+    }
+    // An unqualified business_id inside the membership subquery resolves to
+    // m.business_id and makes the check always true (cross-tenant writes).
+    expect(isolationMigration).not.toMatch(/m\.business_id=business_id\b/);
+    expect(isolationMigration.match(/m\.business_id=web_product_drafts\.business_id/g)?.length).toBe(5);
+  });
+});

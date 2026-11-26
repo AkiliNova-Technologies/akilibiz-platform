@@ -1,6 +1,53 @@
 # Phase 2C5 — Product-publication qualification preflight
 
-**Status: partially completed, not end-to-end qualified.** This increment performs read-only live-schema inventory and source-contract hardening only. It does **not** deploy any migrations, initialize staging, change a business record, or enable the product creation pilot.
+**Status (27 November 2026): hosted end-to-end qualification passed on the development project. Production gates remain off.** The original preflight below is kept for history.
+
+## Hosted qualification evidence (27 November 2026)
+
+The project owner confirmed that the `.env.qualification` project (`vntqfaheiwotinpuefzl`) is a
+development copy used only by them, and approved running the qualification there. Every test
+used its own disposable owners and businesses and was removed by ID. The two existing businesses
+were not modified.
+
+```bash
+AKILIBIZ_REAL_DESKTOP_WORKER=1 AKILIBIZ_TWO_WAY_CONTACTS=1 AKILIBIZ_CONTACT_CREATION=1 \
+AKILIBIZ_PRODUCT_CREATION=1 node apps/business/scripts/qualify-phase1c-hosted.mjs
+```
+
+Result with every stage enabled: 63 PASS, 0 FAIL, 2 SKIP (expired-token fixture and the
+protected Vercel browser check need credentials), cleanup verified. The product stage
+(`src-tauri/tests/hosted_product_create_qualification.rs`) calls the real desktop approval
+functions and proves:
+
+- an owner cannot write drafts into another business, even with a valid category of that business;
+- incomplete desktop settings cannot be requested (`22023`);
+- a retried request ID returns the same command; a second request for one draft is refused (`23505`);
+- a requested draft can no longer be edited or deleted;
+- the request is refused while the business gate is off (`55000`, checked by the runner);
+- staff without `products.create` cannot list or approve requests;
+- approval while offline creates nothing (fresh online authorization is required);
+- approval creates the product and its immutable receipt atomically, with zero opening stock and the draft's exact prices;
+- replaying an approval returns the same product; replaying with another VAT treatment is refused;
+- after restart with the ACK enabled the status becomes `published` once the catalogue projection matches;
+- a replayed ACK with the same receipt is idempotent and a different receipt is refused (`23505`);
+- a second request reusing the SKU (any letter case) is refused at approval without a product or receipt.
+
+Defects found and fixed while qualifying:
+
+1. **Cross-tenant draft writes (security).** Every `web_product_drafts` policy compared
+   `m.business_id=business_id`. Inside the membership subquery this resolved to
+   `m.business_id=m.business_id`, so any owner or manager of any business could write drafts into
+   another business. Fixed by `20261127090000_web_product_drafts_tenant_isolation.sql`. No drafts
+   existed, so no cross-tenant data was created.
+2. **Draft freeze trigger.** `20261114210000` could not be parsed (`end $;`), and its variable
+   `draft_id` made the trigger fail with an ambiguous column error on every draft update or delete.
+   Both are fixed in that migration.
+
+Remaining before any production enablement: apply migrations to the production project through a
+reviewed rollout, a desktop UI pass over the review panel (`VITE_AKILIBIZ_PRODUCT_CREATE_REVIEW_UI`),
+multi-device pairing, and operational monitoring.
+
+## Original preflight (14 November 2026)
 
 ## Read-only Supabase inventory, 14 November 2026
 
