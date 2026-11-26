@@ -23,7 +23,7 @@
 
 Run against the disposable qualification project with all 45 migrations applied in order:
 
-```
+```bash
 AKILIBIZ_REAL_DESKTOP_WORKER=1 AKILIBIZ_TWO_WAY_CONTACTS=1 \
   node apps/business/scripts/qualify-phase1c-hosted.mjs
 ```

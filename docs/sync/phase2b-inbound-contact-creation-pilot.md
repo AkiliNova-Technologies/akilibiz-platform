@@ -34,6 +34,31 @@ Do not enable these gates on a production business without a disposable two-busi
 - An unresponsive or revoked desktop will leave the request pending. An operator must not delete an inbox row to make it disappear.
 - The UI retains its request ID after a network failure to avoid duplicate enqueue.
 
+## Hosted qualification evidence (26 November 2026)
+
+```bash
+AKILIBIZ_REAL_DESKTOP_WORKER=1 AKILIBIZ_TWO_WAY_CONTACTS=1 AKILIBIZ_CONTACT_CREATION=1 \
+  node apps/business/scripts/qualify-phase1c-hosted.mjs
+```
+
+Result: 61 PASS, 0 FAIL, cleanup verified, on the disposable qualification project with all
+migrations applied. The runner checks the disabled gate (`55000`) and cross-business requests
+(`42501`) before enabling the per-business gate. The desktop stage
+(`web_contact_creation_round_trips_through_the_real_desktop_worker` in
+`src-tauri/tests/hosted_two_way_contacts_qualification.rs`) drives the production worker and proves:
+
+- financial or unknown fields and incomplete suppliers are refused (`22023`);
+- a retried request ID returns the same command; reuse with different data is refused (`23505`);
+- an operator without `customers.create`/`suppliers.create` stages but cannot apply;
+- restart before apply, then restart after apply with the ACK withheld, delivers each receipt once;
+- an allocated UUID that already exists locally becomes a `conflict` and leaves the local record untouched;
+- created customers and suppliers are published back to the hosted directory;
+- replayed ticks and ACKs are idempotent; a different receipt is refused (`23505`);
+- an offline tick receives nothing; the request applies on reconnection.
+
+Acceptance tests 1–5 below are covered by this run (Phase 2A runs in the same pass). Production
+enablement still needs the conflict-resolution UI, command expiry and operational monitoring.
+
 ## Next acceptance tests
 
 1. Apply the new hosted migration to a disposable development Supabase database, and desktop migration 0116 to disposable local test files.
