@@ -55,18 +55,30 @@ review functions and the production sync tick.
 - The business mirror publishes one entity type per sync tick, so a goods receipt reaches the web
   over several ticks. This is by design; the test ticks until the payable appears.
 
-## Finding: business mirror cannot recover from an older generation (not fixed)
+## Fixed: business mirror recovery after restoring an older backup
 
 `finalize_desktop_business_snapshot` refuses a generation that is not newer than the one the web
-already committed for that desktop source (`23505`, "Stale or conflicting mirror generation"). The
-desktop has no handling for this response, so it retries the same generation forever and that entity
-type never publishes again.
+already committed for a desktop source (`23505`). Before this fix the desktop retried that generation
+forever, so after restoring an older backup (or reinstalling with the same business identity) the web
+kept showing records that no longer existed on the desktop. The hosted test reproduced it: without the
+fix, 80 sync passes left the web showing a post-backup transaction and business name, with 160 refused
+finalizations.
 
-This happens when a desktop's local generation counters go backwards for an existing source, for
-example after **restoring an older backup** or reinstalling with the same business identity. The
-qualification hit it when a second test database reused an existing source. The purchasing stage now
-uses its own source.
+The fix has two parts:
 
-A fix needs a design decision: for example, return the committed generation in the 409 response so the
-desktop can continue from `committed + 1` and republish its current authoritative rows, plus a
-backup/restore test.
+1. **Refused finalization.** On HTTP 409 the desktop reads the committed generation
+   (`get_desktop_business_mirror_generation`, migration `20261127120000`). Only when the web is
+   verifiably at or beyond the local generation does it discard the unfinishable local batch and continue
+   from `committed + 1`, republishing its current rows. Other 409 causes still surface as errors.
+2. **Idle reconciliation.** On the first idle pass after each app start, then at most every six hours,
+   the desktop lists all committed generations for its source in one request
+   (`list_desktop_business_mirror_generations`). Any entity the web holds beyond what this database
+   acknowledged, or never published, is republished. Equal generations, the normal case, change nothing.
+
+The desktop is authoritative for its own source, so after a restore the restored database is the truth.
+No local business data is modified; only mirror bookkeeping is.
+
+Evidence: `restore_prepare_publishes_then_advances_past_a_backup` and
+`restore_from_older_backup_realigns_the_web_mirror` (separate processes, modelling an app restart) in
+`src-tauri/tests/hosted_backup_restore_qualification.rs`, run with `AKILIBIZ_BACKUP_RESTORE=1`. The web
+ends with exactly the restored data. Every stage together: 68 PASS, 0 FAIL, 2 SKIP.

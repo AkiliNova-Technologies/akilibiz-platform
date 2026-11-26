@@ -135,7 +135,7 @@ function runSql(sql, variables = {}) {
   return run.stdout.trim();
 }
 async function cleanup(manifest, results = []) {
-  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId].filter(Boolean);
+  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId, manifest.businessRId].filter(Boolean);
   const idList = `{${ids.join(",")}}`;
   if (ids.length) {
     const sql = String.raw`
@@ -545,6 +545,49 @@ async function main() {
         throw new Error(`product creation qualification failed\n${redact(`${productWorker.stdout ?? ""}\n${productWorker.stderr ?? ""}`)}`);
       }
       mark(results, "web-to-desktop product creation (tenant isolation, settings validation, idempotent request, draft freeze, staff permission, offline approval, atomic zero-stock product, approval replay, ACK, published status, SKU clash)", "PASS");
+    }
+
+    // Backup restore: a desktop restored from an older backup must realign the
+    // web mirror. Two processes (an app restart) share one private work dir.
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_BACKUP_RESTORE === "1") {
+      const sourceR = crypto.randomUUID().replaceAll("-", "");
+      const deviceR = crypto.randomUUID();
+      const registrationR = await expectSuccess(results, "business R registration", ownerB.rpc("register_desktop_business", { local_business_public_id: sourceR, device_public_id: deviceR, business_name: `PHASE1C ${runId} R`, business_trading_name: "Phase1C R", business_contact_email: manifest.userBEmail, business_contact_phone: null, business_time_zone: "Africa/Kampala", business_currency_code: "UGX" }));
+      manifest.businessRId = registrationR[0].hosted_business_id;
+      await save();
+      const workdir = resolve(artifactDir, "restore");
+      await mkdir(workdir, { recursive: true, mode: 0o700 });
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      for (const phase of ["restore_prepare_publishes_then_advances_past_a_backup", "restore_from_older_backup_realigns_the_web_mirror"]) {
+        const fresh = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
+        assert(fresh.data.session, "fresh owner session for restore qualification failed");
+        const worker = spawnSync("cargo", [
+          "test", "--manifest-path", resolve(desktopRepo, "src-tauri", "Cargo.toml"),
+          "--test", "hosted_backup_restore_qualification", phase,
+          "--", "--ignored", "--exact", "--nocapture",
+        ], {
+          cwd: desktopRepo,
+          encoding: "utf8",
+          maxBuffer: 16 * 1024 * 1024,
+          env: {
+            ...qualificationChildEnv("rust"),
+            AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+            AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+            AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+            AKILIBIZ_RESTORE_WORKDIR: workdir,
+            AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceR,
+            AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessRId,
+            AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceR,
+            AKILIBIZ_QUALIFICATION_USER_ID: fresh.data.user.id,
+            AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: fresh.data.session.access_token,
+            AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: fresh.data.session.refresh_token,
+          },
+        });
+        if (worker.status !== 0) {
+          throw new Error(`backup restore qualification failed in ${phase}\n${redact(`${worker.stdout ?? ""}\n${worker.stderr ?? ""}`)}`);
+        }
+      }
+      mark(results, "desktop restored from an older backup realigns the web mirror (refused finalization recovery and idle reconciliation)", "PASS");
     }
 
     // Phase 3 purchasing chain: purchase order -> goods receipt -> supplier payment.
