@@ -19,6 +19,33 @@
 - Desktop has three independent opt-ins: AKILIBIZ_ENABLE_CONTACT_INBOX=1 (stage); AKILIBIZ_APPLY_CONTACT_INBOX=1 (atomic apply after local operator permission checks); AKILIBIZ_ACK_CONTACT_INBOX=1 (transmit committed receipts). All default to off.
 - No production flags should be enabled yet. Owner-only web customer and supplier edit forms exist behind the server gate. Never enable the feature without full integration testing and a pilot rollback plan.
 
+## Hosted qualification evidence (26 November 2026)
+
+Run against the disposable qualification project with all 45 migrations applied in order:
+
+```
+AKILIBIZ_REAL_DESKTOP_WORKER=1 AKILIBIZ_TWO_WAY_CONTACTS=1 \
+  node apps/business/scripts/qualify-phase1c-hosted.mjs
+```
+
+Result: 58 PASS, 0 FAIL, cleanup verified. The two-way stage
+(`src-tauri/tests/hosted_two_way_contacts_qualification.rs` in the desktop repository)
+drives the production desktop worker and proves:
+
+- stale web edits are rejected immediately with HTTP 409 (`PT409`);
+- a desktop operator without `customers.update` cannot apply a queued edit (account switching);
+- a crash/lost network after the SQLite commit leaves the hosted command pending, and the persisted receipt is delivered exactly once after restart;
+- the applied contact is republished to the hosted snapshot;
+- replayed ACKs with the same receipt are idempotent and a different receipt is refused (`23505`);
+- an offline tick receives nothing and changes nothing;
+- simultaneous web and desktop edits produce a `conflict` outcome; the desktop value is kept and republished.
+
+Defect found and fixed during qualification: the stale-version check raised SQLSTATE `40001`,
+which PostgREST retries automatically, so a stale edit hung for ~2 minutes before a gateway
+timeout. Migration `20261126120000` uses `PT409` instead.
+
+Steps 1–3 below are covered by this run. Steps 4–5 remain before production enablement.
+
 ## Required next steps
 
 1. Complete isolated real-database tests for atomic contact application, conflict receipts, ACK retry, crash/restart and the existing outbound dirty triggers.

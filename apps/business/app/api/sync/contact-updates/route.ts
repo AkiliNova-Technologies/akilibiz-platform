@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
     requested_changes: changes,
   });
   if (error) {
-    const status = error.code === "40001" || error.code === "23505" ? 409
+    // PT409 is the stale-version conflict (not retried by PostgREST); 40001 is
+    // kept for databases that have not yet applied 20261126120000.
+    const status = error.code === "PT409" || error.code === "40001" || error.code === "23505" ? 409
       : error.code === "23503" ? 404
       : error.code === "42501" ? 403
       : error.code === "55000" ? 503 : 422;

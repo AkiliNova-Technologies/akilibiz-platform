@@ -11,7 +11,10 @@ describe("web product request recovery migration (source contract)",()=>{
     expect(migration).toMatch(/create trigger prevent_requested_product_draft_update\s+before update on public\.web_product_drafts/i);
     expect(migration).toMatch(/create trigger prevent_requested_product_draft_delete\s+before delete on public\.web_product_drafts/i);
     expect(migration).toContain("private.desktop_product_create_commands");
-    expect(migration).toContain("c.draft_id=draft_id");
+    // The variable must not share the column name: PL/pgSQL rejects
+    // "c.draft_id=draft_id" as an ambiguous column reference at runtime.
+    expect(migration).toContain("c.draft_id=target_draft_id");
+    expect(migration).not.toContain("c.draft_id=draft_id");
   });
   it("returns only authenticated owner-scoped requests and verified publication",()=>{
     expect(migration).toContain("private.is_active_business_owner(target_business_id)");
