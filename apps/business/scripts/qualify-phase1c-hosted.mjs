@@ -135,7 +135,7 @@ function runSql(sql, variables = {}) {
   return run.stdout.trim();
 }
 async function cleanup(manifest, results = []) {
-  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId, manifest.businessRId].filter(Boolean);
+  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId, manifest.businessRId, manifest.businessEId].filter(Boolean);
   const idList = `{${ids.join(",")}}`;
   if (ids.length) {
     const sql = String.raw`
@@ -147,6 +147,8 @@ delete from private.desktop_contact_create_commands where business_id = any(:'id
 delete from private.desktop_product_create_commands where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_product_create_controls where business_id = any(:'ids'::uuid[]);
 delete from public.web_product_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_expense_commands where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_expense_command_controls where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_supplier_payment_requests where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_supplier_payment_request_controls where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_goods_receipt_requests where business_id = any(:'ids'::uuid[]);
@@ -588,6 +590,54 @@ async function main() {
         }
       }
       mark(results, "desktop restored from an older backup realigns the web mirror (refused finalization recovery and idle reconciliation)", "PASS");
+    }
+
+    // Phase 5 expense commands: create (paid, supplier credit) -> settle -> void.
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_EXPENSES === "1") {
+      const sourceE = crypto.randomUUID().replaceAll("-", "");
+      const deviceE = crypto.randomUUID();
+      const registrationE = await expectSuccess(results, "business E registration", ownerB.rpc("register_desktop_business", { local_business_public_id: sourceE, device_public_id: deviceE, business_name: `PHASE1C ${runId} E`, business_trading_name: "Phase1C E", business_contact_email: manifest.userBEmail, business_contact_phone: null, business_time_zone: "Africa/Kampala", business_currency_code: "UGX" }));
+      manifest.businessEId = registrationE[0].hosted_business_id;
+      await save();
+      const validExpense = { category_id: 1, payment_basis: "paid", payment_method: "Cash", effective_date: "2026-11-20", net_ugx: 1000, tax_ugx: 0, gross_ugx: 1000, input_vat_eligible: false, non_deductible: false };
+      const gateOff = await ownerB.rpc("request_desktop_expense_creation", { target_business_id: manifest.businessEId, request_id: crypto.randomUUID(), source_business_public_id: sourceE, expense: validExpense });
+      assert(gateOff.error?.code === "55000", `expense commands must be refused while the gate is off (${gateOff.error?.code})`);
+      mark(results, "expense command refused while gate is off", "PASS", "denied (55000)");
+      runSql(
+        `insert into private.desktop_expense_command_controls(business_id,creation_enabled,settlement_enabled,void_enabled)
+         values (:'business'::uuid,true,true,true)
+         on conflict (business_id) do update set creation_enabled=true,settlement_enabled=true,void_enabled=true;`,
+        { business: manifest.businessEId },
+      );
+      const fresh = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
+      assert(fresh.data.session, "fresh owner session for expense qualification failed");
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      const expenseWorker = spawnSync("cargo", [
+        "test", "--manifest-path", resolve(desktopRepo, "src-tauri", "Cargo.toml"),
+        "--test", "hosted_expense_qualification",
+        "web_expense_commands_round_trip_through_desktop_review",
+        "--", "--ignored", "--exact", "--nocapture",
+      ], {
+        cwd: desktopRepo,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        env: {
+          ...qualificationChildEnv("rust"),
+          AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+          AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+          AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+          AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceE,
+          AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessEId,
+          AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceE,
+          AKILIBIZ_QUALIFICATION_USER_ID: fresh.data.user.id,
+          AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: fresh.data.session.access_token,
+          AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: fresh.data.session.refresh_token,
+        },
+      });
+      if (expenseWorker.status !== 0) {
+        throw new Error(`expense qualification failed\n${redact(`${expenseWorker.stdout ?? ""}\n${expenseWorker.stderr ?? ""}`)}`);
+      }
+      mark(results, "web-to-desktop expenses (validation, idempotent request, finance.post permission, paid and supplier-credit posting once, mirror, settlement once, void, staff rejection)", "PASS");
     }
 
     // Phase 3 purchasing chain: purchase order -> goods receipt -> supplier payment.
