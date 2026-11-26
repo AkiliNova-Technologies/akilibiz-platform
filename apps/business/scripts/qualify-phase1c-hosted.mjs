@@ -135,41 +135,50 @@ function runSql(sql, variables = {}) {
   return run.stdout.trim();
 }
 async function cleanup(manifest, results = []) {
-  const ids = [manifest.businessAId, manifest.businessBId].filter(Boolean);
+  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId].filter(Boolean);
+  const idList = `{${ids.join(",")}}`;
   if (ids.length) {
     const sql = String.raw`
 begin;
 set local session_replication_role=replica;
-delete from private.desktop_inbound_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inbound_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_contact_create_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_product_create_commands where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_product_create_controls where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.web_product_drafts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inbound_controls where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_mirror_batch_rows r using private.desktop_mirror_batches b where r.batch_id=b.batch_id and b.business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inventory_checkpoint_product_balances r using private.desktop_inventory_checkpoints c where r.checkpoint_id=c.id and c.business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inventory_movement_cursors r using private.desktop_inventory_checkpoints c where r.checkpoint_id=c.id and c.business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inventory_current_metadata where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inventory_movement_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_inventory_checkpoints where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_mirror_heads where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_mirror_batches where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_catalogue_event_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_pairing_challenges where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_devices where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from private.desktop_business_origins where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_business_records where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_inventory_positions where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_products where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_categories where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_customers where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.desktop_suppliers where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.audit_events where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.business_memberships where business_id in (:'business_a'::uuid,:'business_b'::uuid);
-delete from public.businesses where id in (:'business_a'::uuid,:'business_b'::uuid);
+delete from private.desktop_inbound_receipts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inbound_commands where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_contact_create_commands where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_product_create_commands where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_product_create_controls where business_id = any(:'ids'::uuid[]);
+delete from public.web_product_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_supplier_payment_requests where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_supplier_payment_request_controls where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_goods_receipt_requests where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_goods_receipt_request_controls where business_id = any(:'ids'::uuid[]);
+delete from public.web_goods_receipt_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_purchase_order_requests where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_purchase_order_request_controls where business_id = any(:'ids'::uuid[]);
+delete from public.web_purchase_order_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inbound_controls where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_mirror_batch_rows r using private.desktop_mirror_batches b where r.batch_id=b.batch_id and b.business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inventory_checkpoint_product_balances r using private.desktop_inventory_checkpoints c where r.checkpoint_id=c.id and c.business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inventory_movement_cursors r using private.desktop_inventory_checkpoints c where r.checkpoint_id=c.id and c.business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inventory_current_metadata where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inventory_movement_receipts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_inventory_checkpoints where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_mirror_heads where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_mirror_batches where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_catalogue_event_receipts where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_pairing_challenges where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_devices where business_id = any(:'ids'::uuid[]);
+delete from private.desktop_business_origins where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_business_records where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_inventory_positions where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_products where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_categories where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_customers where business_id = any(:'ids'::uuid[]);
+delete from public.desktop_suppliers where business_id = any(:'ids'::uuid[]);
+delete from public.audit_events where business_id = any(:'ids'::uuid[]);
+delete from public.business_memberships where business_id = any(:'ids'::uuid[]);
+delete from public.businesses where id = any(:'ids'::uuid[]);
 commit;`;
-    runSql(sql, { business_a: ids[0], business_b: ids[1] ?? ids[0] });
+    runSql(sql, { ids: idList });
   }
   const admin = client(process.env.SUPABASE_SECRET_KEY);
   for (const userId of [manifest.userAId, manifest.userBId].filter(Boolean)) {
@@ -178,26 +187,26 @@ commit;`;
   }
   const remaining = runSql(
     `select (
-      (select count(*) from public.businesses where id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.business_memberships where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.audit_events where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_business_records where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_categories where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_products where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_customers where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_suppliers where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from public.desktop_inventory_positions where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_business_origins where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_devices where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_pairing_challenges where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_catalogue_event_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_inventory_checkpoints where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_inventory_movement_receipts where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_inventory_current_metadata where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_mirror_batches where business_id in (:'business_a'::uuid,:'business_b'::uuid))+
-      (select count(*) from private.desktop_mirror_heads where business_id in (:'business_a'::uuid,:'business_b'::uuid))
+      (select count(*) from public.businesses where id = any(:'ids'::uuid[]))+
+      (select count(*) from public.business_memberships where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.audit_events where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_business_records where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_categories where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_products where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_customers where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_suppliers where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from public.desktop_inventory_positions where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_business_origins where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_devices where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_pairing_challenges where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_catalogue_event_receipts where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_inventory_checkpoints where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_inventory_movement_receipts where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_inventory_current_metadata where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_mirror_batches where business_id = any(:'ids'::uuid[]))+
+      (select count(*) from private.desktop_mirror_heads where business_id = any(:'ids'::uuid[]))
     )||'|'||(select count(*) from auth.users where id in (:'user_a'::uuid,:'user_b'::uuid));`,
-    { business_a: ids[0] ?? "00000000-0000-0000-0000-000000000000", business_b: ids[1] ?? "00000000-0000-0000-0000-000000000000", user_a: manifest.userAId ?? "00000000-0000-0000-0000-000000000000", user_b: manifest.userBId ?? "00000000-0000-0000-0000-000000000000" },
+    { ids: ids.length ? idList : "{00000000-0000-0000-0000-000000000000}", user_a: manifest.userAId ?? "00000000-0000-0000-0000-000000000000", user_b: manifest.userBId ?? "00000000-0000-0000-0000-000000000000" },
   );
   assert(remaining === "0|0", `cleanup verification failed: ${remaining}`);
   mark(results, "cleanup manifest resources removed", "PASS");
@@ -536,6 +545,58 @@ async function main() {
         throw new Error(`product creation qualification failed\n${redact(`${productWorker.stdout ?? ""}\n${productWorker.stderr ?? ""}`)}`);
       }
       mark(results, "web-to-desktop product creation (tenant isolation, settings validation, idempotent request, draft freeze, staff permission, offline approval, atomic zero-stock product, approval replay, ACK, published status, SKU clash)", "PASS");
+    }
+
+    // Phase 3 purchasing chain: purchase order -> goods receipt -> supplier payment.
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_PURCHASING_CHAIN === "1") {
+      // A fresh desktop identity: mirror generations are per source, so reusing
+      // business B's source after the first worker would be rejected as stale.
+      const sourceC = crypto.randomUUID().replaceAll("-", "");
+      const deviceC = crypto.randomUUID();
+      const registrationC = await expectSuccess(results, "business C registration", ownerB.rpc("register_desktop_business", { local_business_public_id: sourceC, device_public_id: deviceC, business_name: `PHASE1C ${runId} C`, business_trading_name: "Phase1C C", business_contact_email: manifest.userBEmail, business_contact_phone: null, business_time_zone: "Africa/Kampala", business_currency_code: "UGX" }));
+      manifest.businessCId = registrationC[0].hosted_business_id;
+      await save();
+      const gateOff = await ownerB.rpc("request_desktop_purchase_order_review", { target_business_id: manifest.businessCId, target_draft_id: crypto.randomUUID(), request_id: crypto.randomUUID() });
+      assert(gateOff.error?.code === "55000", `purchase order requests must be refused while the gate is off (${gateOff.error?.code})`);
+      mark(results, "purchase order request refused while gate is off", "PASS", "denied (55000)");
+      runSql(
+        `insert into private.desktop_purchase_order_request_controls(business_id,requests_enabled) values (:'business'::uuid,true)
+           on conflict (business_id) do update set requests_enabled=true;
+         insert into private.desktop_goods_receipt_request_controls(business_id,requests_enabled) values (:'business'::uuid,true)
+           on conflict (business_id) do update set requests_enabled=true;
+         insert into private.desktop_supplier_payment_request_controls(business_id,requests_enabled) values (:'business'::uuid,true)
+           on conflict (business_id) do update set requests_enabled=true;`,
+        { business: manifest.businessCId },
+      );
+      const fresh = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
+      assert(fresh.data.session, "fresh owner session for purchasing qualification failed");
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      const purchasingWorker = spawnSync("cargo", [
+        "test", "--manifest-path", resolve(desktopRepo, "src-tauri", "Cargo.toml"),
+        "--test", "hosted_purchasing_chain_qualification",
+        "web_purchasing_chain_round_trips_through_desktop_review",
+        "--", "--ignored", "--exact", "--nocapture",
+      ], {
+        cwd: desktopRepo,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        env: {
+          ...qualificationChildEnv("rust"),
+          AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+          AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+          AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+          AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceC,
+          AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessCId,
+          AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceC,
+          AKILIBIZ_QUALIFICATION_USER_ID: fresh.data.user.id,
+          AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: fresh.data.session.access_token,
+          AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: fresh.data.session.refresh_token,
+        },
+      });
+      if (purchasingWorker.status !== 0) {
+        throw new Error(`purchasing chain qualification failed\n${redact(`${purchasingWorker.stdout ?? ""}\n${purchasingWorker.stderr ?? ""}`)}`);
+      }
+      mark(results, "web-to-desktop purchasing chain (PO exact-UGX validation, idempotent request, draft freeze, staff permission, atomic approval and replay, lost ACK, mirror; goods receipt over-delivery refusal, single stock posting and payable; supplier payment over-allocation, idempotent request, single part payment; staff rejection)", "PASS");
     }
 
     // The protected Vercel browser check is opt-in. It shares this disposable
