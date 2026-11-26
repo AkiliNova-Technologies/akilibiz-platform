@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @akilibiz/business-web db:validate
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/akilibiz
