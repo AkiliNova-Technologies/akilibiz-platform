@@ -23,6 +23,8 @@ type Quote = {
   business_id?: string;
   ok?: boolean;
   subtotal_ugx?: number;
+  tax_ugx?: number;
+  total_ugx?: number;
   error?: string;
 };
 type SaleResponse = {
@@ -159,15 +161,15 @@ export function CashSalePilot({
         !response.ok ||
         body.business_id !== businessId ||
         body.ok !== true ||
-        typeof body.subtotal_ugx !== "number" ||
-        !Number.isSafeInteger(body.subtotal_ugx) ||
-        body.subtotal_ugx < 0
+        typeof body.total_ugx !== "number" ||
+        !Number.isSafeInteger(body.total_ugx) ||
+        body.total_ugx < 0
       ) {
         throw new Error(
           body.error ?? "Stock and prices could not be verified.",
         );
       }
-      setQuote({ fingerprint, total: body.subtotal_ugx });
+      setQuote({ fingerprint, total: body.total_ugx });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not check this sale.",

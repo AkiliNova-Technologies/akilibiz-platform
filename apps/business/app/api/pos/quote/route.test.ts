@@ -16,7 +16,7 @@ const request = (body: unknown) => new NextRequest("http://localhost/api/pos/quo
   body: JSON.stringify(body),
 });
 
-function client(options: { user?: boolean; productError?: boolean; inventoryError?: boolean } = {}) {
+function client(options: { user?: boolean; productError?: boolean; inventoryError?: boolean; pricedError?: string } = {}) {
   const query = {
     select: vi.fn(),
     eq: vi.fn(),
@@ -35,11 +35,16 @@ function client(options: { user?: boolean; productError?: boolean; inventoryErro
   const from = vi.fn().mockImplementation((table: string) =>
     table === "desktop_categories" ? categoryQuery : query
   );
-  const rpc = vi.fn().mockResolvedValue({
-    data: [{ product_id: productId, on_hand_milli: 4000, reserved_milli: 0,
-      damaged_milli: 0, is_current: true }],
-    error: options.inventoryError ? { code: "PGRST002" } : null,
-  });
+  const rpc = vi.fn().mockImplementation((name: string) =>
+    Promise.resolve(name === "quote_web_pos_cash_sale"
+      ? options.pricedError
+        ? { data: null, error: { code: options.pricedError } }
+        : { data: { subtotal_ugx: 4000, tax_ugx: 720, total_ugx: 4720 }, error: null }
+      : {
+        data: [{ product_id: productId, on_hand_milli: 4000, reserved_milli: 0,
+          damaged_milli: 0, is_current: true }],
+        error: options.inventoryError ? { code: "PGRST002" } : null,
+      }));
   mocks.createClient.mockResolvedValue({
     auth: { getUser: vi.fn().mockResolvedValue({
       data: { user: options.user === false ? null : { id: "user-a" } }, error: null,
@@ -69,8 +74,12 @@ describe("POST /api/pos/quote", () => {
     const response = await POST(request({ items: [{ product_id: productId, quantity_milli: 1000 }] }));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      business_id: "business-a", subtotal_ugx: 4000, currency: "UGX",
-      read_only: true, checkout_enabled: false,
+      business_id: "business-a", subtotal_ugx: 4000, tax_ugx: 720, total_ugx: 4720,
+      currency: "UGX", read_only: true, checkout_enabled: false,
+    });
+    expect(fixture.rpc).toHaveBeenCalledWith("quote_web_pos_cash_sale", {
+      target_business_id: "business-a",
+      sale_items: [{ product_id: productId, quantity_milli: 1000 }],
     });
     expect(fixture.query.eq).toHaveBeenCalledWith("business_id", "business-a");
     expect(fixture.rpc).toHaveBeenCalledWith("list_desktop_effective_inventory", {
@@ -115,5 +124,18 @@ describe("POST /api/pos/quote", () => {
     const response = await POST(request({ items: [{ product_id: productId, quantity_milli: 5000 }] }));
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ reason: "INSUFFICIENT_STOCK" });
+  });
+
+  it("reports a missing desktop tax profile instead of an understated total", async () => {
+    client({ pricedError: "55000" });
+    const response = await POST(request({ items: [{ product_id: productId, quantity_milli: 1000 }] }));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ reason: "TAX_PROFILE_UNAVAILABLE" });
+  });
+
+  it("does not treat a pricing failure as a successful quote", async () => {
+    client({ pricedError: "XX000" });
+    const response = await POST(request({ items: [{ product_id: productId, quantity_milli: 1000 }] }));
+    expect(response.status).toBe(503);
   });
 });

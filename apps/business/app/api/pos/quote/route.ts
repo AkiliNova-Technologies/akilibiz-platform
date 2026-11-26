@@ -74,10 +74,47 @@ export async function POST(request: NextRequest) {
       409,
       { reason: quote.reason },
     );
+  // VAT and the amount due come from the same database pricing that posts the
+  // sale (desktop-published tax profile, invoice-level rounding), so the total
+  // a cashier collects always equals the posted total.
+  const priced = await supabase.rpc("quote_web_pos_cash_sale", {
+    target_business_id: business.id,
+    sale_items: items,
+  });
+  if (priced.error) {
+    const reason =
+      priced.error.code === "55000"
+        ? "TAX_PROFILE_UNAVAILABLE"
+        : priced.error.code === "22023"
+          ? "LINE_NOT_WHOLE_UGX"
+          : priced.error.code === "23514"
+            ? "CART_CHANGED"
+            : null;
+    if (!reason)
+      return apiError(
+        "SERVICE_UNAVAILABLE",
+        "The sale total could not be calculated.",
+        503,
+      );
+    return apiError(
+      "CONFLICT",
+      "The cart requires review before a sale can be processed.",
+      409,
+      { reason },
+    );
+  }
+  const totals = priced.data as {
+    subtotal_ugx: number;
+    tax_ugx: number;
+    total_ugx: number;
+  };
   return apiSuccess({
     business_id: business.id,
     ...quote,
+    subtotal_ugx: totals.subtotal_ugx,
+    tax_ugx: totals.tax_ugx,
+    total_ugx: totals.total_ugx,
     message:
-      "Stock and prices checked. No sale, payment or stock movement was posted.",
+      "Stock, prices and VAT checked. No sale, payment or stock movement was posted.",
   });
 }

@@ -135,7 +135,7 @@ function runSql(sql, variables = {}) {
   return run.stdout.trim();
 }
 async function cleanup(manifest, results = []) {
-  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId, manifest.businessRId, manifest.businessEId].filter(Boolean);
+  const ids = [manifest.businessAId, manifest.businessBId, manifest.businessCId, manifest.businessRId, manifest.businessEId, manifest.businessPId].filter(Boolean);
   const idList = `{${ids.join(",")}}`;
   if (ids.length) {
     const sql = String.raw`
@@ -147,6 +147,15 @@ delete from private.desktop_contact_create_commands where business_id = any(:'id
 delete from private.desktop_product_create_commands where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_product_create_controls where business_id = any(:'ids'::uuid[]);
 delete from public.web_product_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_desktop_apply_receipts where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_reconciliation_outbox where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_stock_holds where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_payments where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_sale_lines where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_sales where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_product_tax_rules where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_tax_settings where business_id = any(:'ids'::uuid[]);
+delete from private.web_pos_posting_controls where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_expense_commands where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_expense_command_controls where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_supplier_payment_requests where business_id = any(:'ids'::uuid[]);
@@ -590,6 +599,53 @@ async function main() {
         }
       }
       mark(results, "desktop restored from an older backup realigns the web mirror (refused finalization recovery and idle reconciliation)", "PASS");
+    }
+
+    // Phase 6 web POS cash sales through desktop accounting.
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_WEB_POS === "1") {
+      const sourceP = crypto.randomUUID().replaceAll("-", "");
+      const deviceP = crypto.randomUUID();
+      const registrationP = await expectSuccess(results, "business P registration", ownerB.rpc("register_desktop_business", { local_business_public_id: sourceP, device_public_id: deviceP, business_name: `PHASE1C ${runId} P`, business_trading_name: "Phase1C P", business_contact_email: manifest.userBEmail, business_contact_phone: null, business_time_zone: "Africa/Kampala", business_currency_code: "UGX" }));
+      manifest.businessPId = registrationP[0].hosted_business_id;
+      await save();
+      const gateOff = await ownerB.rpc("post_web_pos_cash_sale", { target_business_id: manifest.businessPId, request_id: crypto.randomUUID(), sale_items: [{ product_id: crypto.randomUUID(), quantity_milli: 1000 }], cash_received_ugx: 1000 });
+      assert(gateOff.error?.code === "55000", `web cash sales must be refused while posting is off (${gateOff.error?.code})`);
+      mark(results, "web cash sale refused while posting is off", "PASS", "denied (55000)");
+      runSql(
+        `insert into private.web_pos_posting_controls(business_id,cash_posting_enabled,enabled_by,enabled_at)
+         values (:'business'::uuid,true,:'owner'::uuid,now())
+         on conflict (business_id) do update set cash_posting_enabled=true,enabled_by=excluded.enabled_by,enabled_at=now();`,
+        { business: manifest.businessPId, owner: signB.data.user.id },
+      );
+      const fresh = await ownerB.auth.signInWithPassword({ email: manifest.userBEmail, password });
+      assert(fresh.data.session, "fresh owner session for web POS qualification failed");
+      const desktopRepo = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? "../akilibiz");
+      const posWorker = spawnSync("cargo", [
+        "test", "--manifest-path", resolve(desktopRepo, "src-tauri", "Cargo.toml"),
+        "--test", "hosted_web_pos_qualification",
+        "web_cash_sale_round_trips_through_desktop_accounting",
+        "--", "--ignored", "--exact", "--nocapture",
+      ], {
+        cwd: desktopRepo,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        env: {
+          ...qualificationChildEnv("rust"),
+          AKILIBIZ_SUPABASE_URL: process.env.SUPABASE_URL,
+          AKILIBIZ_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+          AKILIBIZ_REAL_WORKER_RUN: `execute:${PROJECT_REF}`,
+          AKILIBIZ_QUALIFICATION_SOURCE_ID: sourceP,
+          AKILIBIZ_QUALIFICATION_BUSINESS_ID: manifest.businessPId,
+          AKILIBIZ_QUALIFICATION_DEVICE_ID: deviceP,
+          AKILIBIZ_QUALIFICATION_USER_ID: fresh.data.user.id,
+          AKILIBIZ_QUALIFICATION_ACCESS_TOKEN: fresh.data.session.access_token,
+          AKILIBIZ_QUALIFICATION_REFRESH_TOKEN: fresh.data.session.refresh_token,
+        },
+      });
+      if (posWorker.status !== 0) {
+        throw new Error(`web POS qualification failed\n${redact(`${posWorker.stdout ?? ""}\n${posWorker.stderr ?? ""}`)}`);
+      }
+      mark(results, "web POS cash sale (desktop tax profile, unpriceable/fractional/insufficient refusals, invoice-level VAT parity, change, replay, desktop accounting, stock, hold reconciliation)", "PASS");
     }
 
     // Phase 5 expense commands: create (paid, supplier credit) -> settle -> void.
