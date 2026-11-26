@@ -6,6 +6,33 @@
 -- Private tables have no client role grants or row policies. The only callable
 -- surface is a narrowly authenticated RPC with fixed search_path.
 
+-- Supersede the staged-only foundation from 20261110100000/20261110101500.
+-- Those objects were never granted, called or populated, but they reuse the
+-- names private.web_pos_sales/sale_lines/reconciliation_outbox, so an ordered
+-- full-schema migration would otherwise fail here. Drop them only when empty;
+-- never destroy data to make a migration pass.
+do $$
+declare
+  t text;
+  n bigint;
+begin
+  foreach t in array array['web_pos_payment_events','web_pos_reconciliation_outbox',
+    'web_pos_stock_reservations','web_pos_sale_lines','web_pos_sales'] loop
+    if to_regclass('private.' || t) is not null then
+      execute format('select count(*) from private.%I', t) into n;
+      if n > 0 then
+        raise exception 'Superseded staging table private.% contains % rows; refusing to replace it', t, n;
+      end if;
+    end if;
+  end loop;
+end $$;
+drop function if exists private.web_pos_locked_sellable_milli(uuid,uuid);
+drop table if exists private.web_pos_payment_events;
+drop table if exists private.web_pos_reconciliation_outbox;
+drop table if exists private.web_pos_stock_reservations;
+drop table if exists private.web_pos_sale_lines;
+drop table if exists private.web_pos_sales;
+
 create table private.web_pos_posting_controls (
   business_id uuid primary key references public.businesses(id) on delete restrict,
   cash_posting_enabled boolean not null default false,

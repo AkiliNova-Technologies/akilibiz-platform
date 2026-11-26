@@ -4,20 +4,20 @@
 create function private.prevent_requested_product_draft_mutation()
 returns trigger language plpgsql security definer set search_path='' as $$
 declare draft_business uuid;
-declare draft_id uuid;
+declare target_draft_id uuid;
 begin
   draft_business:=old.business_id;
-  draft_id:=old.id;
+  target_draft_id:=old.id;
   if exists (
     select 1 from private.desktop_product_create_commands c
-    where c.business_id=draft_business and c.draft_id=draft_id
+    where c.business_id=draft_business and c.draft_id=target_draft_id
   ) then
     raise exception 'This product draft was already sent for desktop review and cannot be changed or discarded'
       using errcode='55000';
   end if;
   if tg_op='DELETE' then return old; end if;
   return new;
-end $;
+end $$;
 revoke all on function private.prevent_requested_product_draft_mutation()
   from public,anon,authenticated,service_role;
 
