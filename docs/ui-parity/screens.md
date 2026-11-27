@@ -21,7 +21,7 @@ cards and tables in the same places. The desktop is the reference.
 
 ## Status (27 November 2026)
 
-Overall label parity: **56 %** (1,643 of 2,925 desktop labels). See `report.md` for each screen.
+Overall label parity: **59 %** (1,696 of 2,883 desktop labels). See `report.md` for each screen.
 
 | Area | Status |
 | --- | --- |
@@ -39,6 +39,20 @@ Overall label parity: **56 %** (1,643 of 2,925 desktop labels). See `report.md` 
   desktop keeps syncing and never clears them. Hosted qualification (web POS stage) checks the snapshot
   and a later change event.
 - Next: port the desktop POS page onto this data.
+
+## Receipts (28 November 2026)
+
+- The receipt dialog (POS after a sale, Sales History and Customer History reprints) is the desktop's own
+  `SalePrintPreviewDialog`, with its receipt layout, print formats (58 mm, 80 mm, A4) and print service, synced
+  unchanged into `components/akilibiz/documents/desktop`.
+- The receipt is never recomputed on the web. Each desktop publishes its canonical receipt per sale
+  (desktop migration `0128`, mirror entity `receipt_snapshots`, refreshed when the sale, payments or business
+  profile change). `/api/receipts/[saleId]` returns it with the mirrored business profile and receipt
+  settings. A sale the desktop cannot build a receipt for shows the desktop's reason.
+- A print on the web is recorded in `private.web_receipt_prints` (`record_web_receipt_print`), because the
+  desktop print audit is local.
+- Limits: reading receipts follows the financial-mirror rule (business owner only for now). The business
+  logo is not printed on the web, because desktop media files stay on the desktop.
 
 ## Platform differences that stay
 

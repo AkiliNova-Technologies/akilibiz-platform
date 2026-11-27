@@ -31,6 +31,24 @@ const FILES = [
   ...["pos-quantity", "sale-unit-conversion", "product-quantity-behavior", "product-units"]
     .map((f) => [`src/components/${f}.ts`, `lib/desktop-shared/${f}.ts`]),
   ["src/components/searchable-select.tsx", "components/akilibiz/desktop-shared/searchable-select.tsx"],
+  // Receipts: the desktop's canonical receipt type, layout, print formats,
+  // print service and receipt dialog.
+  ["src/types/receipt.ts", "lib/desktop-shared/receipt-types.ts"],
+  ["src/services/receipt-print-profiles.ts", "lib/desktop-shared/receipt-print-profiles.ts"],
+  ["src/services/receipt-print-service.ts", "lib/desktop-shared/receipt-print-service.ts"],
+  ...["receipt-presentation-utils.ts", "ReceiptPresentation.tsx", "templates/DocumentTemplatePreview.tsx", "SalePrintPreviewDialog.tsx"]
+    .map((f) => [`src/components/documents/${f}`, `components/akilibiz/documents/desktop/${f}`]),
+];
+
+// Desktop import -> web location. Desktop-only data sources map to web
+// adapters with the same exports (components/akilibiz/documents/desktop-adapters).
+const IMPORTS = [
+  ["@/types/receipt", "@/lib/desktop-shared/receipt-types"],
+  ["@/services/receipt-print-profiles", "@/lib/desktop-shared/receipt-print-profiles"],
+  ["@/services/receipt-print-service", "@/lib/desktop-shared/receipt-print-service"],
+  ["@/services/tauri/settings", "@/components/akilibiz/documents/desktop-adapters/settings"],
+  ["@/services/tauri/documents", "@/components/akilibiz/documents/desktop-adapters/documents"],
+  ["@/hooks/useReduxSettings", "@/components/akilibiz/documents/desktop-adapters/use-redux-settings"],
 ];
 
 const header = (from) =>
@@ -41,7 +59,9 @@ async function transform(from, to, text) {
   let body = text
     .replace(/from "@\/i18n\/([A-Za-z-]+)"/g, 'from "./$1"')
     .replace(/from "@\/hooks\/useI18n"/g, 'from "@/components/akilibiz/i18n/i18n-provider"')
+    .replace(/from "@\/components\/documents\//g, 'from "@/components/akilibiz/documents/desktop/')
     .replace(/^"use client";?\s*\n/, "");
+  for (const [desktopPath, webPath] of IMPORTS) body = body.split(`from "${desktopPath}"`).join(`from "${webPath}"`);
   // Next.js needs the client directive (first statement, after comments) where
   // the web copy had it before, or where the component uses React hooks.
   const existing = existsSync(resolve(web, to)) ? await readFile(resolve(web, to), "utf8") : "";

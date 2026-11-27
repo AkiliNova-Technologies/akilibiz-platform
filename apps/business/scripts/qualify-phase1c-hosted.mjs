@@ -147,6 +147,7 @@ delete from private.desktop_contact_create_commands where business_id = any(:'id
 delete from private.desktop_product_create_commands where business_id = any(:'ids'::uuid[]);
 delete from private.desktop_product_create_controls where business_id = any(:'ids'::uuid[]);
 delete from public.web_product_drafts where business_id = any(:'ids'::uuid[]);
+delete from private.web_receipt_prints where business_id = any(:'ids'::uuid[]);
 delete from private.web_pos_desktop_apply_receipts where business_id = any(:'ids'::uuid[]);
 delete from private.web_pos_reconciliation_outbox where business_id = any(:'ids'::uuid[]);
 delete from private.web_pos_stock_holds where business_id = any(:'ids'::uuid[]);
@@ -712,6 +713,24 @@ async function main() {
       if (posWorker.status !== 0) {
         throw new Error(`web POS qualification failed\n${redact(`${posWorker.stdout ?? ""}\n${posWorker.stderr ?? ""}`)}`);
       }
+      // The web receipt dialog reads the desktop-published receipt snapshot
+      // (same query as /api/receipts/[saleId]) and acknowledges a print.
+      const receipts = await ownerB.from("desktop_business_records")
+        .select("local_business_public_id,local_record_id,record")
+        .eq("business_id", manifest.businessPId).eq("entity_type", "receipt_snapshots");
+      assert(!receipts.error && receipts.data.length > 0, `mirrored receipt snapshot not readable by the owner (${receipts.error?.code})`);
+      const snap = receipts.data[0];
+      const rawReceipt = snap.record.receipt_json;
+      const parsedReceipt = typeof rawReceipt === "string" ? JSON.parse(rawReceipt) : rawReceipt;
+      assert(parsedReceipt?.schema_version && parsedReceipt.schema_version !== "unavailable" && parsedReceipt.sale?.sale_id === Number(snap.local_record_id),
+        "mirrored receipt snapshot is not a printable canonical receipt");
+      const printed = await ownerB.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: Number(snap.local_record_id) });
+      assert(!printed.error && typeof printed.data === "string", `web receipt print acknowledgement failed (${printed.error?.code})`);
+      const missingPrint = await ownerB.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: 999999999 });
+      assert(missingPrint.error?.code === "23503", `print of an unknown receipt must be refused (${missingPrint.error?.code})`);
+      const foreignPrint = await ownerA.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: Number(snap.local_record_id) });
+      assert(foreignPrint.error?.code === "42501", `another business owner must not record prints (${foreignPrint.error?.code})`);
+      mark(results, "web receipt: desktop snapshot readable, print recorded, unknown and cross-tenant prints refused", "PASS");
       mark(results, "web POS cash sale (desktop tax profile, unpriceable/fractional/insufficient refusals, invoice-level VAT parity, change, replay, desktop accounting, stock, hold reconciliation)", "PASS");
     }
 

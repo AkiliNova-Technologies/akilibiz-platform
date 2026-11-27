@@ -5,7 +5,7 @@ counts the labels (translation keys) the screen and its components show, and whe
 screen shows the same text (shared key or identical English). It measures **wording**, not layout; layout
 parity is reviewed per screen in `docs/ui-parity/screens.md`.
 
-**Overall: 1668 of 2883 desktop labels present on the web (58 %).**
+**Overall: 1696 of 2883 desktop labels present on the web (59 %).**
 
 | Screen (desktop) | Web route | Labels | Missing on web | Parity |
 | --- | --- | ---: | ---: | ---: |
@@ -41,13 +41,13 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 | SupplierPaymentsPage | `/dashboard/suppliers/payments` | 84 | 15 | 82 % |
 | AnalyticsPage | `/dashboard/analytics` | 56 | 10 | 82 % |
 | FinanceLedgerPage | `/dashboard/finance/ledger` | 45 | 7 | 84 % |
-| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 14 | 85 % |
 | StaffActivityLogsPage | `/dashboard/staff/logs` | 52 | 8 | 85 % |
-| SalesHistoryPage | `/dashboard/pos/history` | 111 | 13 | 88 % |
 | FinanceIncomePage | `/dashboard/finance/income` | 70 | 6 | 91 % |
 | CreditOrdersPage | `/dashboard/pos/credit` | 66 | 6 | 91 % |
-| POSPage | `/dashboard/pos/new-sale` | 106 | 8 | 92 % |
 | FinanceCashFlowPage | `/dashboard/finance/cashflow` | 49 | 4 | 92 % |
+| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 4 | 96 % |
+| SalesHistoryPage | `/dashboard/pos/history` | 111 | 3 | 97 % |
+| POSPage | `/dashboard/pos/new-sale` | 106 | 0 | 100 % |
 | SettingsLanguagePage | `/dashboard/settings/language` | 6 | 0 | 100 % |
 | FinanceTaxPage | `/dashboard/finance/tax` | 0 | 0 | 100 % |
 
@@ -1119,23 +1119,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
 
-### CustomerPurchaseHistoryPage — 14 missing
-
-- `customers.purchaseHistoryDescription`: Review customer buying activity, transaction value, and purchase frequency.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `receipt.printingUnavailable`: Printing is unavailable on this device.
-- `receipt.printRecorded`: Print recorded
-- `receipt.printAuditFailed`: Print acknowledgement could not be recorded. The sale is unchanged.
-- `receipt.no`: No
-- `receipt.recordPrint`: Yes, record print
-- `businessProfile.logoAlt`: Business logo
-- `receipt.reprint`: RECEIPT · REPRINT
-- `receipt.cancelledReversed`: Cancelled / reversed
-- `receipt.paid`: Paid
-- `receipt.balance`: Balance
-
 ### StaffActivityLogsPage — 8 missing
 
 - `activityUi.description`: Monitor user actions, failed attempts, and operational activity across the system.
@@ -1146,22 +1129,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.no`: No
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
-
-### SalesHistoryPage — 13 missing
-
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `receipt.printingUnavailable`: Printing is unavailable on this device.
-- `receipt.printRecorded`: Print recorded
-- `receipt.printAuditFailed`: Print acknowledgement could not be recorded. The sale is unchanged.
-- `receipt.no`: No
-- `receipt.recordPrint`: Yes, record print
-- `businessProfile.logoAlt`: Business logo
-- `receipt.reprint`: RECEIPT · REPRINT
-- `receipt.cancelledReversed`: Cancelled / reversed
-- `receipt.paid`: Paid
-- `receipt.balance`: Balance
 
 ### FinanceIncomePage — 6 missing
 
@@ -1181,20 +1148,22 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
 
-### POSPage — 8 missing
-
-- `receipt.printingUnavailable`: Printing is unavailable on this device.
-- `receipt.printRecorded`: Print recorded
-- `receipt.printAuditFailed`: Print acknowledgement could not be recorded. The sale is unchanged.
-- `receipt.no`: No
-- `receipt.recordPrint`: Yes, record print
-- `businessProfile.logoAlt`: Business logo
-- `receipt.reprint`: RECEIPT · REPRINT
-- `receipt.cancelledReversed`: Cancelled / reversed
-
 ### FinanceCashFlowPage — 4 missing
 
 - `finance.cashflow.refresh`: Refresh cash flow
+- `common.no`: No
+- `table.noMatching`: No matching records
+- `table.tryFilters`: Try another search or change your filters.
+
+### CustomerPurchaseHistoryPage — 4 missing
+
+- `customers.purchaseHistoryDescription`: Review customer buying activity, transaction value, and purchase frequency.
+- `common.no`: No
+- `table.noMatching`: No matching records
+- `table.tryFilters`: Try another search or change your filters.
+
+### SalesHistoryPage — 3 missing
+
 - `common.no`: No
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
