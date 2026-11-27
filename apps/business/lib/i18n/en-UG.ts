@@ -1,5 +1,5 @@
-// GENERATED from the AkiliBiz Desktop repository (src/i18n). Do not edit here:
-// change the desktop dictionary, then run `node scripts/sync-desktop-i18n.mjs`.
+// GENERATED from the AkiliBiz Desktop repository (src/i18n/en-UG.ts). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
 export const enUG = {
   "common.or": "or",
   "importExport.errorsLabel": "Errors",

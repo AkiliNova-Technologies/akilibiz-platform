@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { translate, type AppLocale, type TranslationKey } from "@/lib/i18n";
+import { DEFAULT_LOCALE, translate, type AppLocale, type TranslationKey } from "@/lib/i18n";
 import { LOCALE_COOKIE } from "@/lib/i18n/locale-cookie";
 import { isWebOnlyKey, webOnlyLabels, type AppLabelKey } from "@/lib/i18n/web-only";
 
@@ -36,9 +36,16 @@ export function I18nProvider({ initialLocale, children }: { initialLocale: AppLo
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
+// Outside the provider (isolated tests, error boundaries) behave like the
+// desktop store's default: English (Uganda), with language changes ignored.
+const fallback: I18nValue = {
+  locale: DEFAULT_LOCALE,
+  t: (key, values) => translate(DEFAULT_LOCALE, key, values),
+  tw: (key, values) => (isWebOnlyKey(key) ? webOnlyLabels[key] : translate(DEFAULT_LOCALE, key, values)),
+  setLocale: () => {},
+};
+
 /** Same shape as the desktop `useI18n()` hook: `{ locale, t, setLocale }`. */
 export function useI18n(): I18nValue {
-  const value = React.useContext(I18nContext);
-  if (!value) throw new Error("useI18n must be used inside I18nProvider");
-  return value;
+  return React.useContext(I18nContext) ?? fallback;
 }

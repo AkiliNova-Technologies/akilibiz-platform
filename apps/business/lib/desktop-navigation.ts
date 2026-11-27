@@ -277,3 +277,52 @@ export function findDesktopRoute(pathname: string) {
   }
   return null;
 }
+
+/**
+ * Header title of each desktop page (the `label` its <SiteHeader> receives in
+ * desktop src/app/dashboard/<Page>.tsx). It can differ from the menu label,
+ * e.g. the New Sale menu item opens "Point of Sale". A literal `label` is used
+ * where the desktop also shows untranslated text.
+ */
+export const desktopPageHeaders: Record<string, { key: TranslationKey } | { label: string }> = {
+  AccountPage: { key: "account.profile" },
+  AnalyticsPage: { key: "nav.businessInsights" },
+  CreditOrdersPage: { key: "creditOrders.title" },
+  CustomerCreditManagementPage: { key: "creditUi.title" },
+  CustomerPurchaseHistoryPage: { key: "purchaseUi.title" },
+  CustomersPage: { key: "customers.title" },
+  DashboardPage: { key: "dashboard.title" },
+  FinanceCashFlowPage: { key: "finance.cashflow.title" },
+  FinanceExpensesPage: { label: "Expenses" },
+  FinanceIncomePage: { key: "finance.income" },
+  FinanceLedgerPage: { key: "finance.ledger.title" },
+  FinanceOverviewPage: { key: "nav.finance" },
+  FinanceTaxPage: { label: "Tax Management" },
+  InventoryLowStockAlertsPage: { key: "stockAlerts.title" },
+  InventoryPage: { key: "inventory.title" },
+  InventoryStockAdjustmentPage: { key: "inventory.adjustment" },
+  InventoryStockHistoryPage: { key: "inventory.history" },
+  POSPage: { key: "pos.title" },
+  ProductCategoriesPage: { key: "categories.tableTitle" },
+  ProductsPage: { key: "products.management" },
+  ReportsFinancialPage: { key: "nav.financialReports" },
+  ReportsInventoryPage: { key: "nav.inventoryReports" },
+  ReportsOverviewPage: { key: "reports.overview" },
+  ReportsPurchasingPage: { key: "nav.purchasingReports" },
+  ReportsSalesPage: { key: "nav.salesReports" },
+  SalesHistoryPage: { key: "sales.history" },
+  SettingsAccountingPeriodsPage: { key: "settings.periods.title" },
+  SettingsBackupRestorePage: { label: "Backup, Restore & Sync" },
+  SettingsBusinessProfilePage: { key: "nav.businessProfile" },
+  SettingsLanguagePage: { key: "settings.language.title" },
+  SettingsMerchantWalletsPage: { key: "wallets.title" },
+  SettingsOverviewPage: { key: "nav.settingsOverview" },
+  SettingsReceiptPage: { key: "nav.receiptSettings" },
+  SettingsTaxConfigurationPage: { key: "taxSettings.title" },
+  StaffActivityLogsPage: { key: "nav.activityLogs" },
+  StaffPage: { key: "staff.management" },
+  StaffRolesPermissionsPage: { key: "roles.title" },
+  SupplierPaymentsPage: { label: "Supplier Payments" },
+  SupplierPurchaseOrdersPage: { label: "Purchase Orders" },
+  SuppliersPage: { key: "suppliers.title" },
+};

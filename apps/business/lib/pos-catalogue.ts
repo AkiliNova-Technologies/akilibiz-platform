@@ -12,7 +12,14 @@ export type HostedPosProductRow = {
   selling_price_ugx: number | null;
   stock_unit: string;
   is_active: boolean;
+  // Selling behaviour published by the desktop (null from older desktops).
+  sales_unit?: string | null;
+  allow_decimal_quantity?: boolean | null;
+  tax_inclusive?: boolean | null;
 };
+
+/** Whether the desktop-published POS tax profile treats a product as taxable. */
+export type HostedPosTaxFlagRow = { product_id: string; taxable: boolean };
 
 export type HostedPosInventoryRow = {
   product_id: string;
@@ -32,9 +39,14 @@ export type PosCatalogueProduct = {
   inventory_available: boolean;
   is_service: boolean;
   is_active: boolean;
-  is_taxable: false;
+  /** Desktop selling unit ("Sell in"); falls back to the stock unit. */
+  sales_unit: string;
+  allow_decimal_quantity: boolean;
+  is_taxable: boolean;
+  /** False until the desktop has published a VAT treatment for the product. */
+  tax_profile_published: boolean;
   tax_classification_id: null;
-  tax_inclusive: false;
+  tax_inclusive: boolean;
   category_id: string | null;
 };
 
@@ -50,7 +62,9 @@ export function mapHostedPosCatalogue(
   products: HostedPosProductRow[],
   categories: HostedPosCategoryRow[],
   inventory: HostedPosInventoryRow[],
+  taxFlags: HostedPosTaxFlagRow[] = [],
 ) {
+  const taxable = new Map(taxFlags.map((flag) => [flag.product_id, flag.taxable]));
   const serviceCategoryIds = new Set(categories.filter((category) => isHostedServiceCategory(category.name)).map((category) => category.id));
   const currentInventory = new Map(
     inventory
@@ -99,9 +113,12 @@ export function mapHostedPosCatalogue(
         inventory_available: isService || (hasInventory && Number.isSafeInteger(availableMilli)),
         is_service: isService,
         is_active: product.is_active,
-        is_taxable: false,
+        sales_unit: product.sales_unit?.trim() || product.stock_unit,
+        allow_decimal_quantity: product.allow_decimal_quantity === true,
+        is_taxable: taxable.get(product.id) === true,
+        tax_profile_published: taxable.has(product.id),
         tax_classification_id: null,
-        tax_inclusive: false,
+        tax_inclusive: product.tax_inclusive === true,
         category_id: product.category_id,
       };
     }),

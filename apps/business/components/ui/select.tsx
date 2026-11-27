@@ -1,3 +1,5 @@
+// GENERATED from the AkiliBiz Desktop repository (src/components/ui/select.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"

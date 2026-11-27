@@ -38,6 +38,9 @@ const SCREENS = {
 };
 
 // Page header, sidebar and navigation live in the app shell on both platforms.
+// Desktop data hooks (useReduxProducts, ...) carry CRUD notifications for other
+// screens; they are not part of the screen that imports them.
+const SKIP_DESKTOP_DATA_HOOKS = true;
 const SHELL_IMPORTS = ["/site-header", "/app-sidebar", "/nav-main", "/nav-user", "/app-shell"];
 const SHELL = {
   desktop: ["src/layout/DashboardLayout.tsx", "src/components/app-sidebar.tsx", "src/components/site-header.tsx", "src/components/nav-main.tsx", "src/components/nav-user.tsx"],
@@ -57,6 +60,7 @@ async function collect(entry, root, alias, seen = new Set(), depth = 0) {
   for (const [, spec] of text.matchAll(IMPORT)) {
     if (spec.includes("/ui/") || spec.includes("/i18n")) continue; // primitives and dictionaries
     if (SHELL_IMPORTS.some((name) => spec.endsWith(name))) continue; // measured as the shell row
+    if (SKIP_DESKTOP_DATA_HOOKS && /\/hooks\/useRedux/.test(spec)) continue; // data-layer toasts, not screen text
     const base = spec.startsWith("@/") ? resolve(root, alias, spec.slice(2)) : resolve(dirname(entry), spec);
     for (const candidate of [base + ".tsx", base + ".ts", resolve(base, "index.tsx"), resolve(base, "index.ts")]) {
       if (existsSync(candidate)) { await collect(candidate, root, alias, seen, depth + 1); break; }
@@ -75,7 +79,11 @@ for (const [screen, route] of Object.entries(SCREENS)) {
   const desktopFile = resolve(desktop, "src/app/dashboard", `${screen}.tsx`);
   const webFile = resolve(web, "app/(app)/dashboard", route, "page.tsx");
   const desktopKeys = keysIn(await source(await collect(desktopFile, resolve(desktop, "src"), "")));
-  const webText = existsSync(webFile) ? await source(await collect(webFile, web, "")) : "";
+  // Each screen's header title is set from lib/desktop-navigation.ts (desktopPageHeaders).
+  const headerEntry = (await readFile(resolve(web, "lib/desktop-navigation.ts"), "utf8"))
+    .match(new RegExp(`\\b${screen}: \\{[^}]*\\}`))?.[0] ?? "";
+  const webText = (existsSync(webFile) ? await source(await collect(webFile, web, "")) : "") + "\n" +
+    headerEntry.replace(/key: "([^"]+)"/, 't("$1")');
   const webKeys = keysIn(webText);
   const webLower = webText.toLowerCase();
   const missing = [...desktopKeys].filter((key) => {

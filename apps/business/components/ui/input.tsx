@@ -1,3 +1,5 @@
+// GENERATED from the AkiliBiz Desktop repository (src/components/ui/input.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

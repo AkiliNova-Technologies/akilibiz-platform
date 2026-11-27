@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { type Theme, useTheme } from "@/hooks/use-theme";
-import { findDesktopRoute } from "@/lib/desktop-navigation";
+import { desktopPageHeaders, findDesktopRoute } from "@/lib/desktop-navigation";
 import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 
 export function SiteHeader({ account, theme, rightActions }: {
@@ -24,14 +24,18 @@ export function SiteHeader({ account, theme, rightActions }: {
   const { t } = useI18n();
   // Desktop headers show Dashboard at the top of Overview, not Overview.
   const route = findDesktopRoute(pathname)?.item;
-  const routeTitle = route ? (route.labelKey ? t(route.labelKey) : route.label) : t("nav.dashboard");
+  // The desktop page's own header title, falling back to its menu label.
+  const header = route ? desktopPageHeaders[route.reference] : undefined;
+  const routeTitle = header
+    ? ("key" in header ? t(header.key) : header.label)
+    : route ? (route.labelKey ? t(route.labelKey) : route.label) : t("dashboard.title");
   // Web-only screens without a desktop navigation entry.
   const auxiliaryTitles: Record<string, string> = {
     "/dashboard/account": t("account.profile"),
     "/dashboard/settings/desktop-sync": "Desktop Synchronization",
     "/dashboard/products/synced": "Synced Products",
   };
-  const title = pathname === "/dashboard" ? t("nav.dashboard") : auxiliaryTitles[pathname] ?? routeTitle;
+  const title = auxiliaryTitles[pathname] ?? routeTitle;
 
   return (
     <header className="sticky top-0 z-50 flex min-h-14 shrink-0 items-center gap-2 border-b bg-background py-2 transition-[width,height] ease-linear dark:bg-[#323232] group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-14">

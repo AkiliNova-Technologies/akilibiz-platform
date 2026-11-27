@@ -1,9 +1,11 @@
-import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { type VariantProps } from "class-variance-authority";
+// GENERATED from the AkiliBiz Desktop repository (src/components/ui/button.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/component-variants";
+import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/component-variants"
 
 function Button({
   className,
@@ -13,9 +15,9 @@ function Button({
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
+    asChild?: boolean
   }) {
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot : "button"
 
   return (
     <Comp
@@ -25,7 +27,7 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
-  );
+  )
 }
 
-export { Button };
+export { Button }

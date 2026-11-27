@@ -5,35 +5,34 @@ counts the labels (translation keys) the screen and its components show, and whe
 screen shows the same text (shared key or identical English). It measures **wording**, not layout; layout
 parity is reviewed per screen in `docs/ui-parity/screens.md`.
 
-**Overall: 1643 of 2925 desktop labels present on the web (56 %).**
+**Overall: 1668 of 2883 desktop labels present on the web (58 %).**
 
 | Screen (desktop) | Web route | Labels | Missing on web | Parity |
 | --- | --- | ---: | ---: | ---: |
 | SettingsBackupRestorePage | `/dashboard/settings/backup` | 9 | 9 | 0 % |
-| CustomerCreditManagementPage | `/dashboard/customers/credit` | 92 | 81 | 12 % |
+| CustomerCreditManagementPage | `/dashboard/customers/credit` | 92 | 80 | 13 % |
 | SettingsMerchantWalletsPage | `/dashboard/settings/merchant-wallets` | 28 | 24 | 14 % |
 | InventoryStockHistoryPage | `/dashboard/inventory/history` | 59 | 48 | 19 % |
-| ProductsPage | `/dashboard/products` | 237 | 178 | 25 % |
-| AccountPage | `/dashboard/account` | 63 | 46 | 27 % |
-| CustomersPage | `/dashboard/customers` | 163 | 104 | 36 % |
-| ProductCategoriesPage | `/dashboard/products/categories` | 113 | 71 | 37 % |
-| SuppliersPage | `/dashboard/suppliers` | 120 | 73 | 39 % |
+| ProductsPage | `/dashboard/products` | 223 | 163 | 27 % |
+| AccountPage | `/dashboard/account` | 63 | 45 | 29 % |
+| CustomersPage | `/dashboard/customers` | 163 | 103 | 37 % |
+| ProductCategoriesPage | `/dashboard/products/categories` | 107 | 65 | 39 % |
+| SuppliersPage | `/dashboard/suppliers` | 120 | 72 | 40 % |
 | StaffPage | `/dashboard/staff` | 82 | 48 | 41 % |
 | SupplierPurchaseOrdersPage | `/dashboard/suppliers/orders` | 122 | 69 | 43 % |
 | FinanceOverviewPage | `/dashboard/finance` | 90 | 47 | 48 % |
-| InventoryPage | `/dashboard/inventory` | 86 | 43 | 50 % |
 | SettingsBusinessProfilePage | `/dashboard/settings/business` | 42 | 21 | 50 % |
 | SettingsAccountingPeriodsPage | `/dashboard/settings/accounting-periods` | 24 | 12 | 50 % |
 | SettingsTaxConfigurationPage | `/dashboard/settings/tax` | 22 | 11 | 50 % |
+| InventoryPage | `/dashboard/inventory` | 86 | 42 | 51 % |
 | InventoryLowStockAlertsPage | `/dashboard/inventory/alerts` | 73 | 34 | 53 % |
 | DashboardPage | `/dashboard` | 60 | 28 | 53 % |
 | ReportsSalesPage | `/dashboard/reports/sales` | 70 | 28 | 60 % |
 | ReportsInventoryPage | `/dashboard/reports/inventory` | 67 | 24 | 64 % |
-| InventoryStockAdjustmentPage | `/dashboard/inventory/adjustment` | 83 | 29 | 65 % |
-| POSPage | `/dashboard/pos/new-sale` | 120 | 40 | 67 % |
 | ReportsPurchasingPage | `/dashboard/reports/purchasing` | 64 | 21 | 67 % |
 | FinanceExpensesPage | `/dashboard/finance/expenses` | 113 | 36 | 68 % |
 | ReportsFinancialPage | `/dashboard/reports/financial` | 56 | 16 | 71 % |
+| InventoryStockAdjustmentPage | `/dashboard/inventory/adjustment` | 75 | 21 | 72 % |
 | StaffRolesPermissionsPage | `/dashboard/staff/roles` | 78 | 20 | 74 % |
 | SettingsOverviewPage | `/dashboard/settings` | 54 | 14 | 74 % |
 | ReportsOverviewPage | `/dashboard/reports` | 44 | 11 | 75 % |
@@ -41,12 +40,13 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 | App shell (sidebar, header, navigation) | `(every screen)` | 10 | 2 | 80 % |
 | SupplierPaymentsPage | `/dashboard/suppliers/payments` | 84 | 15 | 82 % |
 | AnalyticsPage | `/dashboard/analytics` | 56 | 10 | 82 % |
-| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 15 | 84 % |
 | FinanceLedgerPage | `/dashboard/finance/ledger` | 45 | 7 | 84 % |
+| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 14 | 85 % |
 | StaffActivityLogsPage | `/dashboard/staff/logs` | 52 | 8 | 85 % |
 | SalesHistoryPage | `/dashboard/pos/history` | 111 | 13 | 88 % |
 | FinanceIncomePage | `/dashboard/finance/income` | 70 | 6 | 91 % |
 | CreditOrdersPage | `/dashboard/pos/credit` | 66 | 6 | 91 % |
+| POSPage | `/dashboard/pos/new-sale` | 106 | 8 | 92 % |
 | FinanceCashFlowPage | `/dashboard/finance/cashflow` | 49 | 4 | 92 % |
 | SettingsLanguagePage | `/dashboard/settings/language` | 6 | 0 | 100 % |
 | FinanceTaxPage | `/dashboard/finance/tax` | 0 | 0 | 100 % |
@@ -65,7 +65,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.cancel`: Cancel
 - `backup.replace`: Replace backup
 
-### CustomerCreditManagementPage — 81 missing
+### CustomerCreditManagementPage — 80 missing
 
 - `creditUi.statusDueSoon`: Due Soon
 - `creditUi.statusCritical`: Critical
@@ -85,7 +85,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `reports.status`: Status
 - `creditUi.viewAccount`: View account
 - `inventory.viewHistory`: View history
-- `creditUi.title`: Customer Credit Management
 - `creditUi.heading`: Credit Accounts
 - `creditUi.description`: Track customer balances, overdue accounts, and credit collection priorities.
 - `customers.credit`: Credit Customers
@@ -127,7 +126,8 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `finance.reference`: Reference
 - `creditUi.balanceAfter`: Balance after payment
 - `creditUi.noSales`: No outstanding credit sales were found for this customer.
-- … and 21 more
+- `receipt.close`: Close
+- … and 20 more
 
 ### SettingsMerchantWalletsPage — 24 missing
 
@@ -207,7 +207,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.goToNextPage`: Go to next page
 - `common.goToLastPage`: Go to last page
 
-### ProductsPage — 178 missing
+### ProductsPage — 163 missing
 
 - `products.exportPermissionError`: You do not have permission to export the product catalogue.
 - `products.exportExistsError`: A file with that name already exists. Choose another name or confirm replacement.
@@ -225,7 +225,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.notSet`: Not set
 - `products.lowStock`: Low: {{stock}}
 - `products.view`: View details
-- `products.management`: Product Management
 - `products.catalog`: Inventory Catalogue
 - `products.description`: Manage product records, pricing, stock levels, and inventory status.
 - `products.activeCount`: {{count}} active products in catalogue
@@ -259,19 +258,20 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.no`: No
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
-- `products.loadFailed`: Failed to load products
-- `products.loadOneFailed`: Failed to load product
-- `products.added`: Product added successfully
-- `products.addFailed`: Failed to add product
-- `products.updated`: Product updated successfully
-- `products.updateFailed`: Failed to update product
-- `products.deactivated`: Product deactivated successfully
-- `products.deactivateFailed`: Failed to deactivate product
-- `categories.loadFailed`: Failed to load categories
-- `categories.loadOneFailed`: Failed to load category
-- … and 118 more
+- `productForm.nameRequired`: Product name is required
+- `productForm.skuRequired`: SKU is required
+- `productForm.categoryRequired`: Category is required
+- `productForm.costNegative`: Cost price cannot be negative
+- `productForm.sellingRequired`: Selling price is required and must be greater than zero
+- `productForm.editDescription`: Update product information and status
+- `productForm.addDescription`: Add a new product to your inventory
+- `productForm.productType`: Product Type
+- `productForm.stockItem`: Stock Item
+- `productForm.service`: Service
+- `productForm.digital`: Digital
+- … and 103 more
 
-### AccountPage — 46 missing
+### AccountPage — 45 missing
 
 - `account.loadFailed`: Failed to load profile data
 - `accountUi.invalidDate`: Invalid date
@@ -291,7 +291,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `account.emailInvalid`: Email is invalid
 - `account.updated`: Profile updated successfully
 - `account.updateFailed`: Failed to update profile
-- `account.profile`: Account Profile
 - `accountUi.loading`: Loading profile...
 - `accountUi.notFound`: Profile Not Found
 - `accountUi.notFoundDescription`: Unable to load your profile information.
@@ -320,13 +319,12 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `accountUi.offlinePasswordUnavailableShort`: Offline password changes are not available yet
 - `account.updatePassword`: Update Password
 
-### CustomersPage — 104 missing
+### CustomersPage — 103 missing
 
 - `sales.invoice`: Invoice
 - `customers.purchaseDate`: Purchase Date
 - `customers.totalAmount`: Total Amount
 - `customers.viewReceipt`: View receipt
-- `customers.title`: Customer Management
 - `customers.description`: Manage customer profiles, loyalty, and credit relationships.
 - `customers.recentlyAcquired`: Recently acquired customers
 - `customers.rewardEngagement`: Customers with reward engagement
@@ -382,9 +380,10 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `importExport.importDescription`: Upload your file and import data into AkiliBiz
 - `importExport.importing`: Importing...
 - `importExport.importRecords`: Import {{count}} Records
-- … and 44 more
+- `importExport.done`: Done
+- … and 43 more
 
-### ProductCategoriesPage — 71 missing
+### ProductCategoriesPage — 65 missing
 
 - `categories.exportPermissionError`: You do not have permission to export the category catalogue.
 - `products.exportExistsError`: A file with that name already exists. Choose another name or confirm replacement.
@@ -429,12 +428,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.no`: No
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
-- `categories.loadFailed`: Failed to load categories
-- `categories.loadOneFailed`: Failed to load category
-- `categories.createdSuccess`: Category created successfully
-- `categories.createFailed`: Failed to create category
-- `categories.updatedSuccess`: Category updated successfully
-- `categories.updateFailed`: Failed to update category
 - `imports.sessionExpired`: This {{type}} import session is no longer available. Validate the CSV again before applying it.
 - `imports.permissionError`: You do not have permission to complete this {{type}} import.
 - `imports.requestError`: The import request could not be completed. Please try again.
@@ -446,12 +439,17 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `imports.mappingDescription`: Review backend-detected headers and choose their {{type}} fields.
 - `imports.validationReadOnlyCategories`: Validation is read-only. No categories have been created.
 - `imports.confirmDescription`: Confirm the validated create-only import.
-- … and 11 more
+- `imports.resultDescription`: Review the structured import outcome.
+- `dateRange.label`: Date range
+- `dashboard.today`: Today
+- `dateRange.last7`: Last 7 days
+- `dateRange.last30`: Last 30 days
+- `reports.thisMonth`: This month
+- … and 5 more
 
-### SuppliersPage — 73 missing
+### SuppliersPage — 72 missing
 
 - `suppliers.outstanding`: Outstanding Payables
-- `suppliers.title`: Supplier Management
 - `suppliers.description`: Manage supplier profiles, purchasing relationships, and balances.
 - `suppliers.availableDescription`: Suppliers currently available for procurement
 - `suppliers.purchaseValueDescription`: Total value purchased from suppliers
@@ -510,7 +508,8 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `importExport.errorsLabel`: Errors
 - `importExport.completedIn`: Completed in {{seconds}} seconds
 - `importExport.importingWait`: Importing data... Please wait
-- … and 13 more
+- `importExport.savedDownloads`: File saved to Downloads folder
+- … and 12 more
 
 ### StaffPage — 48 missing
 
@@ -677,52 +676,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
 
-### InventoryPage — 43 missing
-
-- `inventory.lastUpdated`: Last Updated
-- `inventory.viewHistory`: View history
-- `inventory.title`: Inventory Management
-- `inventoryUi.belowMinimum`: Products below minimum threshold
-- `inventoryUi.unavailableProducts`: Unavailable products affecting sales
-- `inventory.stockValue`: Inventory Cost Value
-- `inventoryUi.unvaluedNote`: Immutable cost evidence; unreconciled stock is unavailable
-- `inventoryUi.inventoryDescription`: Track stock quantities, thresholds, and category-level stock position
-- `products.detailsDescription`: Review pricing, stock position, status, and catalogue metadata.
-- `common.inactive`: Inactive
-- `productForm.barcode`: Barcode
-- `products.pricing`: Pricing
-- `inventoryUi.pricingDescription`: Cost, selling price, and profitability
-- `products.costPrice`: Cost Price
-- `products.sellingPrice`: Selling Price
-- `inventoryUi.margin`: Profit Margin
-- `productForm.profitPerUnit`: Profit Per Unit
-- `inventoryUi.stockDescription`: Availability and stock thresholds
-- `inventoryUi.stockFill`: Stock Fill Level
-- `inventoryUi.stockFillAria`: Stock fill level
-- `common.noDescription`: No description provided.
-- `products.metadata`: Metadata
-- `products.id`: Product ID
-- `products.created`: Created
-- `inventoryUi.inventoryStatus`: Inventory Status
-- `products.needsRestocking`: Needs Restocking
-- `products.adequateStock`: Adequate Stock
-- `inventoryUi.adjustmentDescription`: Update inventory quantity using the inventory service
-- `inventoryUi.adjustQuantity`: Adjust Quantity
-- `inventoryUi.adjustmentQuantity`: Adjustment Quantity
-- `inventoryUi.enterQuantityIn`: Enter quantity in
-- `inventory.adjustmentType`: Adjustment Type
-- `inventoryUi.selectType`: Select type
-- `inventory.reason`: Reason
-- `inventoryUi.adjustReason`: Reason for adjustment
-- `staff.notes`: Notes (Optional)
-- `inventoryUi.moreDetails`: Additional details...
-- `inventoryUi.projectedLevel`: Projected Stock Level
-- `pos.cancel`: Cancel
-- `customers.saveChanges`: Save Changes
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
 ### SettingsBusinessProfilePage — 21 missing
 
 - `businessProfile.mediaUpdated`: {{kind}} updated
@@ -775,6 +728,51 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `taxSettings.productsHint`: Choose the VAT treatment and whether prices include VAT for each product in Products. VAT-registered businesses must classify products before selling them.
 - `taxSettings.roundingHint`: Tax is calculated to the nearest whole UGX for the full invoice.
 - `taxSettings.saving`: Saving tax settings…
+
+### InventoryPage — 42 missing
+
+- `inventory.lastUpdated`: Last Updated
+- `inventory.viewHistory`: View history
+- `inventoryUi.belowMinimum`: Products below minimum threshold
+- `inventoryUi.unavailableProducts`: Unavailable products affecting sales
+- `inventory.stockValue`: Inventory Cost Value
+- `inventoryUi.unvaluedNote`: Immutable cost evidence; unreconciled stock is unavailable
+- `inventoryUi.inventoryDescription`: Track stock quantities, thresholds, and category-level stock position
+- `products.detailsDescription`: Review pricing, stock position, status, and catalogue metadata.
+- `common.inactive`: Inactive
+- `productForm.barcode`: Barcode
+- `products.pricing`: Pricing
+- `inventoryUi.pricingDescription`: Cost, selling price, and profitability
+- `products.costPrice`: Cost Price
+- `products.sellingPrice`: Selling Price
+- `inventoryUi.margin`: Profit Margin
+- `productForm.profitPerUnit`: Profit Per Unit
+- `inventoryUi.stockDescription`: Availability and stock thresholds
+- `inventoryUi.stockFill`: Stock Fill Level
+- `inventoryUi.stockFillAria`: Stock fill level
+- `common.noDescription`: No description provided.
+- `products.metadata`: Metadata
+- `products.id`: Product ID
+- `products.created`: Created
+- `inventoryUi.inventoryStatus`: Inventory Status
+- `products.needsRestocking`: Needs Restocking
+- `products.adequateStock`: Adequate Stock
+- `inventoryUi.adjustmentDescription`: Update inventory quantity using the inventory service
+- `inventoryUi.adjustQuantity`: Adjust Quantity
+- `inventoryUi.adjustmentQuantity`: Adjustment Quantity
+- `inventoryUi.enterQuantityIn`: Enter quantity in
+- `inventory.adjustmentType`: Adjustment Type
+- `inventoryUi.selectType`: Select type
+- `inventory.reason`: Reason
+- `inventoryUi.adjustReason`: Reason for adjustment
+- `staff.notes`: Notes (Optional)
+- `inventoryUi.moreDetails`: Additional details...
+- `inventoryUi.projectedLevel`: Projected Stock Level
+- `pos.cancel`: Cancel
+- `customers.saveChanges`: Save Changes
+- `common.no`: No
+- `table.noMatching`: No matching records
+- `table.tryFilters`: Try another search or change your filters.
 
 ### InventoryLowStockAlertsPage — 34 missing
 
@@ -902,81 +900,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `dateRange.choose`: Choose a preset
 - `dateRange.pick`: Pick a date range
 
-### InventoryStockAdjustmentPage — 29 missing
-
-- `inventory.returnIn`: Return In
-- `inventory.system`: System
-- `inventory.selectProductError`: Select a product
-- `inventory.reasonRequired`: Provide a reason for this adjustment
-- `inventory.quantityChange`: Qty Change
-- `inventory.pageRefreshed`: Inventory adjustment page refreshed
-- `inventory.adjustmentHeading`: Inventory Adjustments
-- `inventory.adjustmentIntro`: Record stock increases, reductions, losses, returns, and corrections with clear reasons and auditability.
-- `inventory.allChanges`: All recorded stock changes
-- `inventory.lossesDamages`: Losses & damages
-- `inventory.selectProduct`: Select a product
-- `inventory.reasonHint`: Why is this adjustment being made?
-- `inventory.notesHint`: Optional additional notes
-- `inventory.preview`: Stock preview
-- `inventory.adjustmentHistoryDescription`: Recent stock movement adjustments and operational corrections
-- `inventory.searchHistory`: Search by product, SKU, type, or user...
-- `inventory.noAdjustments`: No stock adjustments recorded yet.
-- `inventory.adjustmentDetailsDescription`: Review the selected inventory adjustment record.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `products.loadFailed`: Failed to load products
-- `products.loadOneFailed`: Failed to load product
-- `products.added`: Product added successfully
-- `products.addFailed`: Failed to add product
-- `products.updated`: Product updated successfully
-- `products.updateFailed`: Failed to update product
-- `products.deactivated`: Product deactivated successfully
-- `products.deactivateFailed`: Failed to deactivate product
-
-### POSPage — 40 missing
-
-- `pos.saleCompleted`: Sale {{number}} completed successfully
-- `pos.orderPlaced`: Order {{number}} placed successfully
-- `sales.view`: View sale
-- `posUi.saleItems`: Current sale items
-- `pos.sellIn`: Sell in
-- `posUi.checkoutProgress`: Checkout progress
-- `posUi.reviewSale`: Review Sale
-- `posUi.saleSummaryAria`: Sale summary
-- `posUi.saleSummary`: Sale Summary
-- `posUi.customerPaymentAria`: Customer and payment
-- `posUi.quickCash`: Quick cash amounts
-- `posUi.mobileProvider`: Mobile Money Provider
-- `posUi.mobileProviderAria`: Mobile Money provider
-- `posUi.payerPhone`: Payer phone number
-- `posUi.invalidPhone`: Enter a valid Ugandan phone number.
-- `posUi.paymentRequestAmount`: Payment request amount
-- `posUi.paymentConnection`: A verified merchant payment connection is required before requesting payment.
-- `posUi.requestPayment`: Request Payment
-- `receipt.printingUnavailable`: Printing is unavailable on this device.
-- `receipt.printRecorded`: Print recorded
-- `receipt.printAuditFailed`: Print acknowledgement could not be recorded. The sale is unchanged.
-- `receipt.no`: No
-- `receipt.recordPrint`: Yes, record print
-- `businessProfile.logoAlt`: Business logo
-- `receipt.reprint`: RECEIPT · REPRINT
-- `receipt.cancelledReversed`: Cancelled / reversed
-- `products.loadFailed`: Failed to load products
-- `products.loadOneFailed`: Failed to load product
-- `products.added`: Product added successfully
-- `products.addFailed`: Failed to add product
-- `products.updated`: Product updated successfully
-- `products.updateFailed`: Failed to update product
-- `products.deactivated`: Product deactivated successfully
-- `products.deactivateFailed`: Failed to deactivate product
-- `categories.loadFailed`: Failed to load categories
-- `categories.loadOneFailed`: Failed to load category
-- `categories.createdSuccess`: Category created successfully
-- `categories.createFailed`: Failed to create category
-- `categories.updatedSuccess`: Category updated successfully
-- `categories.updateFailed`: Failed to update category
-
 ### ReportsPurchasingPage — 21 missing
 
 - `purchasingReport.loadError`: Failed to load purchasing report.
@@ -1058,6 +981,30 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `dateRange.preset`: {{label}} preset
 - `dateRange.choose`: Choose a preset
 - `dateRange.pick`: Pick a date range
+
+### InventoryStockAdjustmentPage — 21 missing
+
+- `inventory.returnIn`: Return In
+- `inventory.system`: System
+- `inventory.selectProductError`: Select a product
+- `inventory.reasonRequired`: Provide a reason for this adjustment
+- `inventory.quantityChange`: Qty Change
+- `inventory.pageRefreshed`: Inventory adjustment page refreshed
+- `inventory.adjustmentHeading`: Inventory Adjustments
+- `inventory.adjustmentIntro`: Record stock increases, reductions, losses, returns, and corrections with clear reasons and auditability.
+- `inventory.allChanges`: All recorded stock changes
+- `inventory.lossesDamages`: Losses & damages
+- `inventory.selectProduct`: Select a product
+- `inventory.reasonHint`: Why is this adjustment being made?
+- `inventory.notesHint`: Optional additional notes
+- `inventory.preview`: Stock preview
+- `inventory.adjustmentHistoryDescription`: Recent stock movement adjustments and operational corrections
+- `inventory.searchHistory`: Search by product, SKU, type, or user...
+- `inventory.noAdjustments`: No stock adjustments recorded yet.
+- `inventory.adjustmentDetailsDescription`: Review the selected inventory adjustment record.
+- `common.no`: No
+- `table.noMatching`: No matching records
+- `table.tryFilters`: Try another search or change your filters.
 
 ### StaffRolesPermissionsPage — 20 missing
 
@@ -1162,9 +1109,18 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `dateRange.choose`: Choose a preset
 - `dateRange.pick`: Pick a date range
 
-### CustomerPurchaseHistoryPage — 15 missing
+### FinanceLedgerPage — 7 missing
 
-- `purchaseUi.title`: Customer Purchase History
+- `finance.ledger.description`: Review debit and credit entries across the business financial record.
+- `finance.ledger.net`: Net Position
+- `finance.ledger.netDescription`: Credit less debit balance
+- `finance.ledger.refresh`: Refresh ledger
+- `common.no`: No
+- `table.noMatching`: No matching records
+- `table.tryFilters`: Try another search or change your filters.
+
+### CustomerPurchaseHistoryPage — 14 missing
+
 - `customers.purchaseHistoryDescription`: Review customer buying activity, transaction value, and purchase frequency.
 - `common.no`: No
 - `table.noMatching`: No matching records
@@ -1179,16 +1135,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `receipt.cancelledReversed`: Cancelled / reversed
 - `receipt.paid`: Paid
 - `receipt.balance`: Balance
-
-### FinanceLedgerPage — 7 missing
-
-- `finance.ledger.description`: Review debit and credit entries across the business financial record.
-- `finance.ledger.net`: Net Position
-- `finance.ledger.netDescription`: Credit less debit balance
-- `finance.ledger.refresh`: Refresh ledger
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
 ### StaffActivityLogsPage — 8 missing
 
@@ -1234,6 +1180,17 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.no`: No
 - `table.noMatching`: No matching records
 - `table.tryFilters`: Try another search or change your filters.
+
+### POSPage — 8 missing
+
+- `receipt.printingUnavailable`: Printing is unavailable on this device.
+- `receipt.printRecorded`: Print recorded
+- `receipt.printAuditFailed`: Print acknowledgement could not be recorded. The sale is unchanged.
+- `receipt.no`: No
+- `receipt.recordPrint`: Yes, record print
+- `businessProfile.logoAlt`: Business logo
+- `receipt.reprint`: RECEIPT · REPRINT
+- `receipt.cancelledReversed`: Cancelled / reversed
 
 ### FinanceCashFlowPage — 4 missing
 

@@ -1,15 +1,18 @@
 #!/usr/bin/env node
-// Keeps AkiliBiz Web on exactly the same words as AkiliBiz Desktop.
+// Keeps AkiliBiz Web on exactly the same words, building blocks and selling
+// rules as AkiliBiz Desktop.
 //
-// The desktop repository owns the translation dictionaries (en-UG, lg-UG,
-// sw-UG) and the translate/format helpers. This script copies them into
-// lib/i18n unchanged, apart from import paths, so every label, button and
-// message reads the same on both platforms.
+// The desktop repository owns these files; the web keeps byte-for-byte copies
+// (only import paths are adjusted):
+//   * translation dictionaries and helpers        -> lib/i18n
+//   * shared UI primitives (buttons, dialogs, ...) -> components/ui
+//   * POS quantity and selling-unit rules          -> lib/desktop-shared
+//   * the searchable select used by the POS        -> components/akilibiz/desktop-shared
 //
 //   node scripts/sync-desktop-i18n.mjs          copy from the desktop repository
-//   node scripts/sync-desktop-i18n.mjs --check  fail if the web copy has drifted
+//   node scripts/sync-desktop-i18n.mjs --check  fail if any web copy has drifted
 //
-// The desktop repository defaults to ../../../akilibiz (sibling checkout);
+// The desktop repository defaults to the sibling checkout ../akilibiz;
 // override with AKILIBIZ_DESKTOP_REPO.
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -17,37 +20,58 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const web = resolve(here, "..");
 const desktop = resolve(process.env.AKILIBIZ_DESKTOP_REPO ?? resolve(here, "../../../../akilibiz"));
-const source = resolve(desktop, "src/i18n");
-const target = resolve(here, "../lib/i18n");
-const files = ["en-UG.ts", "lg-UG.ts", "sw-UG.ts", "index.ts"];
-const header =
-  "// GENERATED from the AkiliBiz Desktop repository (src/i18n). Do not edit here:\n" +
-  "// change the desktop dictionary, then run `node scripts/sync-desktop-i18n.mjs`.\n";
 
-function transform(text) {
-  return header + text.replace(/from "@\/i18n\/([A-Za-z-]+)"/g, 'from "./$1"');
+const FILES = [
+  ...["en-UG.ts", "lg-UG.ts", "sw-UG.ts", "index.ts"].map((f) => [`src/i18n/${f}`, `lib/i18n/${f}`]),
+  ...["dialog", "alert-dialog", "button", "badge", "label", "separator", "card", "input", "select", "field"]
+    .map((f) => [`src/components/ui/${f}.tsx`, `components/ui/${f}.tsx`]),
+  ["src/components/ui/component-variants.ts", "components/ui/component-variants.ts"],
+  ...["pos-quantity", "sale-unit-conversion", "product-quantity-behavior", "product-units"]
+    .map((f) => [`src/components/${f}.ts`, `lib/desktop-shared/${f}.ts`]),
+  ["src/components/searchable-select.tsx", "components/akilibiz/desktop-shared/searchable-select.tsx"],
+];
+
+const header = (from) =>
+  `// GENERATED from the AkiliBiz Desktop repository (${from}). Do not edit here:\n` +
+  "// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.\n";
+
+async function transform(from, to, text) {
+  let body = text
+    .replace(/from "@\/i18n\/([A-Za-z-]+)"/g, 'from "./$1"')
+    .replace(/from "@\/hooks\/useI18n"/g, 'from "@/components/akilibiz/i18n/i18n-provider"')
+    .replace(/^"use client";?\s*\n/, "");
+  // Next.js needs the client directive (first statement, after comments) where
+  // the web copy had it before, or where the component uses React hooks.
+  const existing = existsSync(resolve(web, to)) ? await readFile(resolve(web, to), "utf8") : "";
+  const needsClient = to.endsWith(".tsx") && (
+    /^(\/\/[^\n]*\n)*"use client"/.test(existing) ||
+    /"use client"/.test(text) || /\buse(I18n|State|Effect|Memo|Callback|Ref|Context)\b/.test(body));
+  return header(from) + (needsClient ? '"use client";\n\n' : "") + body;
 }
 
-if (!existsSync(source)) {
-  console.error(`Desktop dictionaries not found at ${source}. Set AKILIBIZ_DESKTOP_REPO.`);
-  process.exit(2);
+for (const [from] of FILES) {
+  if (!existsSync(resolve(desktop, from))) {
+    console.error(`Desktop file not found: ${resolve(desktop, from)}. Set AKILIBIZ_DESKTOP_REPO.`);
+    process.exit(2);
+  }
 }
 const check = process.argv.includes("--check");
 let drift = 0;
-await mkdir(target, { recursive: true });
-for (const file of files) {
-  const expected = transform(await readFile(resolve(source, file), "utf8"));
-  const path = resolve(target, file);
+for (const [from, to] of FILES) {
+  const expected = await transform(from, to, await readFile(resolve(desktop, from), "utf8"));
+  const path = resolve(web, to);
   const actual = existsSync(path) ? await readFile(path, "utf8") : null;
   if (actual === expected) continue;
   if (check) {
     drift += 1;
-    console.error(`DRIFT: lib/i18n/${file} differs from desktop src/i18n/${file}`);
+    console.error(`DRIFT: ${to} differs from desktop ${from}`);
   } else {
+    await mkdir(dirname(path), { recursive: true });
     await writeFile(path, expected);
-    console.log(`synced lib/i18n/${file}`);
+    console.log(`synced ${to}`);
   }
 }
 if (check && drift) process.exit(1);
-if (check) console.log("Web translations match the desktop.");
+if (check) console.log("Web shared files match the desktop.");

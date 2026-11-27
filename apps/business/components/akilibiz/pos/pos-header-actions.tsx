@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 import { Button } from "@/components/ui/button";
 
 type PosHeaderControls = {
@@ -40,10 +41,14 @@ export function usePosHeaderControls() {
 
 export function PosClearSaleHeaderAction() {
   const { itemCount, clearSale } = usePosHeaderControls();
+  const { t } = useI18n();
+  // Desktop POSPage header action: outline button, X icon, pos.clearSale.
   return (
-    <Button type="button" variant="outline" onClick={clearSale} disabled={itemCount === 0}>
-      <X className="size-4" />
-      Clear Sale
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button variant="outline" onClick={clearSale} disabled={itemCount === 0}>
+        <IconX className="size-4" />
+        {t("pos.clearSale")}
+      </Button>
+    </div>
   );
 }

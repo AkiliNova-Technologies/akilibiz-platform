@@ -1,3 +1,7 @@
+// GENERATED from the AkiliBiz Desktop repository (src/components/ui/field.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
+"use client";
+
 import { useMemo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

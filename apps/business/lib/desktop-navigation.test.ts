@@ -38,4 +38,13 @@ describe("desktop navigation parity", () => {
       }
     }
   });
+
+  it("gives every desktop-referenced page the desktop header title", async () => {
+    const { desktopPageHeaders } = await import("./desktop-navigation");
+    for (const group of desktopNavigation) {
+      for (const item of group.items) expect(desktopPageHeaders[item.reference]).toBeTruthy();
+    }
+    expect(desktopPageHeaders.POSPage).toEqual({ key: "pos.title" });
+    expect(desktopPageHeaders.SettingsBackupRestorePage).toEqual({ label: "Backup, Restore & Sync" });
+  });
 });
