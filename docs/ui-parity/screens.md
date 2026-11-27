@@ -62,8 +62,9 @@ Overall label parity: **64 %** (1,837 of 2,883 desktop labels). See `report.md` 
   settings. A sale the desktop cannot build a receipt for shows the desktop's reason.
 - A print on the web is recorded in `private.web_receipt_prints` (`record_web_receipt_print`), because the
   desktop print audit is local.
-- Limits: reading receipts follows the financial-mirror rule (business owner only for now). The business
-  logo is not printed on the web, because desktop media files stay on the desktop.
+- Owner, manager and cashier can open and print receipts (`get_web_receipt`, desktop permission
+  `pos.view_sales`); the raw mirror tables stay owner-only. The business logo is not printed on the web,
+  because desktop media files stay on the desktop.
 
 ## Platform differences that stay
 

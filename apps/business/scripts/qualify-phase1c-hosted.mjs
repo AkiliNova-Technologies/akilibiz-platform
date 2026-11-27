@@ -713,24 +713,40 @@ async function main() {
       if (posWorker.status !== 0) {
         throw new Error(`web POS qualification failed\n${redact(`${posWorker.stdout ?? ""}\n${posWorker.stderr ?? ""}`)}`);
       }
-      // The web receipt dialog reads the desktop-published receipt snapshot
-      // (same query as /api/receipts/[saleId]) and acknowledges a print.
+      // The web receipt dialog reads the desktop-published receipt (same RPC as
+      // /api/receipts/[saleId]) and acknowledges a print.
       const receipts = await ownerB.from("desktop_business_records")
         .select("local_business_public_id,local_record_id,record")
         .eq("business_id", manifest.businessPId).eq("entity_type", "receipt_snapshots");
       assert(!receipts.error && receipts.data.length > 0, `mirrored receipt snapshot not readable by the owner (${receipts.error?.code})`);
       const snap = receipts.data[0];
-      const rawReceipt = snap.record.receipt_json;
+      const saleP = Number(snap.local_record_id);
+      const webReceipt = await ownerB.rpc("get_web_receipt", { target_business_id: manifest.businessPId, target_sale_id: saleP });
+      assert(!webReceipt.error, `owner receipt read failed (${webReceipt.error?.code})`);
+      const rawReceipt = webReceipt.data.receipt;
       const parsedReceipt = typeof rawReceipt === "string" ? JSON.parse(rawReceipt) : rawReceipt;
-      assert(parsedReceipt?.schema_version && parsedReceipt.schema_version !== "unavailable" && parsedReceipt.sale?.sale_id === Number(snap.local_record_id),
-        "mirrored receipt snapshot is not a printable canonical receipt");
-      const printed = await ownerB.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: Number(snap.local_record_id) });
+      assert(parsedReceipt?.schema_version && parsedReceipt.schema_version !== "unavailable" && parsedReceipt.sale?.sale_id === saleP &&
+        webReceipt.data.source === snap.local_business_public_id, "web receipt is not the desktop's printable canonical receipt");
+      assert(webReceipt.data.businessProfile === null || !("owner_name" in webReceipt.data.businessProfile), "web receipt must not expose owner details");
+      const missingReceipt = await ownerB.rpc("get_web_receipt", { target_business_id: manifest.businessPId, target_sale_id: 999999999 });
+      assert(missingReceipt.error?.code === "P0002", `unknown receipt must be not found (${missingReceipt.error?.code})`);
+      const foreignRead = await ownerA.rpc("get_web_receipt", { target_business_id: manifest.businessPId, target_sale_id: saleP });
+      assert(foreignRead.error?.code === "42501", `another business owner must not read receipts (${foreignRead.error?.code})`);
+      const foreignPrint = await ownerA.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: saleP });
+      assert(foreignPrint.error?.code === "42501", `another business owner must not record prints (${foreignPrint.error?.code})`);
+      const printed = await ownerB.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: saleP });
       assert(!printed.error && typeof printed.data === "string", `web receipt print acknowledgement failed (${printed.error?.code})`);
       const missingPrint = await ownerB.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: 999999999 });
       assert(missingPrint.error?.code === "23503", `print of an unknown receipt must be refused (${missingPrint.error?.code})`);
-      const foreignPrint = await ownerA.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: Number(snap.local_record_id) });
-      assert(foreignPrint.error?.code === "42501", `another business owner must not record prints (${foreignPrint.error?.code})`);
-      mark(results, "web receipt: desktop snapshot readable, print recorded, unknown and cross-tenant prints refused", "PASS");
+      // A cashier reads and prints the receipt but still cannot read the mirror tables.
+      await expectSuccess(results, "receipt cashier grant", ownerB.rpc("grant_business_staff", { target_business_id: manifest.businessPId, target_email: manifest.userAEmail, target_role: "cashier" }));
+      const cashierRead = await ownerA.rpc("get_web_receipt", { target_business_id: manifest.businessPId, target_sale_id: saleP });
+      assert(!cashierRead.error, `cashier receipt read failed (${cashierRead.error?.code})`);
+      const cashierPrint = await ownerA.rpc("record_web_receipt_print", { target_business_id: manifest.businessPId, source_business_public_id: snap.local_business_public_id, target_sale_id: saleP });
+      assert(!cashierPrint.error, `cashier receipt print failed (${cashierPrint.error?.code})`);
+      const cashierMirror = await ownerA.from("desktop_business_records").select("local_record_id").eq("business_id", manifest.businessPId);
+      assert(!cashierMirror.error && cashierMirror.data.length === 0, "cashier must not read the mirror tables directly");
+      mark(results, "web receipt: owner and cashier read and print the desktop receipt; unknown, cross-tenant and direct mirror reads refused", "PASS");
       mark(results, "web POS cash sale (desktop tax profile, unpriceable/fractional/insufficient refusals, invoice-level VAT parity, change, replay, desktop accounting, stock, hold reconciliation)", "PASS");
     }
 
