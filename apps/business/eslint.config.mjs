@@ -7,7 +7,7 @@ export default defineConfig([
   {
     // Byte-for-byte copies of AkiliBiz Desktop files (scripts/sync-desktop-i18n.mjs).
     // They follow the desktop's lint rules; fixes belong in the desktop repository.
-    files: ["components/akilibiz/documents/desktop/**"],
+    files: ["components/akilibiz/documents/desktop/**", "components/akilibiz/products/desktop/**"],
     rules: {
       "react-hooks/set-state-in-effect": "off",
       "@next/next/no-img-element": "off",

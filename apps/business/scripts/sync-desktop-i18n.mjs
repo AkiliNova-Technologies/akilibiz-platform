@@ -37,6 +37,9 @@ const FILES = [
   ["src/components/feedback/feedback-state.tsx", "components/akilibiz/desktop-shared/feedback-state.tsx"],
   ["src/components/date-range-picker.tsx", "components/akilibiz/date-range-picker.tsx"],
   ["src/components/date-range-utils.ts", "components/akilibiz/date-range-utils.ts"],
+  ["src/components/feedback/success-dialog.tsx", "components/akilibiz/desktop-shared/success-dialog.tsx"],
+  // Products: the desktop product form (add and edit).
+  ["src/components/product-sheet.tsx", "components/akilibiz/products/desktop/product-sheet.tsx"],
   ["src/components/refresh-button.tsx", "components/akilibiz/desktop-shared/refresh-button.tsx"],
   // Receipts: the desktop's canonical receipt type, layout, print formats,
   // print service and receipt dialog.
@@ -50,6 +53,10 @@ const FILES = [
 // Desktop import -> web location. Desktop-only data sources map to web
 // adapters with the same exports (components/akilibiz/documents/desktop-adapters).
 const IMPORTS = [
+  ["@/components/feedback/success-dialog", "@/components/akilibiz/desktop-shared/success-dialog"],
+  ["@/components/searchable-select", "@/components/akilibiz/desktop-shared/searchable-select"],
+  ["@/components/product-units", "@/lib/desktop-shared/product-units"],
+  ["@/hooks/useReduxTax", "@/components/akilibiz/products/desktop-adapters/use-redux-tax"],
   ["@/components/date-range-utils", "@/components/akilibiz/date-range-utils"],
   ["@/components/feedback/feedback-state", "@/components/akilibiz/desktop-shared/feedback-state"],
   ["@/components/refresh-button", "@/components/akilibiz/desktop-shared/refresh-button"],

@@ -21,7 +21,7 @@ cards and tables in the same places. The desktop is the reference.
 
 ## Status (27 November 2026)
 
-Overall label parity: **64 %** (1,837 of 2,883 desktop labels). See `report.md` for each screen.
+Overall label parity: **68 %** (1,959 of 2,883 desktop labels). See `report.md` for each screen.
 
 | Area | Status |
 | --- | --- |
@@ -50,6 +50,20 @@ Overall label parity: **64 %** (1,837 of 2,883 desktop labels). See `report.md` 
   preview are now the desktop's own files, synced by `sync-desktop-i18n.mjs`.
 - At 100 %: POS, Sales History, Credit Orders, Customer Purchase History, Income, Cash Flow, Ledger,
   Staff Activity Logs, Receipt Settings, Analytics, Language.
+
+## Products (28 November 2026)
+
+- `/dashboard/products` is the desktop Products screen (`products/desktop-port/desktop-products-page.tsx`,
+  differences marked `WEB:`) with the desktop's own product form (`products/desktop/product-sheet.tsx`, synced).
+  Same cards, table columns, toolbar, view dialog, deactivate dialog and export confirmation.
+- Data: desktops publish each product's details (type, units, package contents, wholesale and minimum prices,
+  stock levels, tracking, tax class) with the catalogue (desktop migration `0129`, hosted `20261128130000`).
+  Margin and low stock use the desktop's rules (`lib/desktop-product-row.ts`). Stock is the synced position.
+- Add product (owner): prepares a draft and asks the paired desktop to create it; it appears after the
+  desktop applies it and syncs. Wholesale price, minimum price, pack size and tax class are not carried by
+  this request yet; set them on the desktop.
+- Export downloads the catalogue CSV. Edit and deactivate, variants, CSV import and import history are done
+  on the desktop for now (the buttons stay in the desktop positions and say so).
 
 ## Receipts (28 November 2026)
 

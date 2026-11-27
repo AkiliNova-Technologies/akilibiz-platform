@@ -1,9 +1,10 @@
-import { HostedCataloguePage } from "@/components/akilibiz/products/hosted-catalogue-page";
+"use client";
 
-export default async function ProductsPage({
-  searchParams,
-}:{
-  searchParams:Promise<{page?:string|string[];q?:string|string[]}>;
-}) {
-  return <HostedCataloguePage view="products" searchParams={await searchParams}/>;
+// The web Products screen is the desktop Products screen (ported in
+// products/desktop-port/desktop-products-page.tsx) so both platforms show the
+// same catalogue, cards, table, actions and dialogs.
+import DesktopProductsPage from "@/components/akilibiz/products/desktop-port/desktop-products-page";
+
+export default function ProductsPage() {
+  return <DesktopProductsPage />;
 }

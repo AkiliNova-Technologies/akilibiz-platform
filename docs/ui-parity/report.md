@@ -5,7 +5,7 @@ counts the labels (translation keys) the screen and its components show, and whe
 screen shows the same text (shared key or identical English). It measures **wording**, not layout; layout
 parity is reviewed per screen in `docs/ui-parity/screens.md`.
 
-**Overall: 1837 of 2883 desktop labels present on the web (64 %).**
+**Overall: 1959 of 2883 desktop labels present on the web (68 %).**
 
 | Screen (desktop) | Web route | Labels | Missing on web | Parity |
 | --- | --- | ---: | ---: | ---: |
@@ -13,7 +13,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 | CustomerCreditManagementPage | `/dashboard/customers/credit` | 92 | 80 | 13 % |
 | SettingsMerchantWalletsPage | `/dashboard/settings/merchant-wallets` | 28 | 24 | 14 % |
 | InventoryStockHistoryPage | `/dashboard/inventory/history` | 59 | 48 | 19 % |
-| ProductsPage | `/dashboard/products` | 223 | 161 | 28 % |
 | AccountPage | `/dashboard/account` | 63 | 45 | 29 % |
 | CustomersPage | `/dashboard/customers` | 163 | 101 | 38 % |
 | ProductCategoriesPage | `/dashboard/products/categories` | 107 | 62 | 42 % |
@@ -35,6 +34,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 | ReportsPurchasingPage | `/dashboard/reports/purchasing` | 64 | 13 | 80 % |
 | SettingsOverviewPage | `/dashboard/settings` | 54 | 11 | 80 % |
 | App shell (sidebar, header, navigation) | `(every screen)` | 10 | 2 | 80 % |
+| ProductsPage | `/dashboard/products` | 223 | 39 | 83 % |
 | ReportsOverviewPage | `/dashboard/reports` | 44 | 7 | 84 % |
 | ReportsFinancialPage | `/dashboard/reports/financial` | 56 | 8 | 86 % |
 | SupplierPaymentsPage | `/dashboard/suppliers/payments` | 84 | 11 | 87 % |
@@ -206,70 +206,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.goToPreviousPage`: Go to previous page
 - `common.goToNextPage`: Go to next page
 - `common.goToLastPage`: Go to last page
-
-### ProductsPage — 161 missing
-
-- `products.exportPermissionError`: You do not have permission to export the product catalogue.
-- `products.exportExistsError`: A file with that name already exists. Choose another name or confirm replacement.
-- `products.exportFilenameError`: Choose a valid filename ending in .csv.
-- `products.exportAuditError`: The export audit could not be recorded. No export result was confirmed.
-- `products.exportDestinationError`: The selected location could not be written. Choose another location and try again.
-- `products.exportError`: The product catalogue export could not be completed. Please try again.
-- `products.exportSuccess`: Product catalogue exported
-- `products.exportSummary`: {{fileName}} • {{count}} {{label}}
-- `products.exportFailed`: Product export failed
-- `products.exportDialogTitle`: Export Product Catalogue
-- `products.saveDialogError`: Unable to open the save dialog
-- `products.saveDialogDescription`: Choose a destination for the product catalogue and try again.
-- `products.uncategorized`: Uncategorized
-- `common.notSet`: Not set
-- `products.lowStock`: Low: {{stock}}
-- `products.view`: View details
-- `products.catalog`: Inventory Catalogue
-- `products.description`: Manage product records, pricing, stock levels, and inventory status.
-- `products.activeCount`: {{count}} active products in catalogue
-- `products.stockRiskDescription`: Products currently below safe stock level
-- `products.inventoryCostValue`: Inventory Cost Value
-- `products.inventoryCostDescription`: Capital currently tied up in stock
-- `products.averageMarginDescription`: Average product profit margin
-- `products.catalogDescription`: Track and maintain your business inventory
-- `products.search`: Search by product name, SKU, or barcode...
-- `products.import`: Import Products
-- `products.exporting`: Exporting...
-- `products.export`: Export Products
-- `products.replaceCsv`: Replace existing CSV?
-- `products.replaceCsvDescription`: A file with this name already exists. Replacing it will overwrite that file with a new product catalogue export.
-- `common.cancel`: Cancel
-- `products.replacing`: Replacing...
-- `products.replaceCsvAction`: Replace CSV
-- `products.deactivate`: Deactivate Product
-- `products.deactivateDescription`: This product will remain in records but will be hidden from active operations.
-- `products.units`: {{count}} units
-- `products.detailsDescription`: Review pricing, stock position, status, and catalogue metadata.
-- `products.lowStockTitle`: Low Stock
-- `products.pricing`: Pricing
-- `productForm.profitPerUnit`: Profit Per Unit
-- `products.stockPosition`: Stock Position
-- `stockAlerts.minStock`: Minimum Stock
-- `common.noDescription`: No description provided.
-- `products.metadata`: Metadata
-- `products.id`: Product ID
-- `inventory.lastUpdated`: Last Updated
-- `products.needsRestocking`: Needs Restocking
-- `products.adequateStock`: Adequate Stock
-- `productForm.nameRequired`: Product name is required
-- `productForm.skuRequired`: SKU is required
-- `productForm.categoryRequired`: Category is required
-- `productForm.costNegative`: Cost price cannot be negative
-- `productForm.sellingRequired`: Selling price is required and must be greater than zero
-- `productForm.editDescription`: Update product information and status
-- `productForm.addDescription`: Add a new product to your inventory
-- `productForm.productType`: Product Type
-- `productForm.stockItem`: Stock Item
-- `productForm.service`: Service
-- `productForm.digital`: Digital
-- `productForm.inventoryType`: Inventory Type
-- … and 101 more
 
 ### AccountPage — 45 missing
 
@@ -977,6 +913,48 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 
 - `common.notLoggedIn`: Not logged in
 - `common.pleaseSignIn`: Please sign in
+
+### ProductsPage — 39 missing
+
+- `imports.sessionExpired`: This {{type}} import session is no longer available. Validate the CSV again before applying it.
+- `imports.permissionError`: You do not have permission to complete this {{type}} import.
+- `imports.requestError`: The import request could not be completed. Please try again.
+- `imports.selectTitle`: Select {{type}} CSV
+- `imports.csvRow`: CSV Row
+- `imports.sourceColumn`: Source Column
+- `imports.targetField`: Target Field
+- `imports.selectDescription`: Choose a CSV file for a create-only {{type}} import.
+- `imports.mappingDescription`: Review backend-detected headers and choose their {{type}} fields.
+- `imports.validationReadOnlyProducts`: Validation is read-only. No product or inventory data has been written.
+- `imports.confirmDescription`: Confirm the validated create-only import.
+- `imports.resultDescription`: Review the structured import outcome.
+- `imports.step.select`: Select File
+- `imports.step.mapping`: Map columns
+- `imports.editMappings`: Edit mappings
+- `imports.continueConfirmation`: Continue to confirmation
+- `imports.selectFile`: Select a file
+- `imports.chooseFile`: Choose a {{type}} file
+- `imports.inspectHint`: The backend will inspect the file. Opening stock must be zero; stock is added through an authorized inventory adjustment.
+- `imports.suggestedMappings`: Suggested mappings are provided by the backend. Review them before validation.
+- `imports.doNotImport`: Do not import this column
+- `imports.backendSample`: Backend sample
+- `imports.backendSampleDescription`: Original CSV headers and a bounded backend-provided preview.
+- `imports.validationResult`: Validation result
+- `imports.validationIssues`: Validation issues
+- `imports.validationIssuesDescription`: Correct the CSV or mappings, then validate again.
+- `imports.noValidationIssues`: No validation issues.
+- `imports.validated`: The backend validated this create-only import and issued a session for confirmation.
+- `imports.confirmCreation`: Confirm {{type}} creation
+- `imports.appliedDescription`: The backend applied the validated session atomically and recorded its audit event.
+- `dateRange.label`: Date range
+- `dashboard.today`: Today
+- `dateRange.last7`: Last 7 days
+- `dateRange.last30`: Last 30 days
+- `reports.thisMonth`: This month
+- `dateRange.choose`: Choose a preset
+- `dateRange.pick`: Pick a date range
+- `reports.periodSelector`: Report period
+- `reports.choosePeriod`: Choose a period
 
 ### ReportsOverviewPage — 7 missing
 

@@ -92,6 +92,8 @@ export async function GET(request: NextRequest) {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="akilibiz-${kind}.csv"`,
       "X-Content-Type-Options": "nosniff",
+      // The desktop export confirmation reports how many records were written.
+      "X-Row-Count": String(rows.length),
     },
   });
 }
