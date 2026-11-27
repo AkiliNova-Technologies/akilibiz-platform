@@ -60,10 +60,20 @@ Each of these alone made every web sale fail:
    net subtotal, which posting then refused. The quote API now returns the database VAT and total, and the
    dialog collects `total_ugx`.
 
+## Checkout UI (27 November 2026)
+
+With `NEXT_PUBLIC_AKILIBIZ_ENABLE_WEB_POS=1`, the POS page's main **Complete sale** button opens the
+hosted cash checkout (the separate "Complete cash sale" button is gone). The dialog verifies the cart
+through the quote (amount due including VAT), shows change due, keeps the idempotency key until the web
+accepts the sale, refreshes the status every five seconds while the desktop confirms, and offers
+**Start next sale**, which clears the cart and the finished request. Previously a completed request was
+never cleared, so the dialog blocked every following sale. Mobile money and credit orders show a clear
+"not available on the web yet" message instead of an unhandled error.
+
 ## Remaining before production
 
-- wire the main **Complete sale** button to the hosted cash flow (today the separate cash-sale pilot
-  dialog posts; `addSale` in `pos-data.ts` still throws);
+- browser-level acceptance of the checkout UI (the hosted logic it calls is covered above; the UI is
+  covered by unit tests, typecheck and a production build only);
 - mobile money, credit sales, discounts and customer selection on the web;
 - service products: the quote allows them, but posting requires a stock position;
 - the CI isolated POS workflow (`web-pos-postgres-qualification.yml`) does not yet include migration

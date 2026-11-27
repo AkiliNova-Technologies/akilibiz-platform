@@ -29,3 +29,30 @@ describe("cash POS pilot safeguards", () => {
     }
   });
 });
+
+describe("hosted cash checkout helpers", () => {
+  it("computes exact change only when cash covers the amount due", async () => {
+    const { cashChangeDue } = await import("./pos-cash-pilot");
+    expect(cashChangeDue(5000, 2419)).toBe(2581);
+    expect(cashChangeDue(2419, 2419)).toBe(0);
+    expect(cashChangeDue(2418, 2419)).toBeNull();
+    expect(cashChangeDue(null, 2419)).toBeNull();
+    expect(cashChangeDue(5000, null)).toBeNull();
+  });
+  it("never clears an uncertain or in-flight request for the next sale", async () => {
+    const { canStartNextSale } = await import("./pos-cash-pilot");
+    expect(canStartNextSale(null)).toBe(false);
+    expect(canStartNextSale("submitting")).toBe(false);
+    expect(canStartNextSale("unknown")).toBe(false);
+    for (const stage of ["pending_desktop", "desktop_applied", "reconciled", "voided"] as const) {
+      expect(canStartNextSale(stage)).toBe(true);
+    }
+  });
+  it("polls only while the desktop has not finished confirming", async () => {
+    const { awaitsDesktopConfirmation } = await import("./pos-cash-pilot");
+    expect(awaitsDesktopConfirmation("pending_desktop")).toBe(true);
+    expect(awaitsDesktopConfirmation("desktop_applied")).toBe(true);
+    expect(awaitsDesktopConfirmation("reconciled")).toBe(false);
+    expect(awaitsDesktopConfirmation("unknown")).toBe(false);
+  });
+});

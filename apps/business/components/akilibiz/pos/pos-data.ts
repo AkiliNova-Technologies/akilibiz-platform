@@ -200,8 +200,9 @@ export function usePosData(activeBusinessId: string) {
   const clearCart = useCallback(() => setItems([]), []);
   const addSale = useCallback(
     async (_payload: CreateSalePayload): Promise<never> => {
+      // Cash sales post through the hosted cash checkout (CashSalePilot).
       throw new Error(
-        "Sales are unavailable until hosted transaction posting is connected.",
+        "Mobile money and credit sales are not available on the web yet. Use cash checkout here, or record this sale on the desktop.",
       );
     },
     [],

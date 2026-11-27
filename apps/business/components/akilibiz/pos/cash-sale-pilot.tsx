@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  awaitsDesktopConfirmation,
+  canStartNextSale,
+  cashChangeDue,
   pilotCartFingerprint,
   pilotCashAmount,
   pilotQuoteItems,
   type CashPilotCartItem,
+  type CashSaleStage,
 } from "@/lib/pos-cash-pilot";
 
 type Quote = {
@@ -38,35 +42,49 @@ type Attempt = {
   id: string;
   cartFingerprint: string;
   cashReceived: number;
-  stage:
-    | "submitting"
-    | "unknown"
-    | "pending_desktop"
-    | "desktop_applied"
-    | "reconciled"
-    | "voided";
+  stage: CashSaleStage;
   receipt?: string;
 };
 
-/** Qualified cash checkout; every submission/apply/ack layer remains default-off. */
+/**
+ * Hosted cash checkout. Every submission/apply/ack layer remains default-off.
+ * The POS page opens it from its main Complete sale button (controlled), and
+ * clears the cart through onStartNextSale once the web has accepted the sale.
+ */
 export function CashSalePilot({
   businessId,
   cartItems,
+  open: controlledOpen,
+  onOpenChange,
+  showTrigger = true,
+  onStartNextSale,
 }: {
   businessId: string;
   cartItems: CashPilotCartItem[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showTrigger?: boolean;
+  onStartNextSale?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    onOpenChange?.(value);
+    if (controlledOpen === undefined) setUncontrolledOpen(value);
+  };
   const [cash, setCash] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [quote, setQuote] = useState<{
     fingerprint: string;
     total: number;
+    tax?: number;
   } | null>(null);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [busy, setBusy] = useState(false);
   const [restored, setRestored] = useState(false);
   const storageKey = `akilibiz.cash-pilot.${businessId}`;
+  // Reopen the dialog for a restored, unresolved request (also tells the page).
+  const openForRestoredAttempt = useEffectEvent(() => setOpen(true));
   useEffect(() => {
     queueMicrotask(() => {
       try {
@@ -109,7 +127,7 @@ export function CashSalePilot({
               Number.isSafeInteger(saved.quote.total)
             )
               setQuote(saved.quote);
-            setOpen(true);
+            openForRestoredAttempt();
           }
         }
       } catch {
@@ -143,6 +161,7 @@ export function CashSalePilot({
     attempt &&
     attempt.cartFingerprint === fingerprint &&
     attempt.cashReceived === received;
+  const changeDue = cashChangeDue(received, validQuote?.total ?? null);
 
   const verify = async () => {
     if (!items || !fingerprint || busy || attempt) return;
@@ -169,7 +188,14 @@ export function CashSalePilot({
           body.error ?? "Stock and prices could not be verified.",
         );
       }
-      setQuote({ fingerprint, total: body.total_ugx });
+      setQuote({
+        fingerprint,
+        total: body.total_ugx,
+        tax:
+          typeof body.tax_ugx === "number" && Number.isSafeInteger(body.tax_ugx)
+            ? body.tax_ugx
+            : undefined,
+      });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not check this sale.",
@@ -232,7 +258,7 @@ export function CashSalePilot({
     )
       return;
     if (received < validQuote.total) {
-      setError("Cash received is less than the verified subtotal.");
+      setError("Cash received is less than the amount due.");
       return;
     }
     // A network timeout is ambiguous: reuse this exact key, cash and cart.
@@ -328,16 +354,47 @@ export function CashSalePilot({
     }
   };
 
+  // While the dialog is open, refresh the status every few seconds until the
+  // desktop has confirmed (or voided) the sale.
+  const pollStatus = useEffectEvent(() => {
+    void checkStatus();
+  });
+  const awaiting = open && awaitsDesktopConfirmation(attempt?.stage ?? null);
+  useEffect(() => {
+    if (!awaiting) return;
+    const timer = window.setInterval(() => pollStatus(), 5000);
+    return () => window.clearInterval(timer);
+  }, [awaiting]);
+
+  // The web has accepted the sale (or it was voided): release the request so
+  // the next sale gets a new idempotency key, and let the page clear the cart.
+  const startNextSale = () => {
+    if (!attempt || !canStartNextSale(attempt.stage) || busy) return;
+    setAttempt(null);
+    setQuote(null);
+    setCash("");
+    setError(null);
+    try {
+      window.sessionStorage.removeItem(storageKey);
+    } catch {
+      /* optional */
+    }
+    onStartNextSale?.();
+    setOpen(false);
+  };
+
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={!restored || (!items?.length && !attempt)}
-        onClick={() => setOpen(true)}
-      >
-        Complete cash sale
-      </Button>
+      {showTrigger && (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!restored || (!items?.length && !attempt)}
+          onClick={() => setOpen(true)}
+        >
+          Complete cash sale
+        </Button>
+      )}
       <Dialog
         open={open}
         onOpenChange={(value) => {
@@ -385,14 +442,21 @@ export function CashSalePilot({
                   confirmation.
                 </p>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                disabled={busy}
-                onClick={() => void checkStatus()}
-              >
-                {busy ? "Checking…" : "Check latest status"}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => void checkStatus()}
+                >
+                  {busy ? "Checking…" : "Check latest status"}
+                </Button>
+                {canStartNextSale(attempt.stage) && (
+                  <Button type="button" disabled={busy} onClick={startNextSale}>
+                    Start next sale
+                  </Button>
+                )}
+              </div>
             </div>
           ) : (
             <>
@@ -425,8 +489,13 @@ export function CashSalePilot({
                 </Button>
                 {validQuote && (
                   <span className="text-sm">
-                    Verified subtotal: UGX{" "}
-                    {validQuote.total.toLocaleString("en-UG")}
+                    Amount due: UGX {validQuote.total.toLocaleString("en-UG")}
+                    {validQuote.tax !== undefined && validQuote.tax > 0 && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        (incl. VAT UGX {validQuote.tax.toLocaleString("en-UG")})
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
@@ -440,6 +509,11 @@ export function CashSalePilot({
                   onChange={(event) => setCash(event.target.value)}
                   placeholder="Enter whole shillings"
                 />
+                {changeDue !== null && (
+                  <p className="text-sm" role="status">
+                    Change due: UGX {changeDue.toLocaleString("en-UG")}
+                  </p>
+                )}
               </div>
               {error && (
                 <p role="alert" className="text-sm text-destructive">

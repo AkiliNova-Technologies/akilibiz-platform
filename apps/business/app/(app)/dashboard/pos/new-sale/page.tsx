@@ -94,8 +94,10 @@ interface Product {
 type CheckoutMode = "sale" | "order";
 type ProductView = "compact" | "grid" | "list";
 const POS_VIEW_STORAGE_KEY = "akilibiz.pos.product-view";
-// The hosted sale and tax-posting services are not yet connected.
+// Legacy checkout (mobile money, credit orders) has no hosted posting path yet.
 const canSubmitSale = false;
+// Cash sales post through the hosted checkout when the web POS build flag is on.
+const hostedCashCheckout = process.env.NEXT_PUBLIC_AKILIBIZ_ENABLE_WEB_POS === "1";
 
 // ============================================================================
 // UTILITIES
@@ -181,6 +183,7 @@ export default function POSPage() {
   const [dueDate, setDueDate] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [creditWarningDialog, setCreditWarningDialog] = useState(false);
+  const [cashCheckoutOpen, setCashCheckoutOpen] = useState(false);
   const [salePrintSaleId, setSalePrintSaleId] = useState<number | null>(null);
   const [salePrintOpen, setSalePrintOpen] = useState(false);
 
@@ -474,10 +477,14 @@ export default function POSPage() {
       notes: "POS Sale",
     };
 
-    const result = await addSale(payload);
-
-    // Hosted posting is not connected; addSale cannot return a completed sale.
-    void result;
+    try {
+      await addSale(payload);
+    } catch (cause) {
+      // Only cash sales have a hosted posting path (the hosted cash checkout).
+      toast.error(
+        cause instanceof Error ? cause.message : "This sale could not be recorded.",
+      );
+    }
   };
 
   const placeOrder = async () => {
@@ -511,10 +518,14 @@ export default function POSPage() {
       due_date: dueDate || defaultDueDate.toISOString(),
     };
 
-    const result = await addSale(payload);
-
-    // Hosted posting is not connected; addSale cannot return a credit order.
-    void result;
+    try {
+      await addSale(payload);
+    } catch (cause) {
+      // Credit orders have no hosted posting path yet.
+      toast.error(
+        cause instanceof Error ? cause.message : "This credit order could not be recorded.",
+      );
+    }
   };
 
   return (
@@ -1066,20 +1077,31 @@ export default function POSPage() {
                         )}
                     </div>
                   )}
-                  {process.env.NEXT_PUBLIC_AKILIBIZ_ENABLE_WEB_POS === "1" && (
+                  {hostedCashCheckout && (
                     <CashSalePilot
                       key={activeBusinessId}
                       businessId={activeBusinessId}
                       cartItems={cartItems}
+                      showTrigger={false}
+                      open={cashCheckoutOpen}
+                      onOpenChange={setCashCheckoutOpen}
+                      onStartNextSale={clearCart}
                     />
                   )}
                   <Button
                     className="h-12 text-base font-semibold"
-                    onClick={() => handleCheckout("sale")}
-                    disabled={cartItems.length === 0 || !canSubmitSale}
+                    onClick={() =>
+                      hostedCashCheckout
+                        ? setCashCheckoutOpen(true)
+                        : handleCheckout("sale")
+                    }
+                    disabled={
+                      cartItems.length === 0 ||
+                      (!hostedCashCheckout && !canSubmitSale)
+                    }
                     title={
-                      !canSubmitSale
-                        ? "Checkout is unavailable until sales and tax posting are connected"
+                      !hostedCashCheckout && !canSubmitSale
+                        ? "Web checkout is not enabled for this business yet"
                         : undefined
                     }
                   >

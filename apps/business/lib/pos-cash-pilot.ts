@@ -28,3 +28,28 @@ export function pilotCashAmount(value: string): number | null {
   const amount = Number(value.trim());
   return Number.isSafeInteger(amount) ? amount : null;
 }
+
+/** Change due in whole UGX, or null when cash does not cover the amount due. */
+export function cashChangeDue(received: number | null, amountDue: number | null): number | null {
+  if (received === null || amountDue === null || !Number.isSafeInteger(received) ||
+    !Number.isSafeInteger(amountDue) || received < amountDue) return null;
+  return received - amountDue;
+}
+
+export type CashSaleStage =
+  | "submitting" | "unknown" | "pending_desktop" | "desktop_applied" | "reconciled" | "voided";
+
+/**
+ * A finished request may be cleared to start the next sale only once the web
+ * has accepted it (or it was voided). An uncertain or in-flight request must
+ * keep its idempotency key so a retry can never record the payment twice.
+ */
+export function canStartNextSale(stage: CashSaleStage | null): boolean {
+  return stage === "pending_desktop" || stage === "desktop_applied" ||
+    stage === "reconciled" || stage === "voided";
+}
+
+/** Stages the dialog keeps polling while the desktop confirms the sale. */
+export function awaitsDesktopConfirmation(stage: CashSaleStage | null): boolean {
+  return stage === "pending_desktop" || stage === "desktop_applied";
+}
