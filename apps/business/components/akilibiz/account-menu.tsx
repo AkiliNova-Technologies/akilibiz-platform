@@ -1,14 +1,16 @@
 "use client";
 
-import { Ellipsis, UserRound } from "lucide-react";
+import { Ellipsis, UserRound, UserCircle, Building2 } from "lucide-react";
 import Link from "next/link";
 
 import { SignOutButton } from "@/app/(app)/dashboard/sign-out-button";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -33,6 +35,7 @@ type AccountMenuProps = {
 };
 
 export function AccountMenu({ account, placement }: AccountMenuProps) {
+  const { t } = useI18n();
   const { isMobile } = useSidebar();
   const renderAvatar = () => (
     <Avatar size={placement === "header" ? "lg" : "default"}>
@@ -63,7 +66,23 @@ export function AccountMenu({ account, placement }: AccountMenuProps) {
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem asChild><Link href="/businesses">Switch business</Link></DropdownMenuItem>
+      {/* Same order as desktop nav-user: Account Settings, separator, Log out.
+          Switching business is web-only (several businesses per login). */}
+      <DropdownMenuGroup>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/account">
+            <UserCircle className="mr-2 size-4" />
+            {t("common.accountSettings")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/businesses">
+            <Building2 className="mr-2 size-4" />
+            Switch business
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
+      <DropdownMenuSeparator />
       <SignOutButton menuItem />
     </DropdownMenuContent>
   );

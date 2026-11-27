@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { type Theme, useTheme } from "@/hooks/use-theme";
 import { findDesktopRoute } from "@/lib/desktop-navigation";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 
 export function SiteHeader({ account, theme, rightActions }: {
   account: AccountDisplay;
@@ -20,14 +21,17 @@ export function SiteHeader({ account, theme, rightActions }: {
 }) {
   const { toggleTheme } = useTheme();
   const pathname = usePathname();
+  const { t } = useI18n();
   // Desktop headers show Dashboard at the top of Overview, not Overview.
-  const routeTitle = findDesktopRoute(pathname)?.item.label ?? "Dashboard";
+  const route = findDesktopRoute(pathname)?.item;
+  const routeTitle = route ? (route.labelKey ? t(route.labelKey) : route.label) : t("nav.dashboard");
+  // Web-only screens without a desktop navigation entry.
   const auxiliaryTitles: Record<string, string> = {
-    "/dashboard/account": "My Account",
+    "/dashboard/account": t("account.profile"),
     "/dashboard/settings/desktop-sync": "Desktop Synchronization",
     "/dashboard/products/synced": "Synced Products",
   };
-  const title = pathname === "/dashboard" ? "Dashboard" : auxiliaryTitles[pathname] ?? routeTitle;
+  const title = pathname === "/dashboard" ? t("nav.dashboard") : auxiliaryTitles[pathname] ?? routeTitle;
 
   return (
     <header className="sticky top-0 z-50 flex min-h-14 shrink-0 items-center gap-2 border-b bg-background py-2 transition-[width,height] ease-linear dark:bg-[#323232] group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-14">
@@ -52,7 +56,9 @@ export function SiteHeader({ account, theme, rightActions }: {
             size="icon"
             className="relative size-9 shrink-0 sm:size-10"
             onClick={toggleTheme}
-            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+            aria-label={t("common.switchToMode", {
+              mode: theme === "light" ? t("common.dark") : t("common.light"),
+            })}
           >
             <Sun className={`size-6 transition-all duration-300 ${theme === "light" ? "scale-100 rotate-0" : "scale-0 -rotate-90"}`} />
             <Moon className={`absolute size-6 transition-all duration-300 ${theme === "dark" ? "scale-100 rotate-0" : "scale-0 rotate-90"}`} />

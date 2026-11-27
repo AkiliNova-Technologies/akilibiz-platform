@@ -8,6 +8,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import { signOut as signOutServer } from "@/app/(app)/dashboard/auth-actions";
 import { clearAccountOperationStorage } from "@/lib/account-storage";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 
 export function SignOutButton({
   menuItem = false,
@@ -17,6 +18,7 @@ export function SignOutButton({
   className?: string;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function signOut() {
@@ -38,16 +40,17 @@ export function SignOutButton({
 
   if (menuItem) {
     return (
+      // Desktop nav-user: red "Log out" with its icon.
       <DropdownMenuItem
-        className={className}
+        className={className ?? "text-red-600 focus:text-red-600"}
         disabled={isSigningOut}
         onSelect={(event) => {
           event.preventDefault();
           void signOut();
         }}
       >
-        <LogOut aria-hidden="true" className="size-4" />
-        {isSigningOut ? "Signing out…" : "Sign out"}
+        <LogOut aria-hidden="true" className="mr-2 size-4" />
+        {t("common.logOut")}
       </DropdownMenuItem>
     );
   }
@@ -60,7 +63,7 @@ export function SignOutButton({
       type="button"
       variant="secondary"
     >
-      Sign out
+      {t("common.logOut")}
     </AkiliButton>
   );
 }

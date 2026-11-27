@@ -14,8 +14,21 @@ describe("desktop navigation parity", () => {
     expect(routes).toContain("/dashboard/settings/merchant-wallets");
   });
 
-  it("uses the same Backup, Restore & Sync label in the sidebar and header", () => {
-    expect(findDesktopRoute("/dashboard/settings/backup")?.item.label).toBe("Backup, Restore & Sync");
+  it("uses the desktop Backup & Restore wording in the sidebar and header", () => {
+    expect(findDesktopRoute("/dashboard/settings/backup")?.item).toMatchObject({
+      label: "Backup & Restore", labelKey: "nav.backupRestore",
+    });
+  });
+
+  it("labels every menu item with the desktop translation key", () => {
+    // The desktop also shows these two items untranslated.
+    const untranslated = new Set(["/dashboard/finance/tax", "/dashboard/settings/merchant-wallets"]);
+    for (const group of desktopNavigation) {
+      expect(group.labelKey).toBeTruthy();
+      for (const item of group.items) {
+        expect(Boolean(item.labelKey)).toBe(!untranslated.has(item.href));
+      }
+    }
   });
 
   it("resolves every menu item to its own navigation group", () => {

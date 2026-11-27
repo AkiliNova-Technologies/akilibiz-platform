@@ -1,0 +1,45 @@
+# Web ↔ Desktop UI parity — screen plan
+
+Goal: a user moving between AkiliBiz Desktop and AkiliBiz Web sees the same words, buttons, inputs,
+cards and tables in the same places. The desktop is the reference.
+
+## How parity is kept
+
+1. **One set of words.** The web uses the desktop's dictionaries (`en-UG`, `lg-UG`, `sw-UG`) and
+   translate/format helpers, copied unchanged into `apps/business/lib/i18n` by
+   `node apps/business/scripts/sync-desktop-i18n.mjs`. Run it with `--check` after desktop wording
+   changes; it fails on any drift. Never edit `lib/i18n/*` on the web.
+2. **Same hook.** Web screens call `useI18n()` (`components/akilibiz/i18n/i18n-provider.tsx`), which has
+   the desktop hook's shape `{ locale, t, setLocale }`. Server components use `getI18n()`
+   (`lib/i18n/server.ts`). The language is a per-device cookie, so both agree.
+3. **Same structure.** Each web screen is rebuilt from its desktop source file: same page header,
+   heading and description, toolbar, filters, cards, table columns in the same order, dialogs, and empty,
+   loading and error states, using the same translation keys and Tailwind classes. Only data access
+   differs (hosted APIs instead of desktop commands).
+4. **Measured.** `node apps/business/scripts/ui-parity-report.mjs` writes `report.md`: for each screen,
+   the desktop labels the web does not show yet.
+
+## Status (27 November 2026)
+
+Overall label parity: **56 %** (1,643 of 2,925 desktop labels). See `report.md` for each screen.
+
+| Area | Status |
+| --- | --- |
+| Translations, language provider, language choice saved per device | Done |
+| Settings → Language | Done: same layout, keys and three languages (100 %) |
+| App shell: sidebar menu, page header, theme switch, account menu | Done: desktop keys, order and wording ("Backup, Restore & Sync" is now the desktop's "Backup & Restore"). Not applicable: the desktop's signed-out sidebar text (the web redirects to sign-in). |
+| All other screens | To rebuild from the desktop source, in this order (most used first): POS new sale, Products, Customers, Inventory, Suppliers and purchase orders, Dashboard, Sales history, Finance, Reports, Staff, Settings |
+
+## Platform differences that stay
+
+Web-only capabilities keep their own entries without moving any shared element:
+
+- **Switch business** in the account menu (one login can own several businesses on the web).
+- **Desktop synchronization** (`/dashboard/settings/desktop-sync`): web-side review of changes waiting
+  for the desktop. On the desktop, sync lives inside Backup & Restore.
+- Product and purchase-order **drafts** prepared on the web for desktop review.
+
+## Not yet verified
+
+Parity here is checked from source (wording, structure and classes). A visual side-by-side check of each
+screen at the desktop audit sizes (1024×768, 1280×720, 1366×768, 1600×900) is still required.

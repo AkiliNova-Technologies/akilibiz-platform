@@ -32,6 +32,7 @@ import {
   type NavigationGroup,
 } from "@/lib/desktop-navigation";
 import { navigationForBusinessRole } from "@/lib/navigation-access";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 import type {BusinessMembership} from "@/lib/business-context";
 
 const icons: Record<NavigationGroup["icon"], LucideIcon> = {
@@ -53,11 +54,15 @@ export function AppSidebar({
   account:AccountDisplay;
   businessRole:BusinessMembership["role"]|null;
 }){
+  const {t}=useI18n();
   const navMain:NavItem[]=navigationForBusinessRole(businessRole).map(item=>({
-    title:item.label,
-    url:item.label==="POS"?"/dashboard/pos":item.items[0].href,
+    title:item.labelKey?t(item.labelKey):item.label,
+    url:item.icon==="pos"?"/dashboard/pos":item.items[0].href,
     icon:icons[item.icon],
-    items:item.items.map(subItem=>({title:subItem.label,url:subItem.href})),
+    items:item.items.map(subItem=>({
+      title:subItem.labelKey?t(subItem.labelKey):subItem.label,
+      url:subItem.href,
+    })),
   }));
   return (
     <Sidebar collapsible="icon">
