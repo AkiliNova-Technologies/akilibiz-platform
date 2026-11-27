@@ -18,7 +18,7 @@ type Row = {
   entity_type: "customer" | "supplier";
   contact_id: string | null;
   contact_name: string | null;
-  state: "pending" | "applied" | "conflict";
+  state: ContactChangeRequest["state"];
   requested_at: string;
   applied_at: string | null;
   conflict_reason: string | null;
@@ -26,6 +26,9 @@ type Row = {
   current_record: Record<string, unknown> | null;
   resolution: ContactChangeRequest["resolution"];
   replacement_command_id: string | null;
+  expires_at: string | null;
+  withdrawn_reason: ContactChangeRequest["withdrawnReason"];
+  resent_command_id: string | null;
 };
 
 async function ownerContext() {
@@ -60,6 +63,9 @@ export async function GET() {
     conflictReason: row.conflict_reason,
     resolution: row.resolution,
     replacementCommandId: row.replacement_command_id,
+    expiresAt: row.expires_at,
+    withdrawnReason: row.withdrawn_reason,
+    resentCommandId: row.resent_command_id,
     fields: contactConflictFields(row.requested_changes, row.current_record),
     contactActive: row.contact_id !== null,
   }));
@@ -74,26 +80,49 @@ export async function POST(request: NextRequest) {
   const commandId = body?.commandId;
   const action = body?.action;
   if (typeof commandId !== "string" || !UUID.test(commandId) ||
-      (action !== "keep_desktop" && action !== "apply_mine")) {
+      !["keep_desktop", "apply_mine", "withdraw", "resend"].includes(action as string)) {
     return reply({ error: "Invalid conflict decision." }, 400);
   }
-  const { data, error } = await ctx.supabase.rpc(
-    action === "keep_desktop" ? "keep_desktop_contact_version" : "reapply_desktop_contact_change",
-    { target_business_id: ctx.business.id, target_command_id: commandId },
-  );
+  const rpcName = {
+    keep_desktop: "keep_desktop_contact_version",
+    apply_mine: "reapply_desktop_contact_change",
+    withdraw: "withdraw_desktop_contact_change",
+    resend: "resend_desktop_contact_change",
+  }[action as "keep_desktop" | "apply_mine" | "withdraw" | "resend"];
+  const { data, error } = await ctx.supabase.rpc(rpcName, {
+    target_business_id: ctx.business.id,
+    target_command_id: commandId,
+  });
   if (error) {
     const [status, message] =
       error.code === "PT409" ? [409, "This conflict was already resolved another way."]
       : error.code === "23505" ? [409, "Another change to this contact is still waiting for the desktop. Try again once it is confirmed."]
       : error.code === "40001" ? [409, "The contact changed again. Refresh and review it."]
       : error.code === "23503" ? [404, "This contact is no longer active on the desktop."]
-      : error.code === "55000" ? [409, "This change cannot be resolved now. Check that two-way contact editing is still enabled."]
+      : error.code === "55000" ? [409, action === "withdraw"
+        ? "This change has already been handled by the desktop, so it cannot be withdrawn."
+        : "This change cannot be handled now. Check that two-way contact editing is still enabled."]
       : error.code === "42501" ? [403, "You cannot resolve this change."]
       : [502, "The decision could not be saved."];
     return reply({ error: message }, status as number);
   }
   if (action === "keep_desktop") {
     return reply({ resolution: "kept_desktop", replacementCommandId: null }, 200);
+  }
+  if (action === "withdraw") {
+    return reply({
+      state: "withdrawn",
+      message: "Change withdrawn. If your desktop had already received it, it may still be applied.",
+    }, 200);
+  }
+  if (action === "resend") {
+    return reply({
+      state: data ? "resent" : "already_current",
+      replacementCommandId: typeof data === "string" ? data : null,
+      message: data
+        ? "Change sent again. It is applied once the desktop confirms it."
+        : "The desktop already has these values. Nothing needed sending.",
+    }, 200);
   }
   return reply({
     resolution: data ? "reapplied" : "already_current",

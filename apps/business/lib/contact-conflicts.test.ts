@@ -23,3 +23,15 @@ describe("contact conflict fields", () => {
     expect(needsDecision({ state: "pending", resolution: null })).toBe(false);
   });
 });
+
+describe("contact change recovery", () => {
+  it("asks for a decision on expired changes and allows a single resend", async () => {
+    const { needsDecision, canResend } = await import("./contact-conflicts");
+    expect(needsDecision({ state: "expired", resolution: null })).toBe(true);
+    expect(canResend({ state: "expired", resentCommandId: null, withdrawnReason: null })).toBe(true);
+    expect(canResend({ state: "withdrawn", resentCommandId: null, withdrawnReason: "owner" })).toBe(true);
+    expect(canResend({ state: "withdrawn", resentCommandId: "x", withdrawnReason: "expired_resent" })).toBe(false);
+    expect(canResend({ state: "withdrawn", resentCommandId: null, withdrawnReason: "already_current" })).toBe(false);
+    expect(canResend({ state: "pending", resentCommandId: null, withdrawnReason: null })).toBe(false);
+  });
+});

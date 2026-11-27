@@ -60,7 +60,24 @@ web contact change and decide each conflict:
 
 Hosted qualification (contact stage, 58 PASS, 0 FAIL) covers all three outcomes with the real desktop
 worker: a re-applied change is applied on the desktop, a kept conflict changes nothing, and an
-already-current conflict sends nothing. Step 4's command expiry and operational monitoring remain.
+already-current conflict sends nothing.
+
+## Expiry and recovery (27 November 2026)
+
+Migration `20261127200000`: a web edit still waiting after **7 days** is *expired*. The desktop no
+longer receives it, and a new edit to the same contact supersedes it (previously one stuck edit blocked
+every later edit to that contact). On the Desktop synchronization page the owner can **withdraw** a
+waiting edit, or **resend** an expired or withdrawn edit against the contact's current version (only
+fields that still differ are sent). If the desktop had already received an edit before it expired or was
+withdrawn, its result is still accepted, so a desktop receipt never stays unacknowledged.
+
+Hosted qualification (`AKILIBIZ_CONTACT_EXPIRY=1`, expiry simulated by backdating one disposable
+request): expired edits are withheld from delivery, a new edit supersedes an expired one, withdraw and
+resend are idempotent and the resent edit is delivered, a late desktop result is accepted, and a
+finished edit cannot be withdrawn. Contact stages together: 72 PASS, 0 FAIL.
+
+Contact *creation* and the product, purchasing and expense requests do not have expiry yet. Operational
+monitoring remains.
 
 ## Required next steps
 

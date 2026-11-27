@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 
 import {
+  canResend,
   needsDecision,
   type ContactChangeRequest,
 } from "@/lib/contact-conflicts";
@@ -30,6 +31,13 @@ const when = (value: string | null) =>
     ? new Date(value).toLocaleString("en-UG", { dateStyle: "medium", timeStyle: "short" })
     : "—";
 const show = (value: string | null) => (value && value.trim() ? value : "(empty)");
+type Action = "keep_desktop" | "apply_mine" | "withdraw" | "resend";
+const withdrawnText: Record<NonNullable<ContactChangeRequest["withdrawnReason"]>, string> = {
+  owner: "You withdrew this change.",
+  expired_resent: "It expired and you sent it again.",
+  expired_superseded: "It expired and a newer change replaced it.",
+  already_current: "It expired; the desktop already had your values.",
+};
 const resolutionText: Record<NonNullable<ContactChangeRequest["resolution"]>, string> = {
   kept_desktop: "You kept the desktop version.",
   reapplied: "You sent your change again.",
@@ -99,7 +107,7 @@ export function DesktopSyncRequestsPage() {
     queueMicrotask(() => void fetchRequests());
   }, [fetchRequests]);
 
-  const decide = async (request: ContactChangeRequest, action: "keep_desktop" | "apply_mine") => {
+  const decide = async (request: ContactChangeRequest, action: Action) => {
     setBusy(request.commandId);
     try {
       const response = await fetch("/api/sync/contact-conflicts", {
@@ -111,7 +119,7 @@ export function DesktopSyncRequestsPage() {
       const body = (await response.json()) as { error?: string; message?: string };
       if (!response.ok) throw new Error(body.error ?? "The decision could not be saved.");
       toast.success(
-        action === "keep_desktop" ? "Desktop version kept." : body.message ?? "Your change was sent again.",
+        action === "keep_desktop" ? "Desktop version kept." : body.message ?? "Done.",
       );
       await load();
     } catch (cause) {
@@ -124,7 +132,9 @@ export function DesktopSyncRequestsPage() {
   const requests = state.kind === "ready" ? state.requests : [];
   const decisions = requests.filter(needsDecision);
   const waiting = requests.filter((r) => r.state === "pending");
-  const done = requests.filter((r) => r.state === "applied" || (r.state === "conflict" && r.resolution));
+  const done = requests.filter(
+    (r) => r.state === "applied" || r.state === "withdrawn" || (r.state === "conflict" && r.resolution),
+  );
 
   return (
     <div className="space-y-6">
@@ -166,7 +176,39 @@ export function DesktopSyncRequestsPage() {
             {decisions.length === 0 ? (
               <p className="text-sm text-muted-foreground">No conflicts. Every web change matches the desktop.</p>
             ) : (
-              decisions.map((request) => (
+              decisions.map((request) => request.state === "expired" ? (
+                <Card key={request.commandId}>
+                  <CardHeader>
+                    <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+                      {request.contactName}
+                      <Badge variant="secondary">{request.entity === "customer" ? "Customer" : "Supplier"}</Badge>
+                      <Badge variant="outline">Expired</Badge>
+                    </CardTitle>
+                    <CardDescription>
+                      You sent this on {when(request.requestedAt)}, but your desktop did not pick it up within
+                      7 days, so it was not applied. Resend it to the desktop, or withdraw it.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FieldTable request={request} />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        disabled={busy !== null}
+                        onClick={() => void decide(request, "withdraw")}
+                      >
+                        Withdraw
+                      </Button>
+                      <Button
+                        disabled={busy !== null || !request.contactActive || !canResend(request)}
+                        onClick={() => void decide(request, "resend")}
+                      >
+                        {busy === request.commandId ? "Saving…" : "Resend"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
                 <Card key={request.commandId}>
                   <CardHeader>
                     <CardTitle className="flex flex-wrap items-center gap-2 text-base">
@@ -208,9 +250,22 @@ export function DesktopSyncRequestsPage() {
             ) : (
               <ul className="space-y-2">
                 {waiting.map((request) => (
-                  <li key={request.commandId} className="rounded-md border p-3 text-sm">
-                    <span className="font-medium">{request.contactName}</span> — sent {when(request.requestedAt)}.
-                    It is applied when your desktop next syncs.
+                  <li
+                    key={request.commandId}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+                  >
+                    <span>
+                      <span className="font-medium">{request.contactName}</span> — sent {when(request.requestedAt)}.
+                      It is applied when your desktop next syncs (expires {when(request.expiresAt)}).
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={busy !== null}
+                      onClick={() => void decide(request, "withdraw")}
+                    >
+                      Withdraw
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -224,11 +279,28 @@ export function DesktopSyncRequestsPage() {
             ) : (
               <ul className="space-y-2">
                 {done.map((request) => (
-                  <li key={request.commandId} className="rounded-md border p-3 text-sm">
-                    <span className="font-medium">{request.contactName}</span> —{" "}
-                    {request.state === "applied"
-                      ? `applied by the desktop ${when(request.appliedAt)}.`
-                      : resolutionText[request.resolution!]}
+                  <li
+                    key={request.commandId}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+                  >
+                    <span>
+                      <span className="font-medium">{request.contactName}</span> —{" "}
+                      {request.state === "applied"
+                        ? `applied by the desktop ${when(request.appliedAt)}.`
+                        : request.state === "withdrawn"
+                          ? withdrawnText[request.withdrawnReason ?? "owner"]
+                          : resolutionText[request.resolution!]}
+                    </span>
+                    {request.state === "withdrawn" && canResend(request) && request.contactActive && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busy !== null}
+                        onClick={() => void decide(request, "resend")}
+                      >
+                        Resend
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>

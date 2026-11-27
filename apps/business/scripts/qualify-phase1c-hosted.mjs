@@ -458,6 +458,73 @@ async function main() {
       mark(results, "web-to-desktop contact edits (stale reject, permission, lost ACK, restart, idempotent replay, offline, conflict)", "PASS");
     }
 
+    // Contact change expiry and recovery (owner + paired-device RPCs; expiry is
+    // simulated by backdating one disposable request with administrative SQL).
+    if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_CONTACT_EXPIRY === "1") {
+      runSql(
+        `insert into private.desktop_inbound_controls(business_id,contacts_enabled,enabled_at,enabled_by)
+         values (:'business'::uuid,true,now(),:'owner'::uuid)
+         on conflict (business_id) do update set contacts_enabled=true;`,
+        { business: manifest.businessBId, owner: signB.data.user.id },
+      );
+      const expiryOwner = client(process.env.SUPABASE_PUBLISHABLE_KEY);
+      const signed = await expiryOwner.auth.signInWithPassword({ email: manifest.userBEmail, password });
+      assert(signed.data.session, "owner session for expiry qualification failed");
+      const customers = await expectSuccess(results, "expiry: synchronized customer", expiryOwner
+        .from("desktop_customers").select("id,updated_at,phone")
+        .eq("business_id", manifest.businessBId).eq("local_business_public_id", sourceB).eq("is_active", true).limit(1));
+      assert(customers.length === 1, "an active synchronized customer is required for expiry qualification");
+      const target = customers[0];
+      const edit = async (phone) => {
+        const fresh = await expiryOwner.from("desktop_customers").select("id,updated_at").eq("id", target.id).single();
+        return expiryOwner.rpc("request_desktop_contact_update", {
+          target_business_id: manifest.businessBId, target_entity_type: "customer",
+          target_record_id: target.id, expected_updated_at: fresh.data.updated_at,
+          requested_changes: { phone },
+        });
+      };
+      const listState = async (id) => {
+        const rows = await expectSuccess(results, "expiry: owner change list", expiryOwner.rpc("list_desktop_contact_change_requests", { target_business_id: manifest.businessBId }));
+        return rows.find((row) => row.command_id === id);
+      };
+      const delivered = async () => {
+        const rows = await expectSuccess(results, "expiry: desktop delivery", expiryOwner.rpc("list_pending_desktop_contact_updates", { target_business_id: manifest.businessBId, source_business_public_id: sourceB, source_device_public_id: deviceB, batch_limit: 50 }));
+        return rows.map((row) => row.command_id);
+      };
+      const first = await edit("+256711000001");
+      assert(!first.error, `first edit: ${first.error?.message}`);
+      runSql(`update private.desktop_inbound_commands set requested_at=now()-interval '8 days' where id=:'id'::uuid and business_id=:'business'::uuid;`,
+        { id: first.data, business: manifest.businessBId });
+      assert((await listState(first.data))?.state === "expired", "a week-old waiting edit is expired");
+      assert(!(await delivered()).includes(first.data), "an expired edit is not delivered to the desktop");
+      mark(results, "expired contact edit is withheld from the desktop", "PASS");
+
+      const second = await edit("+256711000002");
+      assert(!second.error, `a new edit must supersede the expired one: ${second.error?.message}`);
+      const superseded = await listState(first.data);
+      assert(superseded?.state === "withdrawn" && superseded.withdrawn_reason === "expired_superseded", "expired edit superseded");
+      mark(results, "new edit supersedes an expired one", "PASS");
+
+      const withdrawn = await expiryOwner.rpc("withdraw_desktop_contact_change", { target_business_id: manifest.businessBId, target_command_id: second.data });
+      const again = await expiryOwner.rpc("withdraw_desktop_contact_change", { target_business_id: manifest.businessBId, target_command_id: second.data });
+      assert(withdrawn.data === "withdrawn" && again.data === "withdrawn", "withdraw is idempotent");
+      assert(!(await delivered()).includes(second.data), "a withdrawn edit is not delivered");
+      mark(results, "owner withdraws a waiting edit", "PASS");
+
+      const resent = await expiryOwner.rpc("resend_desktop_contact_change", { target_business_id: manifest.businessBId, target_command_id: second.data });
+      const resentAgain = await expiryOwner.rpc("resend_desktop_contact_change", { target_business_id: manifest.businessBId, target_command_id: second.data });
+      assert(typeof resent.data === "string" && resent.data === resentAgain.data, `resend is idempotent (${resent.error?.message})`);
+      assert((await delivered()).includes(resent.data), "the resent edit is delivered");
+      mark(results, "owner resends a withdrawn edit against the current version", "PASS");
+
+      // A desktop that received the first edit before it expired reports late.
+      const late = await expiryOwner.rpc("ack_desktop_contact_update", { target_business_id: manifest.businessBId, source_business_public_id: sourceB, source_device_public_id: deviceB, target_command_id: first.data, receipt_id: crypto.randomUUID(), outcome: "applied" });
+      assert(late.data === "applied", `a late desktop result is accepted (${late.error?.message})`);
+      const finished = await expiryOwner.rpc("withdraw_desktop_contact_change", { target_business_id: manifest.businessBId, target_command_id: first.data });
+      assert(finished.error?.code === "55000", "an applied edit cannot be withdrawn");
+      mark(results, "late desktop result accepted; finished edits cannot be withdrawn", "PASS");
+    }
+
     // Phase 2B web-to-desktop contact creation. Opt-in, disposable business only.
     if (process.env.AKILIBIZ_REAL_DESKTOP_WORKER === "1" && process.env.AKILIBIZ_CONTACT_CREATION === "1") {
       const createArgs = (business) => ({ target_business_id: business, target_entity_type: "customer", request_id: crypto.randomUUID(), contact_fields: { name: "Gate check" } });

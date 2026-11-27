@@ -89,3 +89,37 @@ describe("/api/sync/contact-conflicts", () => {
     expect((await POST(post({ commandId: "bad", action: "apply_mine" }))).status).toBe(400);
   });
 });
+
+describe("/api/sync/contact-conflicts expiry and recovery", () => {
+  const old = process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS;
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS = "1";
+    mocks.requireActiveBusiness.mockResolvedValue({ id: "business-a", role: "owner" });
+  });
+  afterEach(() => {
+    if (old === undefined) delete process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS;
+    else process.env.AKILIBIZ_ENABLE_BIDIRECTIONAL_CONTACTS = old;
+  });
+
+  it("withdraws a waiting change and explains a change already handled", async () => {
+    const rpc = client({ data: "withdrawn" });
+    const response = await POST(post({ commandId, action: "withdraw" }));
+    expect(response.status).toBe(200);
+    expect(rpc).toHaveBeenCalledWith("withdraw_desktop_contact_change", { target_business_id: "business-a", target_command_id: commandId });
+    client({ error: { code: "55000" } });
+    const refused = await POST(post({ commandId, action: "withdraw" }));
+    expect(refused.status).toBe(409);
+    expect((await refused.json()).error).toMatch(/already been handled/);
+  });
+
+  it("resends an expired change, or reports it is already current", async () => {
+    const rpc = client({ data: "33333333-3333-4333-8333-333333333333" });
+    expect(await (await POST(post({ commandId, action: "resend" }))).json())
+      .toMatchObject({ state: "resent", replacementCommandId: "33333333-3333-4333-8333-333333333333" });
+    expect(rpc).toHaveBeenCalledWith("resend_desktop_contact_change", { target_business_id: "business-a", target_command_id: commandId });
+    client({ data: null });
+    expect(await (await POST(post({ commandId, action: "resend" }))).json())
+      .toMatchObject({ state: "already_current" });
+  });
+});

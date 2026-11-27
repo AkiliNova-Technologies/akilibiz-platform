@@ -43,17 +43,28 @@ export type ContactChangeRequest = {
   commandId: string;
   entity: ContactEntity;
   contactName: string;
-  state: "pending" | "applied" | "conflict";
+  state: "pending" | "applied" | "conflict" | "expired" | "withdrawn";
   requestedAt: string;
   appliedAt: string | null;
   conflictReason: string | null;
   resolution: "kept_desktop" | "reapplied" | "already_current" | null;
   replacementCommandId: string | null;
+  expiresAt: string | null;
+  withdrawnReason: "owner" | "expired_resent" | "expired_superseded" | "already_current" | null;
+  resentCommandId: string | null;
   fields: ContactConflictField[];
   contactActive: boolean;
 };
 
-/** Conflicts still needing the owner's decision come first. */
+/** Unresolved conflicts and expired changes need the owner's decision. */
 export function needsDecision(request: Pick<ContactChangeRequest, "state" | "resolution">): boolean {
-  return request.state === "conflict" && request.resolution === null;
+  return (request.state === "conflict" && request.resolution === null) || request.state === "expired";
+}
+
+/** A withdrawn change the owner may still resend (not yet resent or already current). */
+export function canResend(
+  request: Pick<ContactChangeRequest, "state" | "resentCommandId" | "withdrawnReason">,
+): boolean {
+  return (request.state === "expired" || request.state === "withdrawn") &&
+    request.resentCommandId === null && request.withdrawnReason !== "already_current";
 }

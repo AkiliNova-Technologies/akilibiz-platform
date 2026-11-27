@@ -46,7 +46,7 @@ export function ContactEditDialog({ contact, entity, onClose }: {
   const [saving,setSaving]=useState(false);
   const [error,setError]=useState<string|null>(null);
   const [commandId,setCommandId]=useState<string|null>(null);
-  const [state,setState]=useState<"pending"|"applied"|"conflict"|null>(null);
+  const [state,setState]=useState<"pending"|"applied"|"conflict"|"expired"|"withdrawn"|null>(null);
 
   const save=async()=>{
     setError(null);
@@ -88,7 +88,7 @@ export function ContactEditDialog({ contact, entity, onClose }: {
         `/api/sync/contact-updates?id=${encodeURIComponent(commandId)}`,
         {cache:"no-store"});
       const result=await response.json() as {
-        state?: "pending"|"applied"|"conflict";error?:string;conflictReason?:string;
+        state?: "pending"|"applied"|"conflict"|"expired"|"withdrawn";error?:string;conflictReason?:string;
       };
       if(!response.ok||!result.state)throw new Error(
         result.error??"Could not read the update status."
@@ -127,8 +127,12 @@ export function ContactEditDialog({ contact, entity, onClose }: {
           ?"Queued for the paired desktop. It has not been applied yet."
           : state==="applied"
           ?"Applied on the desktop. Refresh the directory after the next outbound sync."
+          : state==="expired"
+          ?"Expired: the desktop did not pick this up within 7 days. Resend or withdraw it in Desktop synchronization."
+          : state==="withdrawn"
+          ?"Withdrawn: this change will not be sent to the desktop."
           :"Conflict: the desktop version was changed. No edit was overwritten."}
-        {state==="conflict"&&<Link href="/dashboard/settings/desktop-sync"
+        {(state==="conflict"||state==="expired")&&<Link href="/dashboard/settings/desktop-sync"
           className="mt-2 block font-medium underline underline-offset-4">
           Review and resolve in Desktop synchronization
         </Link>}
