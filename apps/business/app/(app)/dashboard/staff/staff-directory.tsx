@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { GrantAccessForm } from "./grant-access-form";
 import { deactivateStaffAccess } from "./staff-actions";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export type StaffMember = {
   user_id: string;
   email: string;
@@ -29,6 +30,7 @@ const roleLabel = (role: StaffMember["role"]) =>
   role.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 export function StaffDirectory({ members, error }: { members: StaffMember[]; error?: string | null }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [selected, setSelected] = useState<StaffRow | null>(null);
   const [editing, setEditing] = useState<StaffRow | null>(null);
@@ -43,15 +45,15 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
   const active = rows.filter((member) => member.active).length;
   const inactive = rows.length - active;
   const fields: TableField<StaffRow>[] = [
-    { key: "name", header: "Name", enableSorting: false,
+    { key: "name", header: t("staff.name"), enableSorting: false,
       cell: () => <span className="text-muted-foreground">—</span> },
-    { key: "email", header: "Email", enableSorting: true,
+    { key: "email", header: t("staff.email"), enableSorting: true,
       cell: (value) => <span className="break-all text-sm">{String(value)}</span> },
-    { key: "role", header: "Role", align: "center",
+    { key: "role", header: t("staff.role"), align: "center",
       cell: (value) => <Badge variant="outline">{roleLabel(value as StaffMember["role"])}</Badge> },
-    { key: "phone", header: "Phone", align: "center", enableSorting: false,
+    { key: "phone", header: t("staff.phone"), align: "center", enableSorting: false,
       cell: () => <span className="text-muted-foreground">—</span> },
-    { key: "status", header: "Status", align: "center",
+    { key: "status", header: t("staff.status"), align: "center",
       cell: (value) => <Badge variant={value === "Active" ? "outline" : "secondary"}>{String(value)}</Badge> },
   ];
   const actions: TableAction<StaffRow>[] = [
@@ -62,16 +64,16 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Staff Directory</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("staff.directory")}</h2>
         <p className="text-sm text-muted-foreground">Manage staff members and their access to your business.</p>
       </div>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Staff" value={error ? "—" : String(rows.length)}
+        <MetricCard title={t("staff.total")} value={error ? "—" : String(rows.length)}
           description={error ? "Staff records unavailable" : `${active} active, ${inactive} inactive`}
           icon={<Users className="size-5" />} />
-        <MetricCard title="Active Staff" value={error ? "—" : String(active)}
+        <MetricCard title={t("staff.active")} value={error ? "—" : String(active)}
           description="Currently active" icon={<UserCheck className="size-5" />} />
-        <MetricCard title="Inactive Staff" value={error ? "—" : String(inactive)}
+        <MetricCard title={t("staff.inactive")} value={error ? "—" : String(inactive)}
           description="Currently inactive" icon={<Clock3 className="size-5" />} />
         <MetricCard title="System Roles" value="System"
           description="Role-based business access" icon={<ShieldCheck className="size-5" />} />
@@ -79,7 +81,7 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<StaffRow>
-            title="Staff Management"
+            title={t("staff.management")}
             description="View and manage staff accounts and roles."
             data={rows}
             fields={fields}
@@ -107,7 +109,7 @@ export function StaffDirectory({ members, error }: { members: StaffMember[]; err
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Staff Profile</DialogTitle>
+            <DialogTitle>{t("staff.profile")}</DialogTitle>
             <DialogDescription>Review account information and business access.</DialogDescription>
           </DialogHeader>
           {selected && (

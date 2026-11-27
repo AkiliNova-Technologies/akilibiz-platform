@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { BusinessSettingsForm } from "./business-settings-form";
 
+import { getI18n } from "@/lib/i18n/server";
 export default async function BusinessSettingsPage() {
+  const { t } = await getI18n();
   const active = await requireActiveBusiness();
   const supabase = await createClient();
   const { data: business, error } = await supabase
@@ -35,7 +37,7 @@ export default async function BusinessSettingsPage() {
     <main className="flex flex-1 flex-col">
       <div className="mx-auto w-full max-w-8xl space-y-6">
         <div className="space-y-1 pt-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Business Profile</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("nav.businessProfile")}</h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Manage the verified profile for {active.name}. Changes are saved to this business only.
           </p>

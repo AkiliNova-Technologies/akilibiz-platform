@@ -15,11 +15,13 @@ import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-d
 import { ContactCreateDialog } from "@/components/akilibiz/contacts/contact-create-dialog";
 import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 function Unavailable() {
   return <span className="text-muted-foreground">—</span>;
 }
 
 export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContacts,pagination}:{suppliers:HostedSupplier[];error?:string|null;canEditContacts:boolean;canCreateContacts:boolean;pagination:DirectoryPagination}) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<HostedSupplier | null>(null);
   const [editing,setEditing]=useState<HostedSupplier|null>(null);
   const [creating,setCreating]=useState(false);
@@ -27,47 +29,47 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
 
   // The contact-directory query cannot establish purchases, payables or product counts.
   const fields: TableField<HostedSupplier>[] = [
-    { key: "name", header: "Supplier", enableSorting: true,
+    { key: "name", header: t("suppliers.supplier"), enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span> },
-    { key: "contact_person", header: "Contact Person", align: "center", enableSorting: true,
+    { key: "contact_person", header: t("suppliers.contactPerson"), align: "center", enableSorting: true,
       cell: (value) => String(value || "—") },
-    { key: "phone", header: "Phone", align: "center",
+    { key: "phone", header: t("sales.phone"), align: "center",
       cell: (value) => <span className="font-mono text-sm">{String(value || "—")}</span> },
-    { key: "email", header: "Email", align: "center",
+    { key: "email", header: t("customers.email"), align: "center",
       cell: (value) => <span className="text-sm">{String(value || "—")}</span> },
-    { key: "products_supplied", header: "Products", align: "center", enableSorting: false,
+    { key: "products_supplied", header: t("suppliers.products"), align: "center", enableSorting: false,
       cell: () => <Unavailable /> },
-    { key: "total_purchases", header: "Total Purchases", align: "right", enableSorting: false,
+    { key: "total_purchases", header: t("suppliers.totalPurchases"), align: "right", enableSorting: false,
       cell: () => <Unavailable /> },
-    { key: "outstanding_balance", header: "Outstanding", align: "right", enableSorting: false,
+    { key: "outstanding_balance", header: t("creditUi.outstanding"), align: "right", enableSorting: false,
       cell: () => <Unavailable /> },
-    { key: "last_supply_date", header: "Last Supply", align: "center", enableSorting: false,
+    { key: "last_supply_date", header: t("suppliers.lastSupply"), align: "center", enableSorting: false,
       cell: () => <Unavailable /> },
-    { key: "is_active", header: "Status", align: "center",
-      cell: (value) => <Badge variant={value ? "outline" : "secondary"}>{value ? "Active" : "Inactive"}</Badge> },
+    { key: "is_active", header: t("reports.status"), align: "center",
+      cell: (value) => <Badge variant={value ? "outline" : "secondary"}>{value ? t("common.active") : t("common.inactive")}</Badge> },
   ];
 
   const actions: TableAction<HostedSupplier>[] = [
-    { type: "view", label: "View supplier", onClick: setSelected },
+    { type: "view", label: t("suppliers.view"), onClick: setSelected },
     { type: "edit", label: "Edit supplier", onClick: setEditing, disabled: row => !canEditContacts || !row.is_active },
-    { type: "custom", label: "View purchases", icon: <ShoppingBag className="size-4" />,
+    { type: "custom", label: t("suppliers.viewPurchases"), icon: <ShoppingBag className="size-4" />,
       onClick: () => {}, disabled: () => true },
   ];
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Supplier Directory</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("suppliers.directory")}</h2>
         <p className="text-sm text-muted-foreground">Manage supplier information and purchasing relationships.</p>
       </div>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title={pagination.search ? "Matching Suppliers" : "Total Suppliers"} value={error ? "—" : String(pagination.total)}
+        <MetricCard title={pagination.search ? "Matching Suppliers" : t("suppliers.total")} value={error ? "—" : String(pagination.total)}
           description={error ? "Supplier information unavailable" : `${activeCount} active on this page`} icon={<Truck className="size-5" />} />
-        <MetricCard title="Active Suppliers" value={error ? "—" : String(activeCount)}
+        <MetricCard title={t("suppliers.active")} value={error ? "—" : String(activeCount)}
           description="Active on this page" icon={<Package className="size-5" />} />
-        <MetricCard title="Purchase Value" value="—"
+        <MetricCard title={t("suppliers.purchaseValue")} value="—"
           description="Purchase totals unavailable" icon={<Banknote className="size-5" />} />
-        <MetricCard title="Outstanding" value="—"
+        <MetricCard title={t("creditUi.outstanding")} value="—"
           description="Supplier payables unavailable" icon={<Wallet className="size-5" />} />
       </section>
 
@@ -75,7 +77,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<HostedSupplier>
-            title="Supplier Directory"
+            title={t("suppliers.directory")}
             description="View and manage supplier records."
             data={suppliers}
             fields={fields}
@@ -83,7 +85,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
             enableGlobalSearch={false}
             enablePagination={false}
             onRowClick={setSelected}
-            emptyMessage={error ?? "No suppliers found."}
+            emptyMessage={error ?? t("suppliers.empty")}
             toolbarActions={
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" disabled title="Supplier import is unavailable">
@@ -91,7 +93,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
                 </Button>
                 <ContactExportButton entity="suppliers" />
                 <Button type="button" disabled={!canCreateContacts} title={canCreateContacts ? "Request a supplier on the paired desktop" : "Contact creation is not yet enabled"} onClick={()=>setCreating(true)}>
-                  <Plus className="size-4" />Add Supplier
+                  <Plus className="size-4" />{t("suppliers.add")}
                 </Button>
               </div>
             }
@@ -105,7 +107,7 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Supplier Details</DialogTitle>
+            <DialogTitle>{t("suppliers.details")}</DialogTitle>
             <DialogDescription>Review the available contact information for this supplier.</DialogDescription>
           </DialogHeader>
           {selected && (
@@ -132,9 +134,9 @@ export function HostedSuppliers({suppliers,error,canEditContacts,canCreateContac
                 <Separator />
               </CardContent></Card>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setSelected(null)}>Close</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setSelected(null)}>{t("receipt.close")}</Button>
                 <Button className="flex-1" disabled={!canEditContacts||!selected.is_active}
-                  onClick={()=>{setEditing(selected);setSelected(null);}}>Edit Supplier</Button>
+                  onClick={()=>{setEditing(selected);setSelected(null);}}>{t("suppliers.edit")}</Button>
               </div>
             </div>
           )}

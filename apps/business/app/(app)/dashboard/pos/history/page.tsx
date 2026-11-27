@@ -34,11 +34,12 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import MetricCard from "@/components/akilibiz/metric-card";
-import { SaleListResponse, SalePaymentMethod, SaleStatus, formatSalesCurrency as formatCurrency, t, useSalesHistoryData } from "@/components/akilibiz/sales-history/sales-history-data";
+import { SaleListResponse, SalePaymentMethod, SaleStatus, formatSalesCurrency as formatCurrency, useSalesHistoryData } from "@/components/akilibiz/sales-history/sales-history-data";
 import { SalePrintPreviewDialog } from "@/components/akilibiz/documents/SalePrintPreviewDialog";
 import { toast } from "sonner";
 
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -148,6 +149,7 @@ function mapSaleRow(sale: SaleListResponse): SaleHistoryRow {
 // ============================================================================
 
 export default function SalesHistoryPage() {
+  const { t } = useI18n();
     const {
     sales,
     selectedSale,
@@ -513,9 +515,8 @@ export default function SalesHistoryPage() {
               pageSize={10}
               onRowClick={salesHistoryAvailable ? handleViewSale : undefined}
               emptyMessage={t("sales.empty")}
-              onRefresh={handleRefresh}
+              onRefresh={salesHistoryAvailable ? handleRefresh : undefined}
               refreshing={loading}
-              refreshDisabled={!salesHistoryAvailable}
             />
           </CardContent>
         </Card>
@@ -652,7 +653,7 @@ export default function SalesHistoryPage() {
                     <>
                       <div className="flex justify-between gap-4">
                         <span className="text-sm text-muted-foreground">
-                          Tax Classification
+                          {t("sales.taxClassification")}
                         </span>
                         {getTaxClassificationBadge(
                           selectedSale.tax_classification,
@@ -662,7 +663,7 @@ export default function SalesHistoryPage() {
                       {selectedSale.tax_rate && (
                         <div className="flex justify-between gap-4">
                           <span className="text-sm text-muted-foreground">
-                            Tax Rate
+                            {t("sales.taxRate")}
                           </span>
                           <span className="font-medium">
                             {selectedSale.tax_rate}%
@@ -672,7 +673,7 @@ export default function SalesHistoryPage() {
 
                       <div className="flex justify-between gap-4">
                         <span className="text-sm text-muted-foreground">
-                          Tax Amount
+                          {t("sales.taxAmount")}
                         </span>
                         <span className="font-medium">
                           {formatCurrency(selectedSale.tax_amount)}
@@ -682,7 +683,7 @@ export default function SalesHistoryPage() {
                       {selectedSale.tax_exclusive_amount && (
                         <div className="flex justify-between gap-4">
                           <span className="text-sm text-muted-foreground">
-                            Tax Exclusive Amount
+                            {t("sales.taxExclusive")}
                           </span>
                           <span className="font-medium">
                             {formatCurrency(selectedSale.tax_exclusive_amount)}

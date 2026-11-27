@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { onboardBusiness } from "./business-actions";
 import { initialBusinessFormState } from "@/lib/business-form-state";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function OnboardingForm() {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(onboardBusiness, initialBusinessFormState);
   const [step, setStep] = useState<2 | 3 | 4>(2);
   const [name, setName] = useState("");
@@ -43,7 +45,7 @@ export function OnboardingForm() {
           <Input id="new-business-name" name="name" value={name} onChange={e => setName(e.target.value)}
             maxLength={160} className={pill} required={step === 2} placeholder="e.g. Kampala Stores"/>
         </AkiliFormField>
-        <AkiliFormField id="new-trading-name" label="Trading name" optional>
+        <AkiliFormField id="new-trading-name" label={t("businessProfile.tradingName")} optional>
           <Input id="new-trading-name" name="tradingName" value={tradingName} maxLength={160}
             onChange={e => setTradingName(e.target.value)} className={pill}/>
         </AkiliFormField>
@@ -53,14 +55,14 @@ export function OnboardingForm() {
           <Input id="new-contact-phone" name="contactPhone" type="tel" maxLength={32} value={phone}
             onChange={e => setPhone(e.target.value)} className={pill} placeholder="+256"/>
         </AkiliFormField>
-        <AkiliFormField id="new-contact-email" label="Business email" optional>
+        <AkiliFormField id="new-contact-email" label={t("businessProfile.email")} optional>
           <Input id="new-contact-email" name="contactEmail" type="email" maxLength={320} value={email}
             onChange={e => setEmail(e.target.value)} className={pill}/>
         </AkiliFormField>
       </div>
       <div className={step === 4 ? "space-y-5" : "hidden"} aria-hidden={step !== 4}>
         <section aria-label="Business summary" className="space-y-3 rounded-xl bg-muted/40 px-4 py-4">
-          <h3 className="text-sm font-semibold">Business details</h3>
+          <h3 className="text-sm font-semibold">{t("businessProfile.details")}</h3>
           <dl className="space-y-3 text-sm">
             <div className="space-y-1">
               <dt className="text-xs text-muted-foreground">Business name</dt>
@@ -68,7 +70,7 @@ export function OnboardingForm() {
             </div>
             {tradingName ? (
               <div className="space-y-1">
-                <dt className="text-xs text-muted-foreground">Trading name</dt>
+                <dt className="text-xs text-muted-foreground">{t("businessProfile.tradingName")}</dt>
                 <dd className="break-words font-medium">{tradingName}</dd>
               </div>
             ) : null}
@@ -80,15 +82,15 @@ export function OnboardingForm() {
             ) : null}
             {email.trim() ? (
               <div className="space-y-1">
-                <dt className="text-xs text-muted-foreground">Business email</dt>
+                <dt className="text-xs text-muted-foreground">{t("businessProfile.email")}</dt>
                 <dd className="break-all font-medium">{email}</dd>
               </div>
             ) : null}
           </dl>
         </section>
-        <AkiliFormField id="new-currency" label="Currency">
+        <AkiliFormField id="new-currency" label={t("businessProfile.currency")}>
           <Select value={currency} onValueChange={setCurrency} disabled={isPending}>
-            <SelectTrigger id="new-currency" className="h-11 w-full rounded-full px-4" aria-label="Currency">
+            <SelectTrigger id="new-currency" className="h-11 w-full rounded-full px-4" aria-label={t("businessProfile.currency")}>
               <SelectValue placeholder="Choose currency" />
             </SelectTrigger>
             <SelectContent align="start">
@@ -105,9 +107,9 @@ export function OnboardingForm() {
       {state.error ? <StatusBanner title="Could not create business" tone="error">{state.error}</StatusBanner> : null}
       <div className="flex items-center gap-3 pt-2">
         <Button type="button" variant="outline" className="h-11 rounded-full px-6"
-          onClick={() => setStep((step - 1) as 2 | 3)} disabled={step === 2 || isPending}>Back</Button>
+          onClick={() => setStep((step - 1) as 2 | 3)} disabled={step === 2 || isPending}>{t("importExport.back")}</Button>
         {step < 4 ?
-          <Button type="button" className="h-11 flex-1 rounded-full" onClick={continueSetup} disabled={step === 2 && !name.trim()}>Continue</Button> :
+          <Button type="button" className="h-11 flex-1 rounded-full" onClick={continueSetup} disabled={step === 2 && !name.trim()}>{t("onboarding.continue")}</Button> :
           <AkiliButton type="submit" className="h-11 flex-1 rounded-full" disabled={isPending} loading={isPending}>
             {isPending ? "Creating business…" : "Create business"}
           </AkiliButton>}

@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import type { Position, ProductSummary, CategorySummary } from "@/components/akilibiz/inventory/hosted-inventory";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type AlertStatus = "Low Stock" | "Out of Stock" | "Critical";
 type AlertRow = TableData & {
   id: string;
@@ -38,6 +39,7 @@ function StatusBadge({ status }: { status: AlertStatus }) {
 }
 
 export function HostedLowStockAlerts({ positions, products, categories, error, categoryError }: { positions: Position[]; products: ProductSummary[]; categories: CategorySummary[]; error?: string | null; categoryError?: string | null }) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<AlertRow | null>(null);
   const [restock, setRestock] = useState<AlertRow | null>(null);
   const [quantity, setQuantity] = useState("");
@@ -82,16 +84,16 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
   const criticalCount = alertsComplete ? rows.filter((row) => row.status === "Critical").length : null;
 
   const fields: TableField<AlertRow>[] = [
-    { key: "product_name", header: "Product", enableSorting: true, cell: (value) => <span className="font-medium">{String(value)}</span> },
-    { key: "sku", header: "SKU", align: "center", cell: (value) => <span className="font-mono text-sm">{String(value)}</span> },
-    { key: "category", header: "Category", align: "center", enableSorting: false, cell: (value) => value ? <span>{String(value)}</span> : <span className="text-muted-foreground">—</span> },
-    { key: "current_stock", header: "Current Stock", align: "center", enableSorting: true, cell: (_, row) =>
+    { key: "product_name", header: t("inventory.product"), enableSorting: true, cell: (value) => <span className="font-medium">{String(value)}</span> },
+    { key: "sku", header: t("productForm.sku"), align: "center", cell: (value) => <span className="font-mono text-sm">{String(value)}</span> },
+    { key: "category", header: t("finance.category"), align: "center", enableSorting: false, cell: (value) => value ? <span>{String(value)}</span> : <span className="text-muted-foreground">—</span> },
+    { key: "current_stock", header: t("inventory.currentStock"), align: "center", enableSorting: true, cell: (_, row) =>
       <Badge variant={row.current_stock <= 0 ? "destructive" : "outline"}>{formatQuantity(row.current_stock, row.stock_unit)}</Badge> },
-    { key: "min_stock", header: "Min Stock", align: "center", enableSorting: true, cell: (_, row) =>
+    { key: "min_stock", header: t("inventory.minStock"), align: "center", enableSorting: true, cell: (_, row) =>
       <span className="text-sm text-muted-foreground">{formatQuantity(row.min_stock, row.stock_unit)}</span> },
-    { key: "shortage", header: "Shortage", align: "center", enableSorting: true, cell: (_, row) =>
+    { key: "shortage", header: t("stockAlerts.shortage"), align: "center", enableSorting: true, cell: (_, row) =>
       <span className="font-medium">{formatQuantity(row.shortage, row.stock_unit)}</span> },
-    { key: "status", header: "Status", align: "center", cell: (value) => <StatusBadge status={value as AlertStatus} /> },
+    { key: "status", header: t("reports.status"), align: "center", cell: (value) => <StatusBadge status={value as AlertStatus} /> },
     { key: "last_updated", header: "Stock Snapshot", align: "center", enableSorting: false, cell: (value) =>
       <span className="text-muted-foreground">{typeof value === "string" && !Number.isNaN(Date.parse(value)) ? new Intl.DateTimeFormat("en-UG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Kampala" }).format(new Date(value)) : "—"}</span> },
   ];
@@ -103,7 +105,7 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
     setNotes("");
   };
   const actions: TableAction<AlertRow>[] = [
-    { type: "view", label: "View", onClick: setSelected },
+    { type: "view", label: t("reports.view"), onClick: setSelected },
     { type: "custom", label: "Restock (unavailable)", icon: <ArrowUp className="size-4" />, onClick: openRestock, disabled: () => true },
   ];
 
@@ -115,27 +117,27 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Low Stock Items" value={error || lowCount === null ? "—" : String(lowCount)}
+        <MetricCard title={t("inventory.lowStockItems")} value={error || lowCount === null ? "—" : String(lowCount)}
           description="Products below minimum stock" icon={<Package className="size-5" />} />
-        <MetricCard title="Out of Stock" value={error || outCount === null ? "—" : String(outCount)}
+        <MetricCard title={t("inventory.outOfStock")} value={error || outCount === null ? "—" : String(outCount)}
           description="Products currently unavailable" icon={<TrendingDown className="size-5" />} />
         <MetricCard title="Critical Stock" value={error || criticalCount === null ? "—" : String(criticalCount)}
           description="Products needing urgent attention" icon={<AlertTriangle className="size-5" />} />
-        <MetricCard title="Value at Risk" value="—"
+        <MetricCard title={t("stockAlerts.riskValue")} value="—"
           description="Product cost values unavailable" icon={<ClipboardList className="size-5" />} />
       </section>
 
       <Card>
         <CardContent className="px-6 pb-6">
           <DataTable<AlertRow>
-            title="Low Stock Alerts" description={categoryError ?? "Products that need restocking."}
+            title={t("stockAlerts.title")} description={categoryError ?? "Products that need restocking."}
             data={rows} fields={fields} actions={actions}
             enableGlobalSearch searchPlaceholder="Search stock alerts..."
             pageSize={10} onRowClick={setSelected}
             emptyMessage={error ?? (alertsComplete
               ? "No products currently need restocking."
               : "No verified low stock alerts to display. Some stock quantities or minimum levels are unavailable.")}
-            onRefresh={() => {}} refreshDisabled
+            
           />
         </CardContent>
       </Card>
@@ -143,7 +145,7 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Stock Alert Details</DialogTitle>
+            <DialogTitle>{t("stockAlerts.details")}</DialogTitle>
             <DialogDescription>Review the stock shortage for this product.</DialogDescription>
           </DialogHeader>
           {selected && (
@@ -164,12 +166,12 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
                   </div>
                 ))}
                 <div className="flex justify-between gap-4">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">{t("reports.status")}</span>
                   <StatusBadge status={selected.status} />
                 </div>
               </CardContent></Card>
               <Button className="w-full" disabled title="Stock posting is not connected">
-                <ArrowUp className="size-4" />Restock Product
+                <ArrowUp className="size-4" />{t("stockAlerts.restockProduct")}
               </Button>
             </div>
           )}
@@ -179,28 +181,28 @@ export function HostedLowStockAlerts({ positions, products, categories, error, c
       <Dialog open={restock !== null} onOpenChange={(open) => { if (!open) setRestock(null); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Restock Product</DialogTitle>
+            <DialogTitle>{t("stockAlerts.restockProduct")}</DialogTitle>
             <DialogDescription>Review the planned quantity for {restock?.product_name}. Saving stock adjustments is not yet available.</DialogDescription>
           </DialogHeader>
           {restock && (
             <div className="space-y-4">
               <Card><CardContent className="space-y-3 p-4">
-                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Current Stock</span><span>{formatQuantity(restock.current_stock, restock.stock_unit)}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Minimum Stock</span><span>{formatQuantity(restock.min_stock, restock.stock_unit)}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-muted-foreground">Shortage</span><span>{formatQuantity(restock.shortage, restock.stock_unit)}</span></div>
+                <div className="flex justify-between"><span className="text-sm text-muted-foreground">{t("inventory.currentStock")}</span><span>{formatQuantity(restock.current_stock, restock.stock_unit)}</span></div>
+                <div className="flex justify-between"><span className="text-sm text-muted-foreground">{t("stockAlerts.minStock")}</span><span>{formatQuantity(restock.min_stock, restock.stock_unit)}</span></div>
+                <div className="flex justify-between"><span className="text-sm text-muted-foreground">{t("stockAlerts.shortage")}</span><span>{formatQuantity(restock.shortage, restock.stock_unit)}</span></div>
               </CardContent></Card>
-              <div className="space-y-2"><FieldLabel required>Quantity</FieldLabel>
+              <div className="space-y-2"><FieldLabel required>{t("inventory.quantity")}</FieldLabel>
                 <Input type="number" min="0" step="0.001" value={quantity} onChange={(event) => setQuantity(event.target.value)} />
               </div>
-              <div className="space-y-2"><FieldLabel required>Reason</FieldLabel>
+              <div className="space-y-2"><FieldLabel required>{t("inventory.reason")}</FieldLabel>
                 <Input value={reason} onChange={(event) => setReason(event.target.value)} />
               </div>
-              <div className="space-y-2"><Label>Notes</Label>
+              <div className="space-y-2"><Label>{t("inventory.notes")}</Label>
                 <Textarea rows={4} value={notes} onChange={(event) => setNotes(event.target.value)} />
               </div>
               <Separator />
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setRestock(null)}>Cancel</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setRestock(null)}>{t("pos.cancel")}</Button>
                 <Button type="button" className="flex-1" disabled title="Stock posting is unavailable">Save Restock</Button>
               </div>
             </div>

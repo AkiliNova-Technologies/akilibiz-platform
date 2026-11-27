@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Contact = {
   id:string;
   updated_at:string;
@@ -37,6 +38,7 @@ const fields = {
 export function ContactEditDialog({ contact, entity, onClose }: {
   contact:Contact;entity:"customer"|"supplier";onClose:()=>void;
 }) {
+  const { t } = useI18n();
   const config=fields[entity] as readonly {
     key:string;label:string;required:boolean;max:number;
   }[];
@@ -141,13 +143,13 @@ export function ContactEditDialog({ contact, entity, onClose }: {
         </span>}
       </p>}
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onClose}>Close</Button>
+        <Button variant="outline" onClick={onClose}>{t("receipt.close")}</Button>
         {!commandId
           ?<Button disabled={saving} onClick={()=>void save()}>
             {saving?"Queueing…":"Queue changes"}
           </Button>
           :<Button variant="outline" disabled={saving} onClick={()=>void check()}>
-            {saving?"Checking…":"Check status"}
+            {saving?t("financeHome.checking"):"Check status"}
           </Button>}
       </div>
     </DialogContent>

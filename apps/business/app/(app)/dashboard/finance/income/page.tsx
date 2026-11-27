@@ -54,6 +54,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = IncomeRow & TableData;
 type Form = {
   categoryId: string;
@@ -111,6 +112,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function FinanceIncomePage() {
+  const { t } = useI18n();
   const {
     incomeEntries,
     incomeSummary,
@@ -169,30 +171,30 @@ export default function FinanceIncomePage() {
     });
     setSubmitting(false);
     if (!entry) {
-      toast.error("Failed to record income");
+      toast.error(t("income.saveFailed"));
       return;
     }
-    toast.success("Income recorded successfully");
+    toast.success(t("income.saved"));
     setFormOpen(false);
     setForm(freshForm());
   };
   const fields: TableField<Row>[] = [
     {
       key: "reference",
-      header: "Reference",
+      header: t("finance.reference"),
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
       ),
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "source",
-      header: "Source",
+      header: t("income.source"),
       enableSorting: true,
       cell: (value) => (
         <span className="font-medium">{String(value || "-")}</span>
@@ -200,7 +202,7 @@ export default function FinanceIncomePage() {
     },
     {
       key: "amount",
-      header: "Amount",
+      header: t("finance.amount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -211,36 +213,35 @@ export default function FinanceIncomePage() {
     },
     {
       key: "method",
-      header: "Method",
+      header: t("finance.method"),
       align: "center",
       cell: (value) => <MethodBadge method={String(value)} />,
     },
     {
       key: "date",
-      header: "Date",
+      header: t("finance.date"),
       align: "center",
       enableSorting: true,
       cell: (value) => formatFinanceDate(String(value)),
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => <StatusBadge status={String(value)} />,
     },
   ];
   const actions: TableAction<Row>[] = [
-    { type: "view", label: "View income", onClick: openDetails },
+    { type: "view", label: t("income.view"), onClick: openDetails },
   ];
   return (
     <>
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">Income Management</h2>
+            <h2 className="text-2xl font-semibold">{t("income.title")}</h2>
             <p className="text-sm text-muted-foreground">
-              Track incoming revenue, customer payments, and other business
-              income sources.
+              {t("income.description")}
             </p>
           </div>
           <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
@@ -254,40 +255,40 @@ export default function FinanceIncomePage() {
           ) : null}
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              title="Total Income"
+              title={t("income.total")}
               value={incomeSummary ? formatFinanceCurrency(incomeSummary.total_income) : "—"}
-              description="All recorded income excluding cancelled entries"
+              description={t("income.totalDescription")}
               icon={<ArrowUp className="size-5" />}
             />
             <MetricCard
-              title="Received Income"
+              title={t("income.received")}
               value={incomeSummary ? formatFinanceCurrency(incomeSummary.received_income) : "—"}
-              description="Income already confirmed or verified"
+              description={t("income.receivedDescription")}
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
-              title="Pending Income"
+              title={t("income.pending")}
               value={incomeSummary ? formatFinanceCurrency(incomeSummary.pending_income) : "—"}
-              description="Income awaiting confirmation"
+              description={t("income.pendingDescription")}
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
-              title="Income Categories"
+              title={t("income.categories")}
               value={incomeSummary ? String(incomeSummary.income_categories) : "—"}
-              description="Tracked income sources"
+              description={t("income.categoriesDescription")}
               icon={<CircleDollarSign className="size-5" />}
             />
           </section>
           <Card>
             <CardContent>
               <DataTable<Row>
-                title="Income Register"
-                description="Track income entries, collection methods, and confirmation status"
+                title={t("income.register")}
+                description={t("income.registerDescription")}
                 data={rows}
                 fields={fields}
                 actions={actions}
                 enableGlobalSearch
-                searchPlaceholder="Search income..."
+                searchPlaceholder={t("income.search")}
                 pageSize={10}
                 loading={loading}
                 onRowClick={openDetails}
@@ -297,7 +298,7 @@ export default function FinanceIncomePage() {
                     <Button
                       variant="outline"
                       onClick={() => void refreshIncome()}
-                      disabled size="icon" aria-label="Refresh" title="Refresh">
+                      disabled size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")}>
                       {loading ? (
                         <LoaderCircle className="size-4 animate-spin" />
                       ) : (
@@ -313,7 +314,7 @@ export default function FinanceIncomePage() {
                         setFormOpen(true);
                       }}>
                       <Plus className="mr-2 size-4" />
-                      Record Income
+                      {t("income.record")}
                     </Button>
                   </div>
                 }
@@ -325,9 +326,9 @@ export default function FinanceIncomePage() {
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Income Details</DialogTitle>
+            <DialogTitle>{t("income.details")}</DialogTitle>
             <DialogDescription>
-              Review income information and collection status.
+              {t("income.detailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {selected ? (
@@ -348,17 +349,17 @@ export default function FinanceIncomePage() {
                 ))}
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Method</span>
+                  <span className="text-sm text-muted-foreground">{t("finance.method")}</span>
                   <MethodBadge method={selected.method} />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Date</span>
+                  <span className="text-sm text-muted-foreground">{t("finance.date")}</span>
                   <span className="font-medium">
                     {formatFinanceDate(selected.date)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">{t("reports.status")}</span>
                   <StatusBadge status={selected.status} />
                 </div>
                 {selected.description ? (
@@ -366,7 +367,7 @@ export default function FinanceIncomePage() {
                     <Separator />
                     <div>
                       <p className="mb-1 text-sm text-muted-foreground">
-                        Description
+                        {t("finance.description")}
                       </p>
                       <p className="text-sm">{selected.description}</p>
                     </div>
@@ -380,21 +381,21 @@ export default function FinanceIncomePage() {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Record Income</DialogTitle>
+            <DialogTitle>{t("income.record")}</DialogTitle>
             <DialogDescription>
-              Capture a new income entry for business finance tracking.
+              {t("income.createDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel required>Category</FieldLabel>
+                <FieldLabel required>{t("finance.category")}</FieldLabel>
                 <Select
                   value={form.categoryId}
                   onValueChange={(value) => setField("categoryId", value)}>
                   <SelectTrigger
                     className={`w-full ${errors.categoryId ? "border-red-500" : ""}`}>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("productForm.selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     {incomeCategories.map((category) => (
@@ -409,13 +410,13 @@ export default function FinanceIncomePage() {
                 ) : null}
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Amount</FieldLabel>
+                <FieldLabel required>{t("finance.amount")}</FieldLabel>
                 <Input
                   type="number"
                   min="0"
                   value={form.amount}
                   onChange={(event) => setField("amount", event.target.value)}
-                  placeholder="Enter amount"
+                  placeholder={t("income.enterAmount")}
                   className={errors.amount ? "border-red-500" : ""}
                 />
                 {errors.amount ? (
@@ -425,15 +426,15 @@ export default function FinanceIncomePage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Source</Label>
+                <Label>{t("income.source")}</Label>
                 <Input
                   value={form.source}
                   onChange={(event) => setField("source", event.target.value)}
-                  placeholder="Enter income source"
+                  placeholder={t("income.enterSource")}
                 />
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Income Date</FieldLabel>
+                <FieldLabel required>{t("income.incomeDate")}</FieldLabel>
                 <Input
                   type="date"
                   value={form.date}
@@ -447,51 +448,51 @@ export default function FinanceIncomePage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Collection Method</Label>
+                <Label>{t("income.collectionMethod")}</Label>
                 <Select
                   value={form.method}
                   onValueChange={(value) =>
                     setField("method", value as FinancePaymentMethod)
                   }>
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder={t("income.selectMethod")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="mobile_money">Mobile Money</SelectItem>
-                    <SelectItem value="card">Card</SelectItem>
+                    <SelectItem value="cash">{t("pos.cash")}</SelectItem>
+                    <SelectItem value="bank_transfer">{t("finance.cashflow.bankTransfer")}</SelectItem>
+                    <SelectItem value="mobile_money">{t("pos.mobileMoney")}</SelectItem>
+                    <SelectItem value="card">{t("pos.card")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>{t("reports.status")}</Label>
                 <Select
                   value={form.status}
                   onValueChange={(value) =>
                     setField("status", value as IncomeStatus)
                   }>
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder={t("income.selectStatus")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="received">Received</SelectItem>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="pending">{t("sales.pending")}</SelectItem>
+                    <SelectItem value="received">{t("income.receivedStatus")}</SelectItem>
+                    <SelectItem value="verified">{t("income.verifiedStatus")}</SelectItem>
+                    <SelectItem value="cancelled">{t("sales.cancelledStatus")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("finance.description")}</Label>
               <Textarea
                 rows={4}
                 value={form.description}
                 onChange={(event) =>
                   setField("description", event.target.value)
                 }
-                placeholder="Enter income description"
+                placeholder={t("income.enterDescription")}
               />
             </div>
           </div>
@@ -500,7 +501,7 @@ export default function FinanceIncomePage() {
               variant="outline"
               onClick={() => setFormOpen(false)}
               disabled={submitting}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={() => void submit()} disabled title="Income posting is not connected">
               {submitting ? (

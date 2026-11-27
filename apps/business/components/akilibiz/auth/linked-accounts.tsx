@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 /** Linking is explicit and only starts from an authenticated account. */
 export function LinkedAccounts({ googleConnected }: { googleConnected: boolean }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +37,7 @@ export function LinkedAccounts({ googleConnected }: { googleConnected: boolean }
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h3 className="font-semibold">Google account</h3>
-        <p className="text-sm text-muted-foreground">{googleConnected ? "Connected" : "Not connected"}</p>
+        <p className="text-sm text-muted-foreground">{googleConnected ? "Connected" : t("wallets.notConnected")}</p>
       </div>
       {!googleConnected ? <Button type="button" variant="outline" className="rounded-full" disabled={busy}
         onClick={() => void linkGoogle()}>{busy ? "Connecting…" : "Connect Google"}</Button> : null}

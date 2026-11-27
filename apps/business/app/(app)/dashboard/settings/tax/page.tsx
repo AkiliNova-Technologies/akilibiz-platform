@@ -5,13 +5,15 @@ import { TaxSettingsForm } from "@/components/akilibiz/settings/tax-settings-for
 import { useBrowserTaxSettings } from "@/components/akilibiz/settings/tax-settings-data";
 import { Button } from "@/components/ui/button";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export default function TaxSettingsPage() {
+  const { t } = useI18n();
   const tax = useBrowserTaxSettings();
   return (
     <main className="flex min-w-0 flex-1 flex-col">
       <div className="flex min-w-0 flex-col gap-4 md:gap-6">
         <div className="space-y-2 pt-1">
-          <h1 className="text-xl font-semibold sm:text-2xl">Tax Configuration</h1>
+          <h1 className="text-xl font-semibold sm:text-2xl">{t("nav.taxConfiguration")}</h1>
           <p className="text-sm text-muted-foreground">
             Manage VAT registration details and how tax appears on receipts.
           </p>

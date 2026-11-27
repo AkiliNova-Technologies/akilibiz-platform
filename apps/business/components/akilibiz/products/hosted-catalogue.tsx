@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export type HostedCategoryRow = TableData & {
   id: string;
   name: string;
@@ -95,6 +96,7 @@ export function HostedCatalogue({
   pagination?: CataloguePagination;
   draftsEnabled: boolean;
 }) {
+  const { t } = useI18n();
   const [selectedProduct, setSelectedProduct] = useState<HostedProductRow | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HostedCategoryRow | null>(null);
   const categoryNames = useMemo(
@@ -104,63 +106,63 @@ export function HostedCatalogue({
 
   // Only verified synced snapshots are shown; no inventory values or margins are estimated.
   const productFields: TableField<HostedProductRow>[] = [
-    { key: "name", header: "Product Name", enableSorting: true },
+    { key: "name", header: t("productForm.name"), enableSorting: true },
     {
       key: "sku",
-      header: "SKU",
+      header: t("productForm.sku"),
       align: "center",
       cell: (value) => <span className="font-mono text-sm">{String(value)}</span>,
     },
     {
       key: "category_id",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       cell: (_, row) => (
-        <Badge variant="outline">{categoryNames.get(row.category_id) ?? "Unknown"}</Badge>
+        <Badge variant="outline">{categoryNames.get(row.category_id) ?? t("products.unknownCategory")}</Badge>
       ),
     },
     {
       key: "tax_classification",
-      header: "Tax",
+      header: t("receipt.tax"),
       align: "center",
       enableSorting: false,
       cell: () => <NotAvailable />,
     },
     {
       key: "selling_price_ugx",
-      header: "Selling Price",
+      header: t("products.sellingPrice"),
       align: "center",
       enableSorting: true,
       cell: (value) => <span className="font-semibold">{money(value as number | null)}</span>,
     },
     {
       key: "cost_price_ugx",
-      header: "Cost Price",
+      header: t("products.costPrice"),
       align: "center",
       enableSorting: true,
       cell: (value) => <span className="text-sm text-muted-foreground">{money(value as number | null)}</span>,
     },
     {
       key: "stock_quantity",
-      header: "Stock",
+      header: t("products.stock"),
       align: "center",
       enableSorting: false,
       cell: (_, row) => <span className="text-sm">{stockLabel(row.stock_quantity, row.stock_unit)}</span>,
     },
     {
       key: "profit_margin",
-      header: "Margin",
+      header: t("products.margin"),
       align: "center",
       enableSorting: false,
       cell: () => <NotAvailable />,
     },
     {
       key: "is_active",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => (
         <Badge variant={value ? "outline" : "secondary"}>
-          {value ? "Active" : "Inactive"}
+          {value ? t("common.active") : t("common.inactive")}
         </Badge>
       ),
     },
@@ -180,7 +182,7 @@ export function HostedCatalogue({
     },
     {
       type: "delete",
-      label: "Deactivate product",
+      label: t("products.deactivateAction"),
       onClick: () => {},
       disabled: () => true,
     },
@@ -190,26 +192,26 @@ export function HostedCatalogue({
   const categoryFields: TableField<HostedCategoryRow>[] = [
     {
       key: "name",
-      header: "Name",
+      header: t("customers.name"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "slug",
-      header: "Slug",
+      header: t("categories.slug"),
       align: "center",
       cell: (value) => <Badge variant="secondary">{String(value)}</Badge>,
     },
     {
       key: "description",
-      header: "Description",
+      header: t("finance.description"),
       cell: (value) => (
         <span className="line-clamp-1 text-wrap text-sm text-muted-foreground">{String(value || "—")}</span>
       ),
     },
     {
       key: "local_category_id",
-      header: "Products",
+      header: t("suppliers.products"),
       align: "center",
       enableSorting: false,
       cell: (_, row) => <Badge variant="outline">{assignedProductCount(row.id)}</Badge>,
@@ -230,13 +232,13 @@ export function HostedCatalogue({
     },
     {
       key: "is_active",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
-      cell: (value) => <Badge variant={value ? "outline" : "secondary"}>{value ? "Active" : "Inactive"}</Badge>,
+      cell: (value) => <Badge variant={value ? "outline" : "secondary"}>{value ? t("common.active") : t("common.inactive")}</Badge>,
     },
     {
       key: "created_at",
-      header: "Created",
+      header: t("products.created"),
       align: "center",
       enableSorting: false,
       cell: () => <NotAvailable />,
@@ -244,7 +246,7 @@ export function HostedCatalogue({
   ];
 
   const categoryActions: TableAction<HostedCategoryRow>[] = [
-    { type: "view", label: "View category", onClick: setSelectedCategory },
+    { type: "view", label: t("categories.view"), onClick: setSelectedCategory },
     { type: "edit", label: "Edit category", onClick: () => {}, disabled: () => true },
     { type: "delete", label: "Deactivate category", onClick: () => {}, disabled: () => true },
   ];
@@ -255,23 +257,23 @@ export function HostedCatalogue({
     return (
       <div className="flex min-w-0 flex-1 flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Category Management</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">{t("categories.management")}</h2>
           <p className="text-sm text-muted-foreground">View the categories synchronized from AkiliBiz Desktop.</p>
         </div>
         <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <MetricCard title="Total Categories" value={error ? "—" : String(categories.length)}
+          <MetricCard title={t("categories.total")} value={error ? "—" : String(categories.length)}
             description={error ? "Category data unavailable" : `${activeCategories} active categories`} icon={<FolderTree className="size-5" />} />
-          <MetricCard title="Assigned Products" value={error ? "—" : String(assignedProducts)}
+          <MetricCard title={t("categories.assignedProducts")} value={error ? "—" : String(assignedProducts)}
             description="Products assigned to categories" icon={<Package className="size-5" />} />
           <MetricCard title="Inventory Value" value="—"
             description="Stock valuation unavailable" icon={<Archive className="size-5" />} />
-          <MetricCard title="Active Categories" value={error ? "—" : String(activeCategories)}
+          <MetricCard title={t("categories.activeTitle")} value={error ? "—" : String(activeCategories)}
             description="Categories currently in use" icon={<Banknote className="size-5" />} />
         </section>
         <Card>
           <CardContent className="min-w-0 px-6 pb-6">
             <DataTable<HostedCategoryRow>
-              title="Product Categories"
+              title={t("categories.tableTitle")}
               description="Browse synchronized categories. Changes are currently made on the desktop."
               data={categories}
               emptyMessage={error ?? "No categories found."}
@@ -287,14 +289,14 @@ export function HostedCatalogue({
                     <Upload className="size-4" />Import
                   </Button>
                   <Button type="button" variant="outline" disabled title="Import history unavailable">
-                    <History className="size-4" />Import History
+                    <History className="size-4" />{t("products.importHistory")}
                   </Button>
                   <CatalogueExportButton entity="categories" />
-                  <Button type="button" variant="outline" size="icon" disabled aria-label="Refresh" title="Category refresh unavailable">
+                  <Button type="button" variant="outline" size="icon" disabled aria-label={t("pos.refresh")} title="Category refresh unavailable">
                     <RefreshCw className="size-4" />
                   </Button>
                   <Button type="button" disabled title="Category creation unavailable">
-                    <Plus className="size-4" />Add Category
+                    <Plus className="size-4" />{t("categories.add")}
                   </Button>
                 </div>
               }
@@ -305,7 +307,7 @@ export function HostedCatalogue({
         <Dialog open={selectedCategory !== null} onOpenChange={(open) => { if (!open) setSelectedCategory(null); }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Category Details</DialogTitle>
+              <DialogTitle>{t("categories.details")}</DialogTitle>
               <DialogDescription>View category information and assigned products.</DialogDescription>
             </DialogHeader>
             {selectedCategory ? (
@@ -313,25 +315,25 @@ export function HostedCatalogue({
                 <Card>
                   <CardContent className="space-y-3 p-4">
                     <div className="flex justify-between gap-4">
-                      <span className="text-sm text-muted-foreground">Name</span>
+                      <span className="text-sm text-muted-foreground">{t("customers.name")}</span>
                       <span className="text-right font-medium">{selectedCategory.name}</span>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-sm text-muted-foreground">Slug</span>
+                      <span className="text-sm text-muted-foreground">{t("categories.slug")}</span>
                       <Badge variant="secondary">{selectedCategory.slug}</Badge>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-sm text-muted-foreground">Status</span>
+                      <span className="text-sm text-muted-foreground">{t("reports.status")}</span>
                       <Badge variant={selectedCategory.is_active ? "outline" : "secondary"}>
-                        {selectedCategory.is_active ? "Active" : "Inactive"}
+                        {selectedCategory.is_active ? t("common.active") : t("common.inactive")}
                       </Badge>
                     </div>
                     <div className="border-t pt-3">
-                      <p className="mb-1 text-sm text-muted-foreground">Description</p>
+                      <p className="mb-1 text-sm text-muted-foreground">{t("finance.description")}</p>
                       <p className="text-sm">{selectedCategory.description || "No description"}</p>
                     </div>
                     <div className="flex justify-between gap-4 border-t pt-3">
-                      <span className="text-sm text-muted-foreground">Products</span>
+                      <span className="text-sm text-muted-foreground">{t("suppliers.products")}</span>
                       <span className="font-medium">{assignedProductCount(selectedCategory.id)}</span>
                     </div>
                     <div className="flex justify-between gap-4">
@@ -343,12 +345,12 @@ export function HostedCatalogue({
                       <NotAvailable />
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-sm text-muted-foreground">Created</span>
+                      <span className="text-sm text-muted-foreground">{t("products.created")}</span>
                       <NotAvailable />
                     </div>
                   </CardContent>
                 </Card>
-                <Button type="button" variant="outline" className="w-full" disabled>Edit Category</Button>
+                <Button type="button" variant="outline" className="w-full" disabled>{t("categories.edit")}</Button>
               </div>
             ) : null}
           </DialogContent>
@@ -360,7 +362,7 @@ export function HostedCatalogue({
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Product Catalogue</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("products.catalogTitle")}</h2>
         <p className="text-sm text-muted-foreground">
           View the products, prices, and stock information synchronized from AkiliBiz Desktop.
         </p>
@@ -368,25 +370,25 @@ export function HostedCatalogue({
 
       <section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Total Products"
+          title={t("products.total")}
           value={error ? "—" : String(pagination?.total ?? products.length)}
           description={error ? "Product data unavailable" : `${products.filter((product) => product.is_active).length} active on this page`}
           icon={<Package className="size-5" />}
         />
         <MetricCard
-          title="Stock Risk"
+          title={t("products.stockRisk")}
           value="—"
           description={stockError ?? "Stock risk summary unavailable"}
           icon={<AlertTriangle className="size-5" />}
         />
         <MetricCard
-          title="Inventory Cost Value"
+          title={t("inventory.stockValue")}
           value="—"
           description="Stock valuation unavailable"
           icon={<Archive className="size-5" />}
         />
         <MetricCard
-          title="Average Margin"
+          title={t("products.averageMargin")}
           value="—"
           description="Margin data unavailable"
           icon={<Banknote className="size-5" />}
@@ -397,7 +399,7 @@ export function HostedCatalogue({
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<HostedProductRow>
-            title="Product Catalogue"
+            title={t("products.catalogTitle")}
             description="Browse synchronized products. Changes are currently made on the desktop."
             data={products}
             emptyMessage={error ?? "No products found."}
@@ -414,12 +416,12 @@ export function HostedCatalogue({
                 </Button>
                 <Button type="button" variant="outline" disabled title="Import history unavailable">
                   <History className="size-4" />
-                  Import History
+                  {t("products.importHistory")}
                 </Button>
                 <CatalogueExportButton entity="products" />
                 <Button type="button" variant="outline" size="icon" disabled title="Catalogue refresh unavailable">
                   <RefreshCw className="size-4" />
-                  <span className="sr-only">Refresh</span>
+                  <span className="sr-only">{t("pos.refresh")}</span>
                 </Button>
                 <Button type="button" variant="outline" disabled title="Variants management unavailable">
                   <Layers className="size-4" />
@@ -435,7 +437,7 @@ export function HostedCatalogue({
                 ) : (
                   <Button disabled title="Product preparation is not enabled yet">
                     <Plus className="size-4" />
-                    Add Product
+                    {t("products.add")}
                   </Button>
                 )}
               </div>
@@ -447,7 +449,7 @@ export function HostedCatalogue({
       <Dialog open={selectedProduct !== null} onOpenChange={(open) => { if (!open) setSelectedProduct(null); }}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-5xl min-w-0 overflow-x-hidden overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Product Details</DialogTitle>
+            <DialogTitle>{t("products.details")}</DialogTitle>
             <DialogDescription>Review the available information for this product.</DialogDescription>
           </DialogHeader>
           {selectedProduct ? (
@@ -471,8 +473,8 @@ export function HostedCatalogue({
                 </div>
               ))}
               <div className="flex justify-end gap-2 sm:col-span-2">
-                <Button variant="outline" onClick={() => setSelectedProduct(null)}>Close</Button>
-                <Button variant="outline" disabled>Edit Product</Button>
+                <Button variant="outline" onClick={() => setSelectedProduct(null)}>{t("receipt.close")}</Button>
+                <Button variant="outline" disabled>{t("products.edit")}</Button>
               </div>
             </div>
           ) : null}

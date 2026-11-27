@@ -33,6 +33,7 @@ import { RiskBadge } from "@/components/akilibiz/risk-badge";
 import { toast } from "sonner";
 import MetricCard from "@/components/akilibiz/metric-card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -88,6 +89,7 @@ function getDaysOverdue(dueDate: string | null | undefined): number {
 // ============================================================================
 
 export default function CreditOrdersPage() {
+  const { t } = useI18n();
   const { sales, getSales, recordSalePayment, loading, scores, getCustomerRisk } = useCreditOrdersData();
   // Financial records and posting are not available in the hosted credit service yet.
   const creditDataAvailable = false;
@@ -174,7 +176,7 @@ export default function CreditOrdersPage() {
       amount <= 0 ||
       amount > selectedOrder.balance_due
     ) {
-      toast.error("Payment must be a whole UGX amount within the outstanding balance");
+      toast.error(t("creditOrders.amountError"));
       return;
     }
 
@@ -202,48 +204,48 @@ export default function CreditOrdersPage() {
   const handleRefresh = async () => {
     if (!creditDataAvailable) return;
     await getSales({ limit: 500 });
-    toast.success("Credit orders refreshed");
+    toast.success(t("creditOrders.refreshed"));
   };
 
   // Define table fields
   const fields: TableField<CreditOrder>[] = [
     {
       key: "sale_number",
-      header: "Invoice",
+      header: t("sales.invoice"),
       cell: (value) => (
         <span className="font-mono text-xs">{String(value)}</span>
       ),
     },
     {
       key: "customer_name",
-      header: "Customer",
+      header: t("pos.customer"),
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "risk_level",
-      header: "Risk",
+      header: t("creditOrders.risk"),
       cell: (_value, row) => {
         if (row.risk_level && row.risk_score !== undefined) {
           return <RiskBadge level={row.risk_level} score={row.risk_score} />;
         }
-        return <Badge variant="outline">N/A</Badge>;
+        return <Badge variant="outline">{t("staff.notAvailable")}</Badge>;
       },
     },
     {
       key: "total_amount",
-      header: "Total",
+      header: t("pos.total"),
       align: "right",
       cell: (value) => formatCurrency(Number(value)),
     },
     {
       key: "amount_paid",
-      header: "Paid",
+      header: t("receipt.paid"),
       align: "right",
       cell: (value) => formatCurrency(Number(value)),
     },
     {
       key: "balance_due",
-      header: "Balance",
+      header: t("creditOrders.balance"),
       align: "right",
       cell: (value) => (
         <span className="font-semibold">{formatCurrency(Number(value))}</span>
@@ -251,21 +253,21 @@ export default function CreditOrdersPage() {
     },
     {
       key: "due_date",
-      header: "Due Date",
+      header: t("pos.dueDate"),
       cell: (value) => formatDate(value as string | null | undefined),
     },
     {
       key: "payment_status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => {
         const status = String(value).toLowerCase();
         switch (status) {
           case "paid":
-            return <Badge variant="secondary">Paid</Badge>;
+            return <Badge variant="secondary">{t("receipt.paid")}</Badge>;
           case "partial":
-            return <Badge variant="outline">Partial</Badge>;
+            return <Badge variant="outline">{t("creditOrders.partialStatus")}</Badge>;
           case "unpaid":
-            return <Badge variant="destructive">Unpaid</Badge>;
+            return <Badge variant="destructive">{t("creditOrders.unpaidStatus")}</Badge>;
           default:
             return <Badge variant="outline">{String(value)}</Badge>;
         }
@@ -273,7 +275,7 @@ export default function CreditOrdersPage() {
     },
     {
       key: "created_at",
-      header: "Order Date",
+      header: t("creditOrders.orderDate"),
       cell: (value) => formatDate(String(value)),
     },
   ];
@@ -282,7 +284,7 @@ export default function CreditOrdersPage() {
   const actions: TableAction<CreditOrder>[] = [
     {
       type: "custom",
-      label: "Record Payment",
+      label: t("creditOrders.recordPayment"),
       icon: <Banknote className="size-4" />,
       onClick: handleRecordPayment,
       disabled: (row) => !paymentPostingAvailable || row.balance_due <= 0,
@@ -295,42 +297,42 @@ export default function CreditOrdersPage() {
         <div className="flex flex-1 flex-col gap-6 pb-4 md:pb-6">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Credit Management
+              {t("creditOrders.management")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Track outstanding balances, overdue payments, and customer credit risk.
+              {t("creditOrders.description")}
             </p>
           </div>
           {/* SUMMARY METRIC CARDS */}
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Outstanding"
+              title={t("creditOrders.outstanding")}
               value={creditDataAvailable ? formatCurrency(totalOutstanding) : "—"}
-              description={creditDataAvailable ? `Across ${creditOrders.length} credit orders` : "Balance data unavailable"}
+              description={creditDataAvailable ? t("creditOrders.across", { count: creditOrders.length }) : "Balance data unavailable"}
               icon={<Receipt className="size-5" />}
             />
             <MetricCard
-              title="Overdue Orders"
+              title={t("creditOrders.overdue")}
               value={creditDataAvailable ? String(overdueOrders.length) : "—"}
               description={
                 !creditDataAvailable ? "Overdue orders unavailable" : overdueOrders.length > 0
-                  ? "Require immediate attention"
-                  : "No overdue orders"
+                  ? t("creditOrders.requireAttention")
+                  : t("creditOrders.noOverdue")
               }
               icon={<AlertTriangle className="size-5" />}
             />
 
             <MetricCard
-              title="Partially Paid"
+              title={t("creditOrders.partial")}
               value={creditDataAvailable ? String(partiallyPaidOrders.length) : "—"}
-              description={creditDataAvailable ? "Payments in progress" : "Payment status unavailable"}
+              description={creditDataAvailable ? t("creditOrders.partialDescription") : "Payment status unavailable"}
               icon={<Clock className="size-5" />}
             />
 
             <MetricCard
-              title="Unpaid Orders"
+              title={t("creditOrders.unpaid")}
               value={creditDataAvailable ? String(unpaidOrders.length) : "—"}
-              description={creditDataAvailable ? "Awaiting first payment" : "Payment status unavailable"}
+              description={creditDataAvailable ? t("creditOrders.unpaidDescription") : "Payment status unavailable"}
               icon={<WalletCards className="size-5" />}
             />
           </section>
@@ -342,21 +344,20 @@ export default function CreditOrdersPage() {
                 data={creditOrders}
                 fields={fields}
                 actions={actions}
-                title="Credit Orders"
-                description="Track and manage customer credit orders"
+                title={t("creditOrders.title")}
+                description={t("creditOrders.tableDescription")}
                 loading={loading}
                 enableSelection={false}
                 enablePagination={true}
                 pageSize={20}
                 pageSizeOptions={[10, 20, 50, 100]}
                 enableGlobalSearch={true}
-                searchPlaceholder="Search by invoice or customer..."
+                searchPlaceholder={t("creditOrders.search")}
                 enableColumnVisibility={true}
                 enableSorting={true}
-                emptyMessage="No credit orders available."
-                onRefresh={handleRefresh}
+                emptyMessage={t("creditOrders.empty")}
+                onRefresh={creditDataAvailable ? handleRefresh : undefined}
                 refreshing={loading}
-                refreshDisabled={!creditDataAvailable}
               />
             </CardContent>
           </Card>
@@ -367,9 +368,9 @@ export default function CreditOrdersPage() {
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
+            <DialogTitle>{t("creditOrders.recordPayment")}</DialogTitle>
             <DialogDescription>
-              Record a payment for{" "}
+              {t("creditOrders.paymentDescription")}{" "}
               <span className="font-medium">{selectedOrder?.sale_number}</span>
             </DialogDescription>
           </DialogHeader>
@@ -378,26 +379,26 @@ export default function CreditOrdersPage() {
             <Card className="border-border/60 py-0">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Customer</span>
+                  <span className="text-muted-foreground">{t("pos.customer")}</span>
                   <span className="font-medium">
                     {selectedOrder?.customer_name}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Total Due</span>
+                  <span className="text-muted-foreground">{t("pos.totalDue")}</span>
                   <span className="font-medium">
                     {formatCurrency(selectedOrder?.total_amount || 0)}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Already Paid</span>
+                  <span className="text-muted-foreground">{t("creditOrders.alreadyPaid")}</span>
                   <span className="font-medium">
                     {formatCurrency(selectedOrder?.amount_paid || 0)}
                   </span>
                 </div>
                 <div className="my-3 border-t" />
                 <div className="flex items-center justify-between text-base font-semibold">
-                  <span>Outstanding Balance</span>
+                  <span>{t("customers.outstandingBalance")}</span>
                   <span className="text-destructive">
                     {formatCurrency(selectedOrder?.balance_due || 0)}
                   </span>
@@ -406,7 +407,7 @@ export default function CreditOrdersPage() {
             </Card>
 
             <div className="space-y-2">
-              <Label htmlFor="paymentAmount">Payment Amount</Label>
+              <Label htmlFor="paymentAmount">{t("creditOrders.paymentAmount")}</Label>
               <Input
                 id="paymentAmount"
                 type="number"
@@ -415,20 +416,20 @@ export default function CreditOrdersPage() {
                 max={selectedOrder?.balance_due}
                 value={paymentAmount}
                 onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder="Enter amount"
+                placeholder={t("creditOrders.enterAmount")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Payment Method</Label>
+              <Label className="text-sm font-medium">{t("pos.paymentMethod")}</Label>
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select payment method" />
+                  <SelectValue placeholder={t("creditOrders.selectMethod")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="mobile_money">Mobile Money</SelectItem>
-                  <SelectItem value="card">Card / Bank</SelectItem>
+                  <SelectItem value="cash">{t("pos.cash")}</SelectItem>
+                  <SelectItem value="mobile_money">{t("pos.mobileMoney")}</SelectItem>
+                  <SelectItem value="card">{t("creditOrders.cardBank")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -439,11 +440,11 @@ export default function CreditOrdersPage() {
               variant="outline"
               onClick={() => setPaymentDialogOpen(false)}
               disabled={loading}>
-              Cancel
+              {t("common.cancel")}
             </Button>
 
             <Button onClick={handleSubmitPayment} disabled={!paymentPostingAvailable || loading}>
-              {loading ? "Recording..." : "Confirm Payment"}
+              {loading ? t("creditOrders.recording") : t("creditOrders.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

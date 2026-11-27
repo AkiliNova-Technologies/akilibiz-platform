@@ -8,6 +8,7 @@
 //   * shared UI primitives (buttons, dialogs, ...) -> components/ui
 //   * POS quantity and selling-unit rules          -> lib/desktop-shared
 //   * the searchable select used by the POS        -> components/akilibiz/desktop-shared
+//   * the data table, receipt dialog and layout    -> components/akilibiz
 //
 //   node scripts/sync-desktop-i18n.mjs          copy from the desktop repository
 //   node scripts/sync-desktop-i18n.mjs --check  fail if any web copy has drifted
@@ -31,18 +32,27 @@ const FILES = [
   ...["pos-quantity", "sale-unit-conversion", "product-quantity-behavior", "product-units"]
     .map((f) => [`src/components/${f}.ts`, `lib/desktop-shared/${f}.ts`]),
   ["src/components/searchable-select.tsx", "components/akilibiz/desktop-shared/searchable-select.tsx"],
+  // The data table every list screen uses, with its empty state and refresh button.
+  ["src/components/data-table.tsx", "components/akilibiz/data-table.tsx"],
+  ["src/components/feedback/feedback-state.tsx", "components/akilibiz/desktop-shared/feedback-state.tsx"],
+  ["src/components/date-range-picker.tsx", "components/akilibiz/date-range-picker.tsx"],
+  ["src/components/date-range-utils.ts", "components/akilibiz/date-range-utils.ts"],
+  ["src/components/refresh-button.tsx", "components/akilibiz/desktop-shared/refresh-button.tsx"],
   // Receipts: the desktop's canonical receipt type, layout, print formats,
   // print service and receipt dialog.
   ["src/types/receipt.ts", "lib/desktop-shared/receipt-types.ts"],
   ["src/services/receipt-print-profiles.ts", "lib/desktop-shared/receipt-print-profiles.ts"],
   ["src/services/receipt-print-service.ts", "lib/desktop-shared/receipt-print-service.ts"],
-  ...["receipt-presentation-utils.ts", "ReceiptPresentation.tsx", "templates/DocumentTemplatePreview.tsx", "SalePrintPreviewDialog.tsx"]
+  ...["receipt-presentation-utils.ts", "ReceiptPresentation.tsx", "templates/DocumentTemplatePreview.tsx", "SalePrintPreviewDialog.tsx", "ReceiptSettingsPreview.tsx"]
     .map((f) => [`src/components/documents/${f}`, `components/akilibiz/documents/desktop/${f}`]),
 ];
 
 // Desktop import -> web location. Desktop-only data sources map to web
 // adapters with the same exports (components/akilibiz/documents/desktop-adapters).
 const IMPORTS = [
+  ["@/components/date-range-utils", "@/components/akilibiz/date-range-utils"],
+  ["@/components/feedback/feedback-state", "@/components/akilibiz/desktop-shared/feedback-state"],
+  ["@/components/refresh-button", "@/components/akilibiz/desktop-shared/refresh-button"],
   ["@/types/receipt", "@/lib/desktop-shared/receipt-types"],
   ["@/services/receipt-print-profiles", "@/lib/desktop-shared/receipt-print-profiles"],
   ["@/services/receipt-print-service", "@/lib/desktop-shared/receipt-print-service"],

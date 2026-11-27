@@ -172,7 +172,8 @@ export function useTaxManagement(section: TaxSection) {
   },[section]);
   useEffect(()=>{
     void Promise.resolve().then(refresh);
-    return ()=>{sequence.current++;};
+    const current=sequence;
+    return ()=>{current.current++;};
   },[refresh]);
   return {view,loading,error,refresh};
 }

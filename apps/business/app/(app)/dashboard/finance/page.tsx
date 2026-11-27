@@ -18,6 +18,7 @@ import {
 } from "@/components/akilibiz/finance/finance-overview-data";
 import { FinancialMirrorStatus } from "@/components/akilibiz/finance/financial-mirror-status";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type FinanceRow = FinanceOverviewTransaction & TableData;
 
 function TypeBadge({
@@ -31,6 +32,7 @@ function TypeBadge({
 }
 
 export default function FinanceOverviewPage() {
+  const { t } = useI18n();
   const { overviewSummary, overviewTransactions, loading, error, lastSuccessfulSync, isStale, refreshOverview } =
     useFinanceOverviewData();
   useEffect(() => {
@@ -43,14 +45,14 @@ export default function FinanceOverviewPage() {
   const fields: TableField<FinanceRow>[] = [
     {
       key: "reference",
-      header: "Reference",
+      header: t("finance.reference"),
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
       ),
     },
     {
       key: "entry_type",
-      header: "Type",
+      header: t("finance.type"),
       align: "center",
       cell: (value) => (
         <TypeBadge type={value as FinanceOverviewTransaction["entry_type"]} />
@@ -58,13 +60,13 @@ export default function FinanceOverviewPage() {
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "amount",
-      header: "Amount",
+      header: t("finance.amount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -75,7 +77,7 @@ export default function FinanceOverviewPage() {
     },
     {
       key: "method",
-      header: "Method",
+      header: t("finance.method"),
       align: "center",
       cell: (value) => (
         <span className="text-sm text-muted-foreground">
@@ -87,7 +89,7 @@ export default function FinanceOverviewPage() {
     },
     {
       key: "date",
-      header: "Date",
+      header: t("sales.date"),
       align: "center",
       enableSorting: true,
       cell: (value) => (
@@ -101,32 +103,32 @@ export default function FinanceOverviewPage() {
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold">Financial Overview</h2>
+          <h2 className="text-2xl font-semibold">{t("financeHome.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Monitor income, expenses, and overall business financial health.
+            {t("financeHome.description")}
           </p>
         </div>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Total Income"
+            title={t("income.total")}
             value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_income) : "—"}
-            description="Revenue generated"
+            description={t("financeHome.revenue")}
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
-            title="Total Expenses"
+            title={t("financeHome.totalExpenses")}
             value={overviewSummary ? formatFinanceCurrency(overviewSummary.total_expenses) : "—"}
-            description="Operational costs"
+            description={t("financeHome.costs")}
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
-            title="Net Balance"
+            title={t("finance.netBalance")}
             value={overviewSummary ? formatFinanceCurrency(overviewSummary.net_balance) : "—"}
             description="Profit / Loss position"
             icon={<Banknote className="size-5" />}
           />
           <MetricCard
-            title="Cash Position"
+            title={t("finance.cashPosition")}
             value={overviewSummary ? formatFinanceCurrency(overviewSummary.cash_position) : "—"}
             description="Available working balance"
             icon={<WalletCards className="size-5" />}
@@ -136,16 +138,16 @@ export default function FinanceOverviewPage() {
         <Card>
           <CardContent>
             <DataTable<FinanceRow>
-              title="Recent Transactions"
-              description="Latest income and expense activities"
+              title={t("finance.transactions")}
+              description={t("financeHome.transactionsDescription")}
               data={rows}
               fields={fields}
               enableGlobalSearch
-              searchPlaceholder="Search transactions..."
+              searchPlaceholder={t("financeHome.search")}
               pageSize={5}
               emptyMessage={
                 loading
-                  ? "Loading recent transactions..."
+                  ? t("financeHome.loading")
                   : "No finance transactions available."
               }
             />

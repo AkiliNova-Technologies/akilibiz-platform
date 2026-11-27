@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/select";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 const initial: StaffActionState = { error: null, message: null };
 
 export function GrantAccessForm({ initialEmail = "", initialRole }: {
   initialEmail?: string;
   initialRole?: "manager" | "cashier" | "inventory_staff" | "accountant";
 }) {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState(grantStaffAccess, initial);
   return (
     <form action={action} className="space-y-4">
@@ -32,8 +34,8 @@ export function GrantAccessForm({ initialEmail = "", initialRole }: {
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="cashier">Cashier</SelectItem>
+              <SelectItem value="manager">{t("accountUi.manager")}</SelectItem>
+              <SelectItem value="cashier">{t("customers.cashier")}</SelectItem>
               <SelectItem value="inventory_staff">Inventory staff</SelectItem>
               <SelectItem value="accountant">Accountant</SelectItem>
             </SelectContent>

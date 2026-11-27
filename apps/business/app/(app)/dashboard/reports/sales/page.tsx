@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = {
   sale_number: string;
   sale_date_utc: string;
@@ -46,6 +47,7 @@ const ugx = (value: number) =>
   }).format(value);
 
 export default function ReportsSalesPage() {
+  const { t } = useI18n();
   const { sales, getSalesRegister, getSaleReportDrillDown, loading, error } = useReportsSalesData();
   useEffect(() => { void getSalesRegister({ skip: 0, limit: 5000 }); }, [getSalesRegister]);
   const [from, setFrom] = useState("");
@@ -100,28 +102,28 @@ export default function ReportsSalesPage() {
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     { key: "sale_date_utc", header: "UTC date" },
-    { key: "customer", header: "Customer" },
+    { key: "customer", header: t("pos.customer") },
     {
       key: "total",
-      header: "Total",
+      header: t("sales.total"),
       align: "right",
       cell: (value) => ugx(Number(value)),
     },
     {
       key: "paid",
-      header: "Paid",
+      header: t("receipt.paid"),
       align: "right",
       cell: (value) => ugx(Number(value)),
     },
     {
       key: "balance",
-      header: "Balance",
+      header: t("receipt.balance"),
       align: "right",
       cell: (value) => ugx(Number(value)),
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
   ];
@@ -143,7 +145,7 @@ export default function ReportsSalesPage() {
           {loading && <p role="status" className="text-sm text-muted-foreground">Loading sales…</p>}
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div>
-            <h2 className="text-2xl font-semibold">Sales Reports</h2>
+            <h2 className="text-2xl font-semibold">{t("nav.salesReports")}</h2>
             <p className="text-sm text-muted-foreground">
               Sales register for {period}. Cancelled and reversal history
               remains visible.
@@ -151,21 +153,21 @@ export default function ReportsSalesPage() {
           </div>
           <section className="grid gap-4 md:grid-cols-3">
             <MetricCard
-              title="Sales shown"
+              title={t("salesReportUi.salesShown")}
               value={loading ? "…" : error ? "—" : rows.length.toLocaleString("en-UG")}
               description={period}
               icon={<Eye className="size-5" />}
             />
             <MetricCard
-              title="Total billed"
+              title={t("salesReportUi.totalBilled")}
               value={loading || error ? "—" : ugx(totalBilled)}
-              description="Exact UGX in this returned register"
+              description={t("salesReportUi.billedDescription")}
               icon={<Eye className="size-5" />}
             />
             <MetricCard
-              title="Outstanding"
+              title={t("salesReportUi.outstanding")}
               value={loading || error ? "—" : ugx(outstanding)}
-              description="Exact reported balance"
+              description={t("salesReportUi.outstandingDescription")}
               icon={<Eye className="size-5" />}
             />
           </section>
@@ -173,7 +175,7 @@ export default function ReportsSalesPage() {
             <CardContent className="grid gap-4 px-4 md:grid-cols-4 md:items-end">
               <DateRangePicker
                 id="sales-report-date-range"
-                label="Date range (UTC)"
+                label={t("dashboard.dateRange")}
                 from={draftFrom}
                 to={draftTo}
                 onRangeChange={(nextFrom, nextTo) => {
@@ -198,7 +200,7 @@ export default function ReportsSalesPage() {
                     void getSalesRegister({date_from:draftFrom,date_to:draftTo,skip:0,limit:5000});
                   }}
                   disabled={!draftFrom || !draftTo}>
-                  Apply period
+                  {t("dashboard.applyPeriod")}
                 </Button>
               </div>
             </CardContent>
@@ -206,7 +208,7 @@ export default function ReportsSalesPage() {
           <Card>
             <CardContent>
               <DataTable<Row>
-                title="Sales Register"
+                title={t("salesReportUi.register")}
                 helpText="Shows the sales register for the selected UTC period, including cancelled and reversal history."
                 description="Select a row to review sale detail."
                 data={rows}
@@ -221,7 +223,7 @@ export default function ReportsSalesPage() {
                       <Download className="size-4" aria-hidden="true"/>Export CSV
                     </Button>
                     <Button type="button" variant="outline" onClick={refresh}
-                      size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
+                      size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled={loading}>
                       <RefreshCw className="size-4" />
                     </Button>
                   </div>
@@ -256,22 +258,22 @@ export default function ReportsSalesPage() {
               <div className="grid grid-cols-2 gap-2 rounded border p-3">
                 <span>Sale</span>
                 <span>{drill.sale.sale_number}</span>
-                <span>Customer</span>
+                <span>{t("pos.customer")}</span>
                 <span>{drill.sale.customer_name ?? "Walk-in customer"}</span>
-                <span>Total</span>
+                <span>{t("sales.total")}</span>
                 <span>{ugx(drill.sale.total_amount_ugx)}</span>
                 <span>Paid / balance</span>
                 <span>
                   {ugx(drill.sale.amount_paid_ugx)} /{" "}
                   {ugx(drill.sale.balance_due_ugx)}
                 </span>
-                <span>Status</span>
+                <span>{t("reports.status")}</span>
                 <span>
                   {drill.sale.status} · {drill.sale.reversal_status}
                 </span>
               </div>
               <div>
-                <p className="mb-2 font-medium">Items</p>
+                <p className="mb-2 font-medium">{t("customers.items")}</p>
                 {drill.items.map((item) => (
                   <div
                     className="flex justify-between border-b py-2"
@@ -297,7 +299,7 @@ export default function ReportsSalesPage() {
                 ))}
               </div>
               <div className="flex justify-between">
-                <span className="font-medium">Tax</span>
+                <span className="font-medium">{t("receipt.tax")}</span>
                 <span>{ugx(drill.tax_amount_ugx)}</span>
               </div>
             </div>

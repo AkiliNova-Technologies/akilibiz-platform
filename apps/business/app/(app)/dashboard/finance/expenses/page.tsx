@@ -56,6 +56,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = ExpenseRow & TableData;
 type Form = {
   categoryId: string;
@@ -116,6 +117,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function FinanceExpensesPage() {
+  const { t } = useI18n();
   const {
     expenses,
     expenseSummary,
@@ -265,24 +267,24 @@ export default function FinanceExpensesPage() {
     }
   };
   const fields: TableField<Row>[] = [
-    { key: "reference", header: "Reference" },
+    { key: "reference", header: t("finance.reference") },
     {
       key: "effective_date",
-      header: "Date",
+      header: t("sales.date"),
       enableSorting: true,
       cell: (value) => formatFinanceDate(String(value)),
     },
-    { key: "payee", header: "Supplier / Payee", enableSorting: true },
+    { key: "payee", header: t("expensesUi.supplierPayee"), enableSorting: true },
     {
       key: "due_date",
-      header: "Due date",
+      header: t("supplierOrdersUi.dueDate"),
       enableSorting: true,
       cell: (value) => (value ? formatFinanceDate(String(value)) : "—"),
     },
-    { key: "category", header: "Category", enableSorting: true },
+    { key: "category", header: t("finance.category"), enableSorting: true },
     {
       key: "gross_ugx",
-      header: "Amount",
+      header: t("receipt.amount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -293,14 +295,14 @@ export default function FinanceExpensesPage() {
     },
     {
       key: "status",
-      header: "Payment status",
+      header: t("expensesUi.paymentStatus"),
       cell: (_value, row) => <StatusBadge status={paymentStatus(row)} />,
     },
   ];
   const actions: TableAction<Row>[] = [
     {
       type: "view",
-      label: "View expense",
+      label: t("expensesUi.view"),
       onClick: (row) => {
         setDetail(row);
         setSettlementAmount("");
@@ -314,9 +316,9 @@ export default function FinanceExpensesPage() {
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">Expenses</h2>
+            <h2 className="text-2xl font-semibold">{t("finance.expenses")}</h2>
             <p className="text-sm text-muted-foreground">
-              Record, review and manage business expenses.
+              {t("expensesUi.description")}
             </p>
           </div>
           {error ? (
@@ -329,49 +331,49 @@ export default function FinanceExpensesPage() {
           ) : null}
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              title="Total Expenses"
+              title={t("expensesUi.total")}
               value={
                 expenseSummary
                   ? formatFinanceCurrency(expenseSummary.total_expenses)
                   : "—"
               }
-              description="All approved and paid expenses"
+              description={t("expensesUi.totalHint")}
               icon={<ArrowDown className="size-5" />}
             />
             <MetricCard
-              title="Paid Expenses"
+              title={t("expensesUi.paid")}
               value={
                 expenseSummary
                   ? formatFinanceCurrency(expenseSummary.paid_expenses)
                   : "—"
               }
-              description="Expenses already settled"
+              description={t("expensesUi.paidHint")}
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
-              title="Pending Expenses"
+              title={t("expensesUi.pending")}
               value={
                 expenseSummary
                   ? formatFinanceCurrency(expenseSummary.pending_expenses)
                   : "—"
               }
-              description="Awaiting approval or settlement"
+              description={t("expensesUi.pendingHint")}
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
-              title="Expense Categories"
+              title={t("expensesUi.categories")}
               value={
                 expenseSummary ? String(expenseSummary.expense_categories) : "—"
               }
-              description="Tracked spending areas"
+              description={t("expensesUi.categoriesHint")}
               icon={<CircleDollarSign className="size-5" />}
             />
           </section>
           <Card>
             <CardContent>
               <DataTable<Row>
-                title="Expenses"
-                description="Review recorded expenses and their payment status."
+                title={t("finance.expenses")}
+                description={t("expensesUi.registerDescription")}
                 data={rows}
                 fields={fields}
                 actions={actions}
@@ -387,17 +389,17 @@ export default function FinanceExpensesPage() {
                 toolbarFilters={
                   <Select value={stateFilter} onValueChange={setStateFilter}>
                     <SelectTrigger
-                      aria-label="Expense status"
+                      aria-label={t("expensesUi.statusFilter")}
                       className="w-full sm:w-44"
                     >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All expenses</SelectItem>
-                      <SelectItem value="posted">Posted</SelectItem>
+                      <SelectItem value="all">{t("expensesUi.all")}</SelectItem>
+                      <SelectItem value="posted">{t("purchasingReport.postedStatus")}</SelectItem>
                       <SelectItem value="voided">Reversed</SelectItem>
-                      <SelectItem value="corrected">Corrected</SelectItem>
-                      <SelectItem value="refunded">Refunded</SelectItem>
+                      <SelectItem value="corrected">{t("expensesUi.corrected")}</SelectItem>
+                      <SelectItem value="refunded">{t("sales.refunded")}</SelectItem>
                     </SelectContent>
                   </Select>
                 }
@@ -414,7 +416,7 @@ export default function FinanceExpensesPage() {
                     }}
                   >
                     <Plus className="mr-2 size-4" />
-                    Record expense
+                    {t("expensesUi.recordLower")}
                   </Button>
                 }
               />
@@ -432,7 +434,7 @@ export default function FinanceExpensesPage() {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Record Expense</DialogTitle>
+            <DialogTitle>{t("expensesUi.record")}</DialogTitle>
             <DialogDescription>
               Capture a new expense entry for business finance tracking.
             </DialogDescription>
@@ -440,7 +442,7 @@ export default function FinanceExpensesPage() {
           <div className="space-y-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel required>Category</FieldLabel>
+                <FieldLabel required>{t("finance.category")}</FieldLabel>
                 <Select
                   value={form.categoryId}
                   onValueChange={(value) => setField("categoryId", value)}
@@ -448,7 +450,7 @@ export default function FinanceExpensesPage() {
                   <SelectTrigger
                     className={`w-full ${errors.categoryId ? "border-red-500" : ""}`}
                   >
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("productForm.selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     {expenseCategories.map((category) => (
@@ -463,14 +465,14 @@ export default function FinanceExpensesPage() {
                 ) : null}
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Amount</FieldLabel>
+                <FieldLabel required>{t("receipt.amount")}</FieldLabel>
                 <Input
                   type="number"
                   min="0"
                   step="1"
                   value={form.amount}
                   onChange={(event) => setField("amount", event.target.value)}
-                  placeholder="Enter amount"
+                  placeholder={t("income.enterAmount")}
                   className={errors.amount ? "border-red-500" : ""}
                 />
                 {errors.amount ? (
@@ -490,16 +492,16 @@ export default function FinanceExpensesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="paid">Paid now</SelectItem>
+                  <SelectItem value="paid">{t("expensesUi.paidNow")}</SelectItem>
                   <SelectItem value="supplier_credit">
-                    Pay supplier later
+                    {t("expensesUi.payLater")}
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {form.paymentBasis === "supplier_credit" ? (
               <div className="space-y-2">
-                <FieldLabel required>Supplier</FieldLabel>
+                <FieldLabel required>{t("suppliers.supplier")}</FieldLabel>
                 <Select
                   value={form.supplierId}
                   onValueChange={(value) => setField("supplierId", value)}
@@ -507,7 +509,7 @@ export default function FinanceExpensesPage() {
                   <SelectTrigger
                     className={`w-full ${errors.supplierId ? "border-red-500" : ""}`}
                   >
-                    <SelectValue placeholder="Select supplier" />
+                    <SelectValue placeholder={t("supplierPaymentsUi.selectSupplier")} />
                   </SelectTrigger>
                   <SelectContent>
                     {suppliers.map((supplier) => (
@@ -525,9 +527,9 @@ export default function FinanceExpensesPage() {
             <div className="space-y-3 rounded-md border p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <Label>Recoverable input VAT</Label>
+                  <Label>{t("expensesUi.inputVat")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    Only enable for a valid taxable supplier invoice.
+                    {t("expensesUi.inputVatHint")}
                   </p>
                 </div>
                 <Button
@@ -535,7 +537,7 @@ export default function FinanceExpensesPage() {
                   variant={form.taxable ? "default" : "outline"}
                   onClick={() => setField("taxable", !form.taxable)}
                 >
-                  {form.taxable ? "Taxable" : "Non-taxable"}
+                  {form.taxable ? t("pos.taxable") : "Non-taxable"}
                 </Button>
               </div>
               {form.taxable ? (
@@ -553,7 +555,7 @@ export default function FinanceExpensesPage() {
                     />
                   </div>
                   <div>
-                    <FieldLabel required>Document date</FieldLabel>
+                    <FieldLabel required>{t("expensesUi.documentDate")}</FieldLabel>
                     <Input
                       type="date"
                       value={form.documentDate}
@@ -596,7 +598,7 @@ export default function FinanceExpensesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Expense Date</FieldLabel>
+                <FieldLabel required>{t("expensesUi.expenseDate")}</FieldLabel>
                 <Input
                   type="date"
                   value={form.date}
@@ -610,7 +612,7 @@ export default function FinanceExpensesPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Payment Method</Label>
+                <Label>{t("sales.paymentMethod")}</Label>
                 <Select
                   value={form.method}
                   onValueChange={(value) =>
@@ -639,7 +641,7 @@ export default function FinanceExpensesPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>{t("reports.status")}</Label>
                 <Select
                   value={form.status}
                   onValueChange={(value) =>
@@ -650,16 +652,16 @@ export default function FinanceExpensesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="pending">{t("sales.pending")}</SelectItem>
+                    <SelectItem value="approved">{t("expensesUi.approved")}</SelectItem>
+                    <SelectItem value="paid">{t("creditOrders.paid")}</SelectItem>
+                    <SelectItem value="rejected">{t("expensesUi.rejected")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("finance.description")}</Label>
               <Textarea
                 rows={4}
                 value={form.description}
@@ -676,7 +678,7 @@ export default function FinanceExpensesPage() {
               onClick={() => setFormOpen(false)}
               disabled={submitting}
             >
-              Cancel
+              {t("pos.cancel")}
             </Button>
             <Button onClick={() => void submit()} disabled={submitting}>
               {submitting ? (
@@ -693,29 +695,29 @@ export default function FinanceExpensesPage() {
       >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Expense details</DialogTitle>
+            <DialogTitle>{t("expensesUi.details")}</DialogTitle>
             <DialogDescription>
-              Review the expense, its payment status, and any remaining balance.
+              {t("expensesUi.detailsHint")}
             </DialogDescription>
           </DialogHeader>
           {detail ? (
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-2 rounded border p-3">
-                <span>Status</span>
+                <span>{t("reports.status")}</span>
                 <StatusBadge status={paymentStatus(detail)} />
-                <span>Date</span>
+                <span>{t("sales.date")}</span>
                 <span>{formatFinanceDate(detail.effective_date)}</span>
-                <span>Supplier / Payee</span>
+                <span>{t("expensesUi.supplierPayee")}</span>
                 <span>{detail.payee || "-"}</span>
-                <span>Category</span>
+                <span>{t("finance.category")}</span>
                 <span>{detail.category}</span>
-                <span>Amount before tax / tax / total</span>
+                <span>{t("expensesUi.amountTaxTotal")}</span>
                 <span>
                   {formatFinanceCurrency(detail.net_ugx)} /{" "}
                   {formatFinanceCurrency(detail.tax_ugx)} /{" "}
                   {formatFinanceCurrency(detail.gross_ugx)}
                 </span>
-                <span>Remaining balance</span>
+                <span>{t("expensesUi.remaining")}</span>
                 <span>
                   {detail.payable_outstanding_ugx == null
                     ? "Not applicable"
@@ -725,7 +727,7 @@ export default function FinanceExpensesPage() {
               {detail.payment_basis === "supplier_credit" &&
               detail.state === "posted" ? (
                 <div className="space-y-2 rounded border p-3">
-                  <Label>Record supplier payment</Label>
+                  <Label>{t("expensesUi.recordSupplierPayment")}</Label>
                   <div className="flex gap-2">
                     <Input
                       type="number"
@@ -738,7 +740,7 @@ export default function FinanceExpensesPage() {
                       }
                     />
                     <Input
-                      placeholder="Payment reference"
+                      placeholder={t("expensesUi.paymentReference")}
                       value={settlementReference}
                       onChange={(event) =>
                         setSettlementReference(event.target.value)
@@ -750,15 +752,15 @@ export default function FinanceExpensesPage() {
                     Payments above that balance are not allowed.
                   </p>
                   <Button type="button" onClick={() => void settle()} disabled>
-                    Record payment
+                    {t("creditUi.recordPayment")}
                   </Button>
                 </div>
               ) : null}
               {detail.state === "posted" ? (
                 <div className="space-y-2 rounded border p-3">
-                  <Label>Reverse expense</Label>
+                  <Label>{t("expensesUi.reverse")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    This records a reversal and cannot be undone.
+                    {t("expensesUi.reverseWarning")}
                   </p>
                   <Textarea
                     value={reverseReason}
@@ -771,7 +773,7 @@ export default function FinanceExpensesPage() {
                     onClick={() => void reverse()}
                     disabled
                   >
-                    Reverse expense
+                    {t("expensesUi.reverse")}
                   </Button>
                 </div>
               ) : null}

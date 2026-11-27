@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 const money = (value: number) =>
   new Intl.NumberFormat("en-UG", {
     style: "currency",
@@ -70,6 +71,7 @@ const dateBefore = (to: string, days: number) => {
 };
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const day = React.useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [from, setFrom] = React.useState(day);
   const [to, setTo] = React.useState(day);
@@ -132,16 +134,16 @@ export default function DashboardPage() {
       <main className="flex flex-col gap-6">
         <section>
           <h2 className="text-2xl font-semibold tracking-tight">
-            Business Overview
+            {t("dashboard.overview")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            UTC period: {d?.date_from_utc ?? appliedPeriod.from} to{" "}
+            UTC period: {d?.date_from_utc ?? appliedPeriod.from} {t("dashboard.periodTo")}{" "}
             {d?.date_to_utc ?? appliedPeriod.to}.
           </p>
         </section>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Completed sales"
+            title={t("dashboard.completedSales")}
             value={exactValue(d?.completed_sales_total_ugx, money)}
             description={
               d
@@ -159,7 +161,7 @@ export default function DashboardPage() {
             icon={<ReceiptText className="size-5" />}
           />
           <MetricCard
-            title="Verified inventory value"
+            title={t("dashboard.verifiedInventory")}
             value={
               d?.inventory_value_ugx == null
                 ? pendingValue
@@ -175,7 +177,7 @@ export default function DashboardPage() {
             icon={<Package className="size-5" />}
           />
           <MetricCard
-            title="Customers"
+            title={t("dashboard.customers")}
             value={exactValue(d?.customers_count)}
             description={d ? "Customer records" : pendingDescription}
             icon={<Users className="size-5" />}
@@ -183,13 +185,13 @@ export default function DashboardPage() {
         </section>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Suppliers"
+            title={t("nav.suppliers")}
             value={exactValue(d?.suppliers_count)}
             description={d ? "Supplier records" : pendingDescription}
             icon={<Truck className="size-5" />}
           />
           <MetricCard
-            title="Products in stock"
+            title={t("dashboard.productsInStock")}
             value={exactValue(d?.stock_on_hand_product_count)}
             description={
               d?.stock_on_hand_product_count != null
@@ -199,7 +201,7 @@ export default function DashboardPage() {
             icon={<Package className="size-5" />}
           />
           <MetricCard
-            title="Receivables"
+            title={t("dashboard.receivables")}
             value={exactValue(d?.open_receivables_ugx, money)}
             description={
               d ? "Outstanding customer balances unavailable" : pendingDescription
@@ -220,7 +222,7 @@ export default function DashboardPage() {
             <CardContent className="grid gap-4 px-4 md:grid-cols-4 md:items-end">
               <DateRangePicker
                 id="dashboard-overview-date-range"
-                label="Date range (UTC)"
+                label={t("dashboard.dateRange")}
                 from={from}
                 to={to}
                 onRangeChange={(nextFrom, nextTo) => {
@@ -231,16 +233,16 @@ export default function DashboardPage() {
                 numberOfMonths={1}
               />
               <div className="grid gap-2">
-                <Label>Observation window</Label>
+                <Label>{t("dashboard.observationWindow")}</Label>
                 <Select value={windowDays} onValueChange={selectWindow}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="custom">Custom range</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="7">Last 7 UTC days</SelectItem>
-                    <SelectItem value="30">Last 30 UTC days</SelectItem>
+                    <SelectItem value="custom">{t("dashboard.customRange")}</SelectItem>
+                    <SelectItem value="today">{t("dashboard.today")}</SelectItem>
+                    <SelectItem value="7">{t("dashboard.last7")}</SelectItem>
+                    <SelectItem value="30">{t("dashboard.last30")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -251,7 +253,7 @@ export default function DashboardPage() {
                   disabled={loading || !from || !to || from > to}
                 >
                   {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  Apply period
+                  {t("dashboard.applyPeriod")}
                 </Button>
               </div>
             </CardContent>
@@ -260,8 +262,8 @@ export default function DashboardPage() {
         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[1.7fr_1fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>Latest completed sales</CardDescription>
+              <CardTitle>{t("dashboard.recentSales")}</CardTitle>
+              <CardDescription>{t("dashboard.latestCompleted")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {d ? (
@@ -292,7 +294,7 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Financial Snapshot</CardTitle>
+              <CardTitle>{t("dashboard.financialSnapshot")}</CardTitle>
               <CardDescription>
                 Recorded payment behaviour, not cash flow
               </CardDescription>
@@ -320,21 +322,21 @@ export default function DashboardPage() {
               )}
               <Separator />
               <p>
-                Average transaction:{" "}
+                {t("dashboard.averageTransaction")}{" "}
                 {!d || d.average_transaction_ugx == null
                   ? pendingValue
                   : money(d.average_transaction_ugx)}
               </p>
-              <p>Peak hour: {d?.peak_hour_utc ?? "Unavailable"}</p>
+              <p>{t("dashboard.peakHour")} {d?.peak_hour_utc ?? t("dashboard.unavailable")}</p>
               <p>
-                Weekly revenue:{" "}
+                {t("dashboard.weeklyRevenue")}{" "}
                 {exactValue(d?.weekly_completed_sales_ugx, money)}
                 {d
                   ? ` · ${d.weekly_period_start_utc} to ${d.weekly_period_end_utc} UTC`
                   : ""}
               </p>
               <p>
-                Monthly revenue:{" "}
+                {t("dashboard.monthlyRevenue")}{" "}
                 {exactValue(d?.monthly_completed_sales_ugx, money)}
                 {d
                   ? ` · ${d.monthly_period_start_utc} to ${d.monthly_period_end_utc} UTC`
@@ -346,7 +348,7 @@ export default function DashboardPage() {
         <section className="grid gap-4 xl:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle>Top Products</CardTitle>
+              <CardTitle>{t("dashboard.topProducts")}</CardTitle>
             </CardHeader>
             <CardContent>
               {d ? (
@@ -364,7 +366,7 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <Empty title="No items sold yet" />
+                  <Empty title={t("dashboard.noProductsSold")} />
                 )
               ) : (
                 <Empty kind={pendingKind} title={pendingDescription} />
@@ -373,7 +375,7 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Staff Performance</CardTitle>
+              <CardTitle>{t("dashboard.staffPerformance")}</CardTitle>
             </CardHeader>
             <CardContent>
               {d ? (
@@ -399,7 +401,7 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Business Alerts</CardTitle>
+              <CardTitle>{t("dashboard.businessAlerts")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p>{exactValue(d?.low_stock_product_count)} low-stock products</p>

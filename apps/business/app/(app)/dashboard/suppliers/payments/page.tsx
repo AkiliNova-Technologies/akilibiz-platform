@@ -58,6 +58,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type PaymentRow = SupplierPayment & TableData;
 type FormState = {
   payment_ref: string;
@@ -123,6 +124,7 @@ function StatusBadge({ status }: { status: SupplierPaymentStatus }) {
 }
 
 export default function SupplierPaymentsPage() {
+  const { t } = useI18n();
   const { payments, loading, error, lastSuccessfulSync, isStale, summary, getPayments, addPayment, editPayment, markSettled } =
     useSupplierPaymentsData();
   useEffect(() => { void getPayments(); }, [getPayments]);
@@ -246,7 +248,7 @@ export default function SupplierPaymentsPage() {
   const fields: TableField<PaymentRow>[] = [
     {
       key: "payment_ref",
-      header: "Payment Ref",
+      header: t("supplierPaymentsUi.paymentRef"),
       enableSorting: true,
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
@@ -254,20 +256,20 @@ export default function SupplierPaymentsPage() {
     },
     {
       key: "supplier_name",
-      header: "Supplier",
+      header: t("suppliers.supplier"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "po_reference",
-      header: "PO / Invoice Ref",
+      header: t("supplierPaymentsUi.invoiceRef"),
       align: "center",
       enableSorting: true,
       cell: (value) => String(value) || "—",
     },
     {
       key: "amount_paid",
-      header: "Amount Paid",
+      header: t("supplierPaymentsUi.amountPaid"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -278,7 +280,7 @@ export default function SupplierPaymentsPage() {
     },
     {
       key: "balance_remaining",
-      header: "Balance",
+      header: t("receipt.balance"),
       align: "right",
       enableSorting: true,
       cell: (value) =>
@@ -290,34 +292,34 @@ export default function SupplierPaymentsPage() {
     },
     {
       key: "payment_date",
-      header: "Payment Date",
+      header: t("supplierPaymentsUi.paymentDate"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "payment_method",
-      header: "Method",
+      header: t("finance.method"),
       align: "center",
       cell: (value) => <MethodBadge method={value as SupplierPaymentMethod} />,
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => <StatusBadge status={value as SupplierPaymentStatus} />,
     },
   ];
   const actions: TableAction<PaymentRow>[] = [
-    { type: "view", label: "View payment", onClick: setDetail },
+    { type: "view", label: t("supplierPaymentsUi.view"), onClick: setDetail },
     {
       type: "edit",
-      label: "Edit payment",
+      label: t("supplierPaymentsUi.edit"),
       onClick: edit,
       disabled: () => true,
     },
     {
       type: "custom",
-      label: "Mark settled",
+      label: t("supplierPaymentsUi.settle"),
       icon: <Check className="size-4" />,
       onClick: (row) => void settle(row),
       disabled: () => true,
@@ -329,7 +331,7 @@ export default function SupplierPaymentsPage() {
         <div className="flex flex-1 flex-col gap-6">
         <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Supplier Payments
+              {t("nav.supplierPayments")}
             </h2>
             <p className="text-sm text-muted-foreground">
               Record supplier settlements, monitor outstanding balances, and
@@ -338,27 +340,27 @@ export default function SupplierPaymentsPage() {
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Payment Records"
+              title={t("supplierPaymentsUi.totalRecords")}
               value={summary ? String(summary.total_payment_records) : "—"}
-              description="All supplier payment entries"
+              description={t("supplierPaymentsUi.totalRecordsDescription")}
               icon={<ReceiptText className="size-5" />}
             />
             <MetricCard
-              title="Total Paid"
+              title={t("supplierPaymentsUi.totalPaid")}
               value={summary ? formatSupplierCurrency(summary.total_paid) : "—"}
-              description="Amount already paid to suppliers"
+              description={t("supplierPaymentsUi.totalPaidDescription")}
               icon={<IconCash className="size-5" />}
             />
             <MetricCard
-              title="Outstanding Payables"
+              title={t("suppliers.outstanding")}
               value={summary ? formatSupplierCurrency(summary.total_outstanding) : "—"}
-              description="Remaining unpaid supplier balances"
+              description={t("supplierPaymentsUi.remainingDescription")}
               icon={<WalletCards className="size-5" />}
             />
             <MetricCard
-              title="Overdue Payables"
+              title={t("supplierPaymentsUi.overduePayables")}
               value={summary ? formatSupplierCurrency(summary.overdue_payables) : "—"}
-              description="Supplier balances already past due"
+              description={t("supplierPaymentsUi.overduePayablesDescription")}
               icon={<TrendingDown className="size-5" />}
             />
           </section>
@@ -366,8 +368,8 @@ export default function SupplierPaymentsPage() {
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable<PaymentRow>
-                title="Supplier Payment Register"
-                description="Track supplier settlements, remaining balances, and payment status"
+                title={t("supplierPaymentsUi.register")}
+                description={t("supplierPaymentsUi.registerDescription")}
                 data={visible as PaymentRow[]}
                 fields={fields}
                 actions={actions}
@@ -386,10 +388,10 @@ export default function SupplierPaymentsPage() {
                       value={statusFilter}
                       onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-36">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder={t("reports.status")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="all">{t("sales.allStatuses")}</SelectItem>
                         {statuses.map((status) => (
                           <SelectItem key={status} value={status}>
                             {status}
@@ -409,11 +411,11 @@ export default function SupplierPaymentsPage() {
                 toolbarActions={
                   <div className="flex gap-2">
                     <Button variant="outline" disabled title="Supplier payment allocation is not connected" onClick={() => open(true)}>
-                      Allocate Payment
+                      {t("supplierPaymentsUi.allocate")}
                     </Button>
                     <Button disabled title="Supplier payment posting is not connected" onClick={() => open()}>
                       <Plus className="mr-2 size-4" />
-                      Record Payment
+                      {t("creditOrders.recordPayment")}
                     </Button>
                   </div>
                 }
@@ -437,19 +439,19 @@ export default function SupplierPaymentsPage() {
               {editing
                 ? "Edit Supplier Payment"
                 : allocationOpen
-                  ? "Allocate Supplier Payment"
+                  ? t("supplierPaymentsUi.allocateSupplier")
                   : "Record Supplier Payment"}
             </DialogTitle>
             <DialogDescription>
               {allocationOpen
                 ? "Allocate a payment to one supplier purchase order."
-                : "Capture supplier payment details and payable status."}
+                : t("supplierPaymentsUi.createDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel required>Payment Reference</FieldLabel>
+                <FieldLabel required>{t("supplierPaymentsUi.paymentReference")}</FieldLabel>
                 <Input
                   value={form.payment_ref}
                   onChange={(event) =>
@@ -458,7 +460,7 @@ export default function SupplierPaymentsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Supplier</FieldLabel>
+                <FieldLabel required>{t("suppliers.supplier")}</FieldLabel>
                 <Select
                   value={form.supplier_id}
                   onValueChange={(value) => {
@@ -466,7 +468,7 @@ export default function SupplierPaymentsPage() {
                     update("purchase_order_id", "");
                   }}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select supplier" />
+                    <SelectValue placeholder={t("supplierPaymentsUi.selectSupplier")} />
                   </SelectTrigger>
                   <SelectContent>
                     {suppliers.map((supplier) => (
@@ -507,7 +509,7 @@ export default function SupplierPaymentsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Total Invoice Amount</Label>
+                <Label>{t("supplierPaymentsUi.invoiceAmount")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -519,7 +521,7 @@ export default function SupplierPaymentsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Amount Paid</FieldLabel>
+                <FieldLabel required>{t("supplierPaymentsUi.amountPaid")}</FieldLabel>
                 <Input
                   type="number"
                   min="1"
@@ -533,7 +535,7 @@ export default function SupplierPaymentsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel required>Payment Date</FieldLabel>
+                <FieldLabel required>{t("supplierPaymentsUi.paymentDate")}</FieldLabel>
                 <Input
                   type="date"
                   value={form.payment_date}
@@ -543,7 +545,7 @@ export default function SupplierPaymentsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Due Date</Label>
+                <Label>{t("pos.dueDate")}</Label>
                 <Input
                   type="date"
                   value={form.due_date}
@@ -553,7 +555,7 @@ export default function SupplierPaymentsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Payment Method</Label>
+                <Label>{t("sales.paymentMethod")}</Label>
                 <Select
                   value={form.payment_method}
                   onValueChange={(value) =>
@@ -572,7 +574,7 @@ export default function SupplierPaymentsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>{t("reports.status")}</Label>
                 <Select
                   value={form.status}
                   onValueChange={(value) =>
@@ -592,12 +594,12 @@ export default function SupplierPaymentsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>{t("inventory.notes")}</Label>
               <Textarea
                 rows={4}
                 value={form.notes}
                 onChange={(event) => update("notes", event.target.value)}
-                placeholder="Optional payment notes"
+                placeholder={t("supplierPaymentsUi.optionalNotes")}
               />
             </div>
           </div>
@@ -608,11 +610,11 @@ export default function SupplierPaymentsPage() {
                 setFormOpen(false);
                 setAllocationOpen(false);
               }}>
-              Cancel
+              {t("pos.cancel")}
             </Button>
             <Button disabled onClick={() => void save()}>
               {allocationOpen
-                ? "Allocate Payment"
+                ? t("supplierPaymentsUi.allocate")
                 : editing
                   ? "Update Payment"
                   : "Save Payment"}
@@ -625,10 +627,9 @@ export default function SupplierPaymentsPage() {
         onOpenChange={(isOpen) => !isOpen && setDetail(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Supplier Payment Details</DialogTitle>
+            <DialogTitle>{t("supplierPaymentsUi.details")}</DialogTitle>
             <DialogDescription>
-              Review payment information, payable balance, and settlement
-              status.
+              {t("supplierPaymentsUi.detailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {detail ? (
@@ -666,13 +667,13 @@ export default function SupplierPaymentsPage() {
                   ))}
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Method
+                      {t("finance.method")}
                     </span>
                     <MethodBadge method={detail.payment_method} />
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Status
+                      {t("reports.status")}
                     </span>
                     <StatusBadge status={detail.status} />
                   </div>
@@ -681,7 +682,7 @@ export default function SupplierPaymentsPage() {
                       <Separator />
                       <div>
                         <p className="mb-1 text-sm text-muted-foreground">
-                          Notes
+                          {t("inventory.notes")}
                         </p>
                         <p className="text-sm">{detail.notes}</p>
                       </div>
@@ -692,7 +693,7 @@ export default function SupplierPaymentsPage() {
               {detail.status !== "Paid" ? (
                 <Button className="w-full" disabled>
                   <Check className="mr-2 size-4" />
-                  Mark Settled
+                  {t("supplierPaymentsUi.markSettled")}
                 </Button>
               ) : null}
             </div>

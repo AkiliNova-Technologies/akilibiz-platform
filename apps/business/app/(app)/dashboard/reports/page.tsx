@@ -27,9 +27,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = ReportsOverviewRow & TableData;
 
 export default function ReportsOverviewPage() {
+  const { t } = useI18n();
   const { overviewRows, overviewSummary, loading, error, loadOverview } =
     useReportsOverviewData();
   useEffect(() => {
@@ -42,19 +44,19 @@ export default function ReportsOverviewPage() {
   const fields: TableField<Row>[] = [
     {
       key: "report_name",
-      header: "Report",
+      header: t("reports.report"),
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
-    { key: "period", header: "Period", align: "center", enableSorting: true },
+    { key: "period", header: t("reports.period"), align: "center", enableSorting: true },
     {
       key: "total_value",
-      header: "Value",
+      header: t("reports.value"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -65,7 +67,7 @@ export default function ReportsOverviewPage() {
     },
     {
       key: "entries",
-      header: "Entries",
+      header: t("reports.entries"),
       align: "center",
       enableSorting: true,
       cell: (value) => <Badge variant="secondary">{Number(value)}</Badge>,
@@ -75,10 +77,9 @@ export default function ReportsOverviewPage() {
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold">Reports Overview</h2>
+          <h2 className="text-2xl font-semibold">{t("reports.overview")}</h2>
           <p className="text-sm text-muted-foreground">
-            Review high-level reporting across sales, purchasing, inventory, and
-            financial activity.
+            {t("reports.overviewDescription")}
           </p>
         </div>
         {error ? (
@@ -91,19 +92,19 @@ export default function ReportsOverviewPage() {
         ) : null}
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <MetricCard
-            title="Sales Reports"
+            title={t("nav.salesReports")}
             value={overviewSummary?.total_sales_value != null ? formatFinanceCurrency(overviewSummary.total_sales_value) : "—"}
-            description="Completed sales"
+            description={t("dashboard.completedSales")}
             icon={<BarChart3 className="size-5" />}
           />
           <MetricCard
-            title="Inventory Reports"
+            title={t("nav.inventoryReports")}
             value={overviewSummary?.total_inventory_value != null ? formatFinanceCurrency(overviewSummary.total_inventory_value) : "—"}
             description="Inventory valuation is not yet verified"
             icon={<Package className="size-5" />}
           />
           <MetricCard
-            title="Financial Reports"
+            title={t("nav.financialReports")}
             value={overviewSummary?.total_financial_value != null ? formatFinanceCurrency(overviewSummary.total_financial_value) : "—"}
             description="Total recorded income and expense activity, not net profit"
             icon={<Banknote className="size-5" />}
@@ -111,28 +112,28 @@ export default function ReportsOverviewPage() {
         </section>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link href="/dashboard/reports/sales">Open Sales Reports</Link>
+            <Link href="/dashboard/reports/sales">{t("reports.openSales")}</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/reports/purchasing">
-              Open Purchasing Reports
+              {t("reports.openPurchasing")}
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/reports/inventory">
-              Open Inventory Reports
+              {t("reports.openInventory")}
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/dashboard/reports/financial">
-              Open Financial Reports
+              {t("reports.openFinancial")}
             </Link>
           </Button>
         </div>
         <Card>
           <CardContent>
             <DataTable<Row>
-              title="Report Summary Register"
+              title={t("reports.summaryRegister")}
               description="Overview of generated report categories and current reporting values"
               data={rows}
               fields={fields}
@@ -140,7 +141,7 @@ export default function ReportsOverviewPage() {
                 <Button
                   variant="outline"
                   onClick={() => void loadOverview()}
-                  disabled size="icon" aria-label="Refresh" title="Refresh">
+                  disabled size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")}>
                   {loading ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (

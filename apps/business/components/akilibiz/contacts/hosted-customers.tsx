@@ -15,6 +15,7 @@ import { ContactEditDialog } from "@/components/akilibiz/contacts/contact-edit-d
 import { ContactCreateDialog } from "@/components/akilibiz/contacts/contact-create-dialog";
 import { ContactExportButton } from "@/components/akilibiz/contacts/contact-export-button";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type CustomerRow = HostedCustomer & {
   total_purchases: null;
   total_spent: null;
@@ -27,6 +28,7 @@ type CustomerRow = HostedCustomer & {
 function Missing() { return <span className="text-muted-foreground">—</span>; }
 
 export function HostedCustomers({ customers, error, canEditContacts, canCreateContacts, pagination }: { customers: HostedCustomer[]; error?: string | null; canEditContacts: boolean; canCreateContacts: boolean; pagination: DirectoryPagination }) {
+  const { t } = useI18n();
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
   const [historyCustomer, setHistoryCustomer] = useState<CustomerRow | null>(null);
   const [editing, setEditing] = useState<CustomerRow | null>(null);
@@ -44,51 +46,51 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
   const loyalty = rows.filter((customer) => customer.loyalty_points > 0).length;
 
   const fields: TableField<CustomerRow>[] = [
-    { key: "name", header: "Name", enableSorting: true },
-    { key: "email", header: "Email", align: "center", cell: (value) => String(value || "—") },
-    { key: "phone", header: "Phone", align: "center", cell: (value) =>
+    { key: "name", header: t("customers.name"), enableSorting: true },
+    { key: "email", header: t("customers.email"), align: "center", cell: (value) => String(value || "—") },
+    { key: "phone", header: t("sales.phone"), align: "center", cell: (value) =>
       <span className="font-mono text-sm">{String(value || "—")}</span> },
-    { key: "total_purchases", header: "Purchases", align: "center", enableSorting: false, cell: () => <Missing /> },
-    { key: "total_spent", header: "Total Spent", align: "right", enableSorting: false, cell: () => <Missing /> },
-    { key: "loyalty_points", header: "Points", align: "center", enableSorting: true,
+    { key: "total_purchases", header: t("customers.purchases"), align: "center", enableSorting: false, cell: () => <Missing /> },
+    { key: "total_spent", header: t("customers.totalSpent"), align: "right", enableSorting: false, cell: () => <Missing /> },
+    { key: "loyalty_points", header: t("customers.points"), align: "center", enableSorting: true,
       cell: (value) => <span className="font-mono">{Number(value)}</span> },
-    { key: "loyalty_tier", header: "Tier", align: "center", enableSorting: false, cell: () => <Missing /> },
+    { key: "loyalty_tier", header: t("customers.tier"), align: "center", enableSorting: false, cell: () => <Missing /> },
     { key: "credit_balance", header: "Credit Balance", align: "right", enableSorting: false, cell: () => <Missing /> },
-    { key: "last_visit", header: "Last Visit", align: "center", enableSorting: false, cell: () => <Missing /> },
-    { key: "status", header: "Status", align: "center",
+    { key: "last_visit", header: t("customers.lastVisit"), align: "center", enableSorting: false, cell: () => <Missing /> },
+    { key: "status", header: t("reports.status"), align: "center",
       cell: (value) => <Badge variant={value === "Active" ? "outline" : "secondary"}>{String(value)}</Badge> },
   ];
 
   const actions: TableAction<CustomerRow>[] = [
     { type: "view", label: "View Profile", onClick: setSelectedCustomer },
-    { type: "edit", label: "Edit Customer", onClick: setEditing, disabled: (row) => !canEditContacts || !row.is_active },
-    { type: "custom", label: "Purchase History", icon: <ShoppingBag className="size-4" />,
+    { type: "edit", label: t("customers.edit"), onClick: setEditing, disabled: (row) => !canEditContacts || !row.is_active },
+    { type: "custom", label: t("customers.history"), icon: <ShoppingBag className="size-4" />,
       onClick: setHistoryCustomer },
   ];
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Customer Directory</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("customers.directory")}</h2>
         <p className="text-sm text-muted-foreground">Manage customer information, loyalty rewards, and purchasing activity.</p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title={pagination.search ? "Matching Customers" : "Total Customers"} value={error ? "—" : String(pagination.total)} description={error ? "Customer information unavailable" : `${active} active on this page`} icon={<Users className="size-5" />} />
-        <MetricCard title="New This Month" value="—" description="Recent customers unavailable" icon={<UserPlus className="size-5" />} />
-        <MetricCard title="Loyalty Members" value={error ? "—" : String(loyalty)} description="With loyalty points on this page" icon={<Star className="size-5" />} />
-        <MetricCard title="Average Customer Value" value="—" description="Purchasing totals unavailable" icon={<Banknote className="size-5" />} />
+        <MetricCard title={pagination.search ? "Matching Customers" : t("customers.total")} value={error ? "—" : String(pagination.total)} description={error ? "Customer information unavailable" : `${active} active on this page`} icon={<Users className="size-5" />} />
+        <MetricCard title={t("customers.newThisMonth")} value="—" description="Recent customers unavailable" icon={<UserPlus className="size-5" />} />
+        <MetricCard title={t("customers.loyaltyMembers")} value={error ? "—" : String(loyalty)} description="With loyalty points on this page" icon={<Star className="size-5" />} />
+        <MetricCard title={t("customers.averageValue")} value="—" description="Purchasing totals unavailable" icon={<Banknote className="size-5" />} />
       </section>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-2">
-        <MetricCard title="Credit Customers" value="—" description="Customers currently holding unpaid balances" icon={<Wallet className="size-5" />} />
-        <MetricCard title="Outstanding Credit" value="—" description="Unpaid customer balances unavailable" icon={<Banknote className="size-5" />} />
+        <MetricCard title={t("customers.credit")} value="—" description="Customers currently holding unpaid balances" icon={<Wallet className="size-5" />} />
+        <MetricCard title={t("customers.outstandingCredit")} value="—" description="Unpaid customer balances unavailable" icon={<Banknote className="size-5" />} />
       </section>
 
       {!error && <ContactDirectoryControls view="customers" pagination={pagination} />}
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<CustomerRow>
-            title="Customer Directory"
+            title={t("customers.directory")}
             description="View and manage your customers."
             data={rows}
             fields={fields}
@@ -96,7 +98,7 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
             enableGlobalSearch={false}
             enablePagination={false}
             onRowClick={setSelectedCustomer}
-            emptyMessage={error ?? "No customers found."}
+            emptyMessage={error ?? t("customers.empty")}
             toolbarActions={
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" disabled title="Customer import is not connected">
@@ -104,7 +106,7 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
                 </Button>
                 <ContactExportButton entity="customers" />
                 <Button type="button" disabled={!canCreateContacts} title={canCreateContacts ? "Request a customer on the paired desktop" : "Contact creation is not yet enabled"} onClick={()=>setCreating(true)}>
-                  <Plus className="size-4" /> Add Customer
+                  <Plus className="size-4" /> {t("customers.add")}
                 </Button>
               </div>
             }
@@ -115,7 +117,7 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
       <Dialog open={selectedCustomer !== null} onOpenChange={(open) => { if (!open) setSelectedCustomer(null); }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Customer Profile</DialogTitle>
+            <DialogTitle>{t("customers.profile")}</DialogTitle>
             <DialogDescription>Review customer information and available activity.</DialogDescription>
           </DialogHeader>
           {selectedCustomer && (
@@ -127,7 +129,7 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
                     <div className="mt-2 flex flex-wrap gap-2">
                       <Badge variant="outline">{selectedCustomer.customer_type}</Badge>
                       <Badge variant={selectedCustomer.is_active ? "outline" : "secondary"}>
-                        {selectedCustomer.is_active ? "Active" : "Inactive"}
+                        {selectedCustomer.is_active ? t("common.active") : t("common.inactive")}
                       </Badge>
                     </div>
                   </div>
@@ -157,9 +159,9 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
                 <Separator />
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" className="flex-1" disabled={!canEditContacts||!selectedCustomer.is_active}
-                    onClick={()=>{setEditing(selectedCustomer);setSelectedCustomer(null);}}>Edit Customer</Button>
+                    onClick={()=>{setEditing(selectedCustomer);setSelectedCustomer(null);}}>{t("customers.edit")}</Button>
                   <Button className="flex-1" onClick={() => { setHistoryCustomer(selectedCustomer); setSelectedCustomer(null); }}>
-                    <ShoppingBag className="size-4" /> Purchase History
+                    <ShoppingBag className="size-4" /> {t("customers.history")}
                   </Button>
                 </div>
               </CardContent>
@@ -178,8 +180,8 @@ export function HostedCustomers({ customers, error, canEditContacts, canCreateCo
             <DialogDescription>No purchase records available.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard title="Total Purchases" value="—" description="Purchase records unavailable" icon={<ShoppingBag className="size-5" />} />
-            <MetricCard title="Total Spent" value="—" description="Sales records unavailable" icon={<Banknote className="size-5" />} />
+            <MetricCard title={t("suppliers.totalPurchases")} value="—" description="Purchase records unavailable" icon={<ShoppingBag className="size-5" />} />
+            <MetricCard title={t("customers.totalSpent")} value="—" description="Sales records unavailable" icon={<Banknote className="size-5" />} />
             <MetricCard title="Average Purchase" value="—" description="Sales records unavailable" icon={<Star className="size-5" />} />
           </div>
           <Card><CardContent className="p-4 text-sm text-muted-foreground">

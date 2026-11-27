@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type SettingsRow = SettingsOverviewItem & TableData;
 
 function statusVariant(status: SettingsOverviewItem["status"]) {
@@ -34,6 +35,7 @@ function statusVariant(status: SettingsOverviewItem["status"]) {
 }
 
 export default function SettingsOverviewPage() {
+  const { t } = useI18n();
   const { error, loadSettings, loading, settings, summary } =
     useSettingsOverviewData();
 
@@ -48,20 +50,20 @@ export default function SettingsOverviewPage() {
   const fields: TableField<SettingsRow>[] = [
     {
       key: "label",
-      header: "Setting",
+      header: t("settingsOverview.setting"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
-    { key: "summary", header: "Summary" },
+    { key: "summary", header: t("settingsOverview.summary") },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => {
         const status = value as SettingsOverviewItem["status"];
@@ -70,7 +72,7 @@ export default function SettingsOverviewPage() {
     },
     {
       key: "updatedAt",
-      header: "Last Updated",
+      header: t("inventory.lastUpdated"),
       align: "center",
       enableSorting: true,
       cell: (value) =>
@@ -88,7 +90,7 @@ export default function SettingsOverviewPage() {
     <div className="flex flex-1 flex-col gap-6 pb-6">
       <ProductPageHeader
         description="Review business configuration, receipts, taxes, and backup readiness across AkiliBiz."
-        title="Settings Overview"
+        title={t("nav.settingsOverview")}
       />
 
       {error ? (
@@ -111,27 +113,27 @@ export default function SettingsOverviewPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Configured"
+          title={t("settingsOverview.configured")}
           value={summary ? String(summary.configured) : "—"}
-          description="Settings fully configured"
+          description={t("settingsOverview.fullyConfigured")}
           icon={<ShieldCheck className="size-5" />}
         />
         <MetricCard
-          title="Needs Review"
+          title={t("settingsOverview.needsReview")}
           value={summary ? String(summary.needsReview) : "—"}
-          description="Settings that should be checked"
+          description={t("settingsOverview.checkSettings")}
           icon={<Settings2 className="size-5" />}
         />
         <MetricCard
-          title="Not Set"
+          title={t("settingsOverview.notSet")}
           value={summary ? String(summary.notSet) : "—"}
-          description="Settings still missing"
+          description={t("settingsOverview.missingSettings")}
           icon={<Database className="size-5" />}
         />
         <MetricCard
-          title="Categories"
+          title={t("nav.categories")}
           value={summary ? String(summary.categories) : "—"}
-          description="Core configuration areas"
+          description={t("settingsOverview.areas")}
           icon={<Building2 className="size-5" />}
         />
       </section>
@@ -139,8 +141,8 @@ export default function SettingsOverviewPage() {
       <Card>
         <CardContent>
           <DataTable<SettingsRow>
-            title="Settings Register"
-            description="Overview of system configuration areas and readiness"
+            title={t("settingsOverview.register")}
+            description={t("settingsOverview.registerDescription")}
             data={rows}
             fields={fields}
             toolbarActions={
@@ -151,7 +153,7 @@ export default function SettingsOverviewPage() {
             enableGlobalSearch
             enableSelection={false}
             enableSorting={false}
-            searchPlaceholder="Search settings..."
+            searchPlaceholder={t("settingsOverview.search")}
             pageSize={10}
             loading={loading}
             emptyMessage={

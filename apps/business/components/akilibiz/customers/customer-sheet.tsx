@@ -11,14 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { type CreateCustomerPayload, type CustomerResponse, t, useCustomersData } from "./customers-data";
+import { type CreateCustomerPayload, type CustomerResponse, useCustomersData } from "./customers-data";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 interface CustomerSheetProps { open: boolean; onOpenChange: (open: boolean) => void; isEdit: boolean; initialData?: CustomerResponse | null; }
 type FormData = { name: string; email: string; phone: string; address: string; customer_type: string; credit_limit: string; opening_balance: string; is_active: boolean };
 const emptyForm: FormData = { name: "", email: "", phone: "", address: "", customer_type: "", credit_limit: "", opening_balance: "", is_active: true };
 const types = [{ label: "Retail", value: "retail" }, { label: "Wholesale", value: "wholesale" }, { label: "VIP", value: "vip" }, { label: "Corporate", value: "corporate" }];
 
 export function CustomerSheet({ open, onOpenChange, isEdit, initialData }: CustomerSheetProps) {
+  const { t } = useI18n();
   const { addCustomer, editCustomer } = useCustomersData();
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -34,6 +34,7 @@ import {
 } from "@/components/akilibiz/sales-history/sales-history-data";
 import { useCustomerPurchaseHistoryData } from "@/components/akilibiz/customers/purchase-history-data";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 interface PurchaseRow extends TableData {
   id: number;
   customer_name: string;
@@ -80,6 +81,7 @@ const mapSale = (sale: SaleListResponse): PurchaseRow => ({
 });
 
 export default function CustomerPurchaseHistoryPage() {
+  const { t } = useI18n();
   const { sales, loading, getSales, getSale } =
     useCustomerPurchaseHistoryData();
   const [selected, setSelected] = useState<PurchaseRow | null>(null);
@@ -119,13 +121,13 @@ export default function CustomerPurchaseHistoryPage() {
   const fields: TableField<PurchaseRow>[] = [
     {
       key: "customer_name",
-      header: "Customer",
+      header: t("pos.customer"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "phone_number",
-      header: "Phone",
+      header: t("sales.phone"),
       align: "center",
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
@@ -133,7 +135,7 @@ export default function CustomerPurchaseHistoryPage() {
     },
     {
       key: "invoice_number",
-      header: "Invoice",
+      header: t("sales.invoice"),
       align: "center",
       enableSorting: true,
       cell: (value) => (
@@ -142,7 +144,7 @@ export default function CustomerPurchaseHistoryPage() {
     },
     {
       key: "purchase_date",
-      header: "Purchase Date",
+      header: t("customers.purchaseDate"),
       align: "center",
       enableSorting: true,
       cell: (value) => (
@@ -153,14 +155,14 @@ export default function CustomerPurchaseHistoryPage() {
     },
     {
       key: "items_count",
-      header: "Items",
+      header: t("customers.items"),
       align: "center",
       enableSorting: true,
       cell: (value) => <Badge variant="outline">{Number(value)}</Badge>,
     },
     {
       key: "total_amount",
-      header: "Total Amount",
+      header: t("customers.totalAmount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -169,14 +171,14 @@ export default function CustomerPurchaseHistoryPage() {
     },
     {
       key: "payment_method",
-      header: "Payment",
+      header: t("customers.payment"),
       align: "center",
       cell: (value) => paymentBadge(String(value)),
     },
-    { key: "cashier", header: "Cashier", align: "center", enableSorting: true },
+    { key: "cashier", header: t("customers.cashier"), align: "center", enableSorting: true },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => statusBadge(String(value)),
     },
@@ -184,12 +186,12 @@ export default function CustomerPurchaseHistoryPage() {
   const actions: TableAction<PurchaseRow>[] = [
     {
       type: "view",
-      label: "View purchase",
+      label: t("customers.viewPurchase"),
       onClick: (row) => void openDetails(row),
     },
     {
       type: "custom",
-      label: "View receipt",
+      label: t("customers.viewReceipt"),
       icon: <ReceiptText className="size-4" />,
       onClick: (row) => receipt(row.id),
     },
@@ -200,55 +202,54 @@ export default function CustomerPurchaseHistoryPage() {
         <div className="flex flex-1 flex-col gap-6">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Purchase History
+              {t("customers.history")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Review customer buying activity, transaction value, and purchase
-              frequency.
+              {t("customers.purchaseHistoryDescription")}
             </p>
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Purchases"
+              title={t("suppliers.totalPurchases")}
               value={String(rows.length)}
-              description="Recorded customer transactions"
+              description={t("purchaseUi.recorded")}
               icon={<ShoppingBag className="size-5" />}
             />
             <MetricCard
-              title="Total Revenue"
+              title={t("customers.totalRevenue")}
               value={formatCurrency(revenue)}
-              description="Revenue from completed customer purchases"
+              description={t("purchaseUi.completedRevenue")}
               icon={<Banknote className="size-5" />}
             />
             <MetricCard
-              title="Active Buying Customers"
+              title={t("purchaseUi.activeBuyers")}
               value={String(new Set(rows.map((row) => row.customer_name)).size)}
-              description="Unique customers with purchase records"
+              description={t("purchaseUi.uniqueBuyers")}
               icon={<Users className="size-5" />}
             />
             <MetricCard
-              title="Average Purchase Value"
+              title={t("customers.averagePurchaseValue")}
               value={formatCurrency(revenue / Math.max(rows.length, 1))}
-              description="Average value per purchase record"
+              description={t("purchaseUi.averageDescription")}
               icon={<CalendarDays className="size-5" />}
             />
           </section>
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable
-                title="Customer Transactions"
-                description="Track individual purchases, revenue, and customer activity"
+                title={t("customers.transactions")}
+                description={t("purchaseUi.tableDescription")}
                 data={rows}
                 fields={fields}
                 actions={actions}
                 enableGlobalSearch
-                searchPlaceholder="Search by customer, invoice, or cashier..."
+                searchPlaceholder={t("purchaseUi.search")}
                 pageSize={10}
                 onRowClick={(row) => void openDetails(row)}
                 emptyMessage={
                   loading
-                    ? "Loading purchase history..."
-                    : "No purchase history found."
+                    ? t("customers.loadingHistory")
+                    : t("customers.emptyHistory")
                 }
               />
             </CardContent>
@@ -258,9 +259,9 @@ export default function CustomerPurchaseHistoryPage() {
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-h-[90vh] sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Purchase Details</DialogTitle>
+            <DialogTitle>{t("customers.purchaseDetails")}</DialogTitle>
             <DialogDescription>
-              Review customer transaction details and purchase summary.
+              {t("customers.purchaseDetailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {selected && (
@@ -285,19 +286,19 @@ export default function CustomerPurchaseHistoryPage() {
                   <Separator />
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Payment Method
+                      {t("sales.paymentMethod")}
                     </span>
                     {paymentBadge(selected.payment_method)}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Status
+                      {t("reports.status")}
                     </span>
                     {statusBadge(selected.status)}
                   </div>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="font-semibold">Total Amount</span>
+                    <span className="font-semibold">{t("customers.totalAmount")}</span>
                     <span className="text-lg font-bold">
                       {formatCurrency(selected.total_amount)}
                     </span>
@@ -306,10 +307,10 @@ export default function CustomerPurchaseHistoryPage() {
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="mb-3 font-semibold">Purchased items</h3>
+                  <h3 className="mb-3 font-semibold">{t("purchaseUi.purchasedItems")}</h3>
                   {detailsLoading && (
                     <p className="text-sm text-muted-foreground">
-                      Loading purchased items…
+                      {t("purchaseUi.loadingItems")}
                     </p>
                   )}
                   {detailsError && (
@@ -319,7 +320,7 @@ export default function CustomerPurchaseHistoryPage() {
                   )}
                   {detail && detail.items.length === 0 && (
                     <p className="text-sm text-muted-foreground">
-                      This sale has no persisted item lines.
+                      {t("purchaseUi.noItems")}
                     </p>
                   )}
                   {detail && detail.items.length > 0 && (
@@ -330,10 +331,10 @@ export default function CustomerPurchaseHistoryPage() {
                           className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 border-b pb-3 last:border-0 last:pb-0 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                           <div className="min-w-0">
                             <p className="truncate font-medium">
-                              {item.product_name || "Product unavailable"}
+                              {item.product_name || t("purchaseUi.productUnavailable")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {item.sku || "No SKU"}
+                              {item.sku || t("purchaseUi.noSku")}
                               {item.discount_amount && item.discount_amount > 0
                                 ? ` · Discount ${formatCurrency(item.discount_amount)}`
                                 : ""}
@@ -345,7 +346,7 @@ export default function CustomerPurchaseHistoryPage() {
                           <div className="text-right text-sm">
                             <p>{formatCurrency(item.line_total)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {formatCurrency(item.unit_price)} each
+                              {formatCurrency(item.unit_price)} {t("purchaseUi.each")}
                             </p>
                           </div>
                         </div>
@@ -365,7 +366,7 @@ export default function CustomerPurchaseHistoryPage() {
                   className="flex-1"
                   onClick={() => void openDetails(selected)}
                   disabled={detailsLoading}>
-                  Full Details
+                  {t("purchaseUi.fullDetails")}
                 </Button>
               </div>
             </div>

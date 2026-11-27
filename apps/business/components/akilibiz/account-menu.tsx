@@ -95,7 +95,7 @@ export function AccountMenu({ account, placement }: AccountMenuProps) {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                tooltip="Account"
+                tooltip={t("finance.ledger.account")}
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 {renderAvatar()}

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { validateContactChanges } from "@/lib/contact-update-validation";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Kind="customer"|"supplier";
 const FIELD_CONFIG={
   customer:[
@@ -36,6 +37,7 @@ export function ContactCreateDialog({
   entity:Kind;
   onClose:()=>void;
 }) {
+  const { t } = useI18n();
   const router=useRouter();
   const config=FIELD_CONFIG[entity];
   const [fields,setFields]=React.useState<Record<string,string>>({});
@@ -131,13 +133,13 @@ export function ContactCreateDialog({
           :"The desktop rejected this creation request. Your existing contacts were unchanged."}
       </p>}
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Close</Button>
+        <Button type="button" variant="outline" disabled={busy} onClick={onClose}>{t("receipt.close")}</Button>
         {!commandId?
           <Button type="button" disabled={busy} onClick={()=>void submit()}>
             {busy?"Submitting…":"Request creation"}
           </Button>:
           <Button type="button" variant="outline" disabled={busy} onClick={()=>void check()}>
-            {busy?"Checking…":"Check status"}
+            {busy?t("financeHome.checking"):"Check status"}
           </Button>}
       </DialogFooter>
     </DialogContent>

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProductDesktopRequest } from "@/components/akilibiz/products/product-desktop-request";
 import { parseProductDraft,type ProductDraftInput, type DesktopProductOptions, DEFAULT_PRODUCT_OPTIONS } from "@/lib/product-draft-validation";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Category={id:string;name:string;local_business_public_id:string;is_active:boolean};
 type Draft=ProductDraftInput & {updated_at:string};
 type PublicationRequest={command_id:string;draft_id:string;state:"pending"|"staged"|"applied"|"conflict"|"published";requested_at:string};
@@ -20,6 +21,7 @@ const empty=():Editor=>({id:crypto.randomUUID(),name:"",sku:"",category_id:"",ba
 const money=(value:number)=>new Intl.NumberFormat("en-UG",{style:"currency",currency:"UGX",maximumFractionDigits:0}).format(value);
 
 export default function ProductDraftsPage() {
+  const { t } = useI18n();
   const [drafts,setDrafts]=useState<Draft[]>([]);
   const [publicationRequestsEnabled,setPublicationRequestsEnabled]=useState(false);
   const [publicationRequests,setPublicationRequests]=useState<PublicationRequest[]>([]);
@@ -135,9 +137,9 @@ export default function ProductDraftsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1"><Label htmlFor="draft-name">Product name</Label>
             <Input id="draft-name" maxLength={200} value={editing.name} disabled={busy} onChange={e=>field("name",e.target.value)}/></div>
-          <div className="space-y-1"><Label htmlFor="draft-sku">SKU</Label>
+          <div className="space-y-1"><Label htmlFor="draft-sku">{t("productForm.sku")}</Label>
             <Input id="draft-sku" maxLength={160} value={editing.sku} disabled={busy} onChange={e=>field("sku",e.target.value)}/></div>
-          <div className="space-y-1"><Label htmlFor="draft-category">Category</Label>
+          <div className="space-y-1"><Label htmlFor="draft-category">{t("finance.category")}</Label>
             <select id="draft-category" className="flex h-10 w-full rounded-md border bg-background px-3 text-sm"
               disabled={busy} value={editing.category_id} onChange={e=>field("category_id",e.target.value)}>
               <option value="">Choose a category</option>
@@ -163,13 +165,13 @@ export default function ProductDraftsPage() {
             <div className="space-y-1"><Label htmlFor="draft-product-type">Product type</Label>
               <select id="draft-product-type" className="flex h-10 w-full rounded-md border bg-background px-3 text-sm"
                 disabled={busy} value={editing.desktop_options.product_type} onChange={e=>option("product_type",e.target.value as DesktopProductOptions["product_type"])}>
-                <option value="stock_item">Stock item</option><option value="service">Service</option><option value="digital">Digital product</option><option value="fee">Fee</option>
+                <option value="stock_item">Stock item</option><option value="service">{t("productForm.service")}</option><option value="digital">Digital product</option><option value="fee">{t("productForm.fee")}</option>
               </select></div>
             <div className="space-y-1"><Label htmlFor="draft-inventory-type">Measured by</Label>
               <select id="draft-inventory-type" className="flex h-10 w-full rounded-md border bg-background px-3 text-sm"
                 disabled={busy} value={editing.desktop_options.inventory_type} onChange={e=>option("inventory_type",e.target.value as DesktopProductOptions["inventory_type"])}>
-                <option value="count">Pieces / count</option><option value="weight">Weight</option><option value="liquid">Liquid</option>
-                <option value="length">Length</option><option value="area">Area</option><option value="volume">Volume</option>
+                <option value="count">Pieces / count</option><option value="weight">{t("productForm.weight")}</option><option value="liquid">{t("productForm.liquid")}</option>
+                <option value="length">{t("productForm.length")}</option><option value="area">{t("productForm.area")}</option><option value="volume">{t("productForm.volume")}</option>
               </select></div>
             <div className="space-y-1"><Label htmlFor="draft-sales-unit">Sales unit</Label>
               <Input id="draft-sales-unit" maxLength={40} value={editing.desktop_options.sales_unit} disabled={busy} onChange={e=>option("sales_unit",e.target.value)}/></div>
@@ -211,8 +213,8 @@ export default function ProductDraftsPage() {
           Tax registration and classification must be verified on the desktop before publishing. Opening stock remains a separate inventory adjustment.
         </p>
         <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="outline" disabled={busy} onClick={()=>setEditing(null)}>Cancel</Button>
-          <Button disabled={busy||!categories.length} onClick={()=>void save()}>{busy?"Saving…":"Save draft"}</Button>
+          <Button variant="outline" disabled={busy} onClick={()=>setEditing(null)}>{t("pos.cancel")}</Button>
+          <Button disabled={busy||!categories.length} onClick={()=>void save()}>{busy?t("businessProfile.saving"):"Save draft"}</Button>
         </div>
       </CardContent>
     </Card>}

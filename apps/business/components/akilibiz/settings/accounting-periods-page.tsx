@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 const date = (value: string) =>
   new Date(`${value}T00:00:00Z`).toLocaleDateString("en-UG", {
     day: "numeric",
@@ -40,6 +41,7 @@ const defaults = () => {
 };
 
 export function AccountingPeriodsPage() {
+  const { t } = useI18n();
   const store = useBrowserAccountingPeriods();
   const periodEnd = (period: AccountingPeriod) => period.dateTo === "9999-12-31" && period.state === "open" ? "Ongoing" : date(period.dateTo);
   const [createOpen, setCreateOpen] = React.useState(false);
@@ -87,7 +89,7 @@ export function AccountingPeriodsPage() {
       <div className="mx-auto w-full max-w-8xl space-y-6">
         <div className="space-y-1 pt-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Accounting Periods
+            {t("settings.periods.title")}
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
             Closing a period stops new entries dated in that period. Record
@@ -117,7 +119,7 @@ export function AccountingPeriodsPage() {
           <CardContent>
             {store.loading && store.periods.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Loading accounting periods…
+                {t("settings.periods.loading")}
               </p>
             ) : store.periods.length === 0 ? (
               <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -130,7 +132,7 @@ export function AccountingPeriodsPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">
-                          {date(period.dateFrom)} to {periodEnd(period)}
+                          {date(period.dateFrom)} {t("settings.periods.to")} {periodEnd(period)}
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {period.state === "closed"
@@ -143,14 +145,14 @@ export function AccountingPeriodsPage() {
                           variant={
                             period.state === "closed" ? "secondary" : "outline"
                           }>
-                          {period.state === "closed" ? "Closed" : "Open"}
+                          {period.state === "closed" ? t("settings.periods.closed") : t("settings.periods.open")}
                         </Badge>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setDetail(period)}>
                           <History className="mr-1 size-3.5" />
-                          Details
+                          {t("activityUi.detailsLabel")}
                         </Button>
                         <Button
                           size="sm"
@@ -164,7 +166,7 @@ export function AccountingPeriodsPage() {
                           disabled
                           title="Change accounting periods in the desktop application">
                           {period.state === "open"
-                            ? "Close period"
+                            ? t("settings.periods.close")
                             : "Reopen period"}
                         </Button>
                       </div>
@@ -179,10 +181,9 @@ export function AccountingPeriodsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create accounting period</DialogTitle>
+            <DialogTitle>{t("settings.periods.createTitle")}</DialogTitle>
             <DialogDescription>
-              Use the calendar year unless your business uses another accounting
-              period.
+              {t("settings.periods.createDescription")}
             </DialogDescription>
           </DialogHeader>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -204,10 +205,10 @@ export function AccountingPeriodsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {t("pos.cancel")}
             </Button>
             <Button disabled title="Accounting period creation is not connected" onClick={() => void create()}>
-              Create period
+              {t("settings.periods.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -239,14 +240,14 @@ export function AccountingPeriodsPage() {
               onChange={(event) => setReason(event.target.value)}
               placeholder={
                 target?.state === "open"
-                  ? "e.g. June books reviewed"
+                  ? t("settings.periods.reasonPlaceholder")
                   : "e.g. Correction needed"
               }
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTarget(null)}>
-              Cancel
+              {t("pos.cancel")}
             </Button>
             <Button
               variant={target?.state === "open" ? "destructive" : "default"}
@@ -281,7 +282,7 @@ export function AccountingPeriodsPage() {
             ))}
           </div>
           <DialogFooter>
-            <Button onClick={() => setDetail(null)}>Done</Button>
+            <Button onClick={() => setDetail(null)}>{t("importExport.done")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

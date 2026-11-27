@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = CashFlowRow & TableData;
 const methodLabel = (method: string) =>
   ({
@@ -41,6 +42,7 @@ const methodLabel = (method: string) =>
   })[method] ?? method;
 
 export default function FinanceCashFlowPage() {
+  const { t } = useI18n();
   const { cashFlowEntries, cashFlowSummary, loading, error, lastSuccessfulSync, isStale, refreshCashFlow } =
     useFinanceCashFlowData();
   useEffect(() => {
@@ -53,31 +55,31 @@ export default function FinanceCashFlowPage() {
   const fields: TableField<Row>[] = [
     {
       key: "reference",
-      header: "Reference",
+      header: t("finance.reference"),
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
       ),
     },
     {
       key: "flow_type",
-      header: "Type",
+      header: t("finance.type"),
       align: "center",
       cell: (value) =>
         value === "Inflow" ? (
-          <Badge variant="outline">Inflow</Badge>
+          <Badge variant="outline">{t("finance.cashflow.inflow")}</Badge>
         ) : (
-          <Badge variant="secondary">Outflow</Badge>
+          <Badge variant="secondary">{t("finance.cashflow.outflow")}</Badge>
         ),
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "amount",
-      header: "Amount",
+      header: t("finance.amount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -88,13 +90,13 @@ export default function FinanceCashFlowPage() {
     },
     {
       key: "method",
-      header: "Method",
+      header: t("finance.method"),
       align: "center",
       cell: (value) => methodLabel(String(value)),
     },
     {
       key: "date",
-      header: "Date",
+      header: t("finance.date"),
       align: "center",
       enableSorting: true,
       cell: (value) => formatFinanceDate(String(value)),
@@ -104,9 +106,9 @@ export default function FinanceCashFlowPage() {
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold">Cash Flow</h2>
+          <h2 className="text-2xl font-semibold">{t("finance.cashflow.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Monitor money flowing into and out of the business over time.
+            {t("finance.cashflow.description")}
           </p>
         </div>
         <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
@@ -120,39 +122,39 @@ export default function FinanceCashFlowPage() {
         ) : null}
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Total Inflow"
+            title={t("finance.cashflow.totalInflow")}
             value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.total_inflow) : "—"}
-            description="All recorded incoming cash movements"
+            description={t("finance.cashflow.totalInflowDescription")}
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
-            title="Total Outflow"
+            title={t("finance.cashflow.totalOutflow")}
             value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.total_outflow) : "—"}
-            description="All recorded outgoing cash movements"
+            description={t("finance.cashflow.totalOutflowDescription")}
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
-            title="Net Cash Flow"
+            title={t("finance.cashflow.net")}
             value={cashFlowSummary ? formatFinanceCurrency(cashFlowSummary.net_cash_flow) : "—"}
-            description="Difference between inflow and outflow"
+            description={t("finance.cashflow.netDescription")}
             icon={<Banknote className="size-5" />}
           />
           <MetricCard
-            title="Transactions"
+            title={t("finance.cashflow.transactions")}
             value={cashFlowSummary ? String(cashFlowSummary.transaction_count) : "—"}
-            description="Cash movement entries in current view"
+            description={t("finance.cashflow.transactionsDescription")}
             icon={<WalletCards className="size-5" />}
           />
         </section>
         <Card>
           <CardContent>
             <DataTable<Row>
-              title="Cash Movement Register"
-              description="Track cash inflows and outflows across operations"
+              title={t("finance.cashflow.register")}
+              description={t("finance.cashflow.registerDescription")}
               data={rows}
               fields={fields}
               enableGlobalSearch
-              searchPlaceholder="Search cash flow..."
+              searchPlaceholder={t("finance.cashflow.search")}
               pageSize={10}
               loading={loading}
               emptyMessage={
@@ -162,7 +164,7 @@ export default function FinanceCashFlowPage() {
                 <Button
                   variant="outline"
                   onClick={() => void refreshCashFlow()}
-                  disabled size="icon" aria-label="Refresh" title="Refresh">
+                  disabled size="icon" aria-label={t("finance.cashflow.refresh")} title={t("finance.cashflow.refresh")}>
                   {loading ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (

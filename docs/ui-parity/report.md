@@ -5,7 +5,7 @@ counts the labels (translation keys) the screen and its components show, and whe
 screen shows the same text (shared key or identical English). It measures **wording**, not layout; layout
 parity is reviewed per screen in `docs/ui-parity/screens.md`.
 
-**Overall: 1696 of 2883 desktop labels present on the web (59 %).**
+**Overall: 1837 of 2883 desktop labels present on the web (64 %).**
 
 | Screen (desktop) | Web route | Labels | Missing on web | Parity |
 | --- | --- | ---: | ---: | ---: |
@@ -13,41 +13,41 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 | CustomerCreditManagementPage | `/dashboard/customers/credit` | 92 | 80 | 13 % |
 | SettingsMerchantWalletsPage | `/dashboard/settings/merchant-wallets` | 28 | 24 | 14 % |
 | InventoryStockHistoryPage | `/dashboard/inventory/history` | 59 | 48 | 19 % |
-| ProductsPage | `/dashboard/products` | 223 | 163 | 27 % |
+| ProductsPage | `/dashboard/products` | 223 | 161 | 28 % |
 | AccountPage | `/dashboard/account` | 63 | 45 | 29 % |
-| CustomersPage | `/dashboard/customers` | 163 | 103 | 37 % |
-| ProductCategoriesPage | `/dashboard/products/categories` | 107 | 65 | 39 % |
-| SuppliersPage | `/dashboard/suppliers` | 120 | 72 | 40 % |
-| StaffPage | `/dashboard/staff` | 82 | 48 | 41 % |
-| SupplierPurchaseOrdersPage | `/dashboard/suppliers/orders` | 122 | 69 | 43 % |
-| FinanceOverviewPage | `/dashboard/finance` | 90 | 47 | 48 % |
+| CustomersPage | `/dashboard/customers` | 163 | 101 | 38 % |
+| ProductCategoriesPage | `/dashboard/products/categories` | 107 | 62 | 42 % |
+| SuppliersPage | `/dashboard/suppliers` | 120 | 69 | 43 % |
+| StaffPage | `/dashboard/staff` | 82 | 45 | 45 % |
+| SupplierPurchaseOrdersPage | `/dashboard/suppliers/orders` | 122 | 66 | 46 % |
 | SettingsBusinessProfilePage | `/dashboard/settings/business` | 42 | 21 | 50 % |
-| SettingsAccountingPeriodsPage | `/dashboard/settings/accounting-periods` | 24 | 12 | 50 % |
 | SettingsTaxConfigurationPage | `/dashboard/settings/tax` | 22 | 11 | 50 % |
-| InventoryPage | `/dashboard/inventory` | 86 | 42 | 51 % |
-| InventoryLowStockAlertsPage | `/dashboard/inventory/alerts` | 73 | 34 | 53 % |
-| DashboardPage | `/dashboard` | 60 | 28 | 53 % |
-| ReportsSalesPage | `/dashboard/reports/sales` | 70 | 28 | 60 % |
-| ReportsInventoryPage | `/dashboard/reports/inventory` | 67 | 24 | 64 % |
-| ReportsPurchasingPage | `/dashboard/reports/purchasing` | 64 | 21 | 67 % |
-| FinanceExpensesPage | `/dashboard/finance/expenses` | 113 | 36 | 68 % |
-| ReportsFinancialPage | `/dashboard/reports/financial` | 56 | 16 | 71 % |
-| InventoryStockAdjustmentPage | `/dashboard/inventory/adjustment` | 75 | 21 | 72 % |
-| StaffRolesPermissionsPage | `/dashboard/staff/roles` | 78 | 20 | 74 % |
-| SettingsOverviewPage | `/dashboard/settings` | 54 | 14 | 74 % |
-| ReportsOverviewPage | `/dashboard/reports` | 44 | 11 | 75 % |
-| SettingsReceiptPage | `/dashboard/settings/receipt` | 49 | 10 | 80 % |
+| FinanceOverviewPage | `/dashboard/finance` | 90 | 44 | 51 % |
+| InventoryPage | `/dashboard/inventory` | 86 | 39 | 55 % |
+| InventoryLowStockAlertsPage | `/dashboard/inventory/alerts` | 73 | 31 | 58 % |
+| SettingsAccountingPeriodsPage | `/dashboard/settings/accounting-periods` | 24 | 10 | 58 % |
+| DashboardPage | `/dashboard` | 60 | 21 | 65 % |
+| FinanceExpensesPage | `/dashboard/finance/expenses` | 113 | 35 | 69 % |
+| ReportsSalesPage | `/dashboard/reports/sales` | 70 | 20 | 71 % |
+| InventoryStockAdjustmentPage | `/dashboard/inventory/adjustment` | 75 | 19 | 75 % |
+| ReportsInventoryPage | `/dashboard/reports/inventory` | 67 | 16 | 76 % |
+| StaffRolesPermissionsPage | `/dashboard/staff/roles` | 78 | 17 | 78 % |
+| ReportsPurchasingPage | `/dashboard/reports/purchasing` | 64 | 13 | 80 % |
+| SettingsOverviewPage | `/dashboard/settings` | 54 | 11 | 80 % |
 | App shell (sidebar, header, navigation) | `(every screen)` | 10 | 2 | 80 % |
-| SupplierPaymentsPage | `/dashboard/suppliers/payments` | 84 | 15 | 82 % |
-| AnalyticsPage | `/dashboard/analytics` | 56 | 10 | 82 % |
-| FinanceLedgerPage | `/dashboard/finance/ledger` | 45 | 7 | 84 % |
-| StaffActivityLogsPage | `/dashboard/staff/logs` | 52 | 8 | 85 % |
-| FinanceIncomePage | `/dashboard/finance/income` | 70 | 6 | 91 % |
-| CreditOrdersPage | `/dashboard/pos/credit` | 66 | 6 | 91 % |
-| FinanceCashFlowPage | `/dashboard/finance/cashflow` | 49 | 4 | 92 % |
-| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 4 | 96 % |
-| SalesHistoryPage | `/dashboard/pos/history` | 111 | 3 | 97 % |
+| ReportsOverviewPage | `/dashboard/reports` | 44 | 7 | 84 % |
+| ReportsFinancialPage | `/dashboard/reports/financial` | 56 | 8 | 86 % |
+| SupplierPaymentsPage | `/dashboard/suppliers/payments` | 84 | 11 | 87 % |
+| SalesHistoryPage | `/dashboard/pos/history` | 111 | 0 | 100 % |
 | POSPage | `/dashboard/pos/new-sale` | 106 | 0 | 100 % |
+| CustomerPurchaseHistoryPage | `/dashboard/customers/history` | 93 | 0 | 100 % |
+| FinanceIncomePage | `/dashboard/finance/income` | 70 | 0 | 100 % |
+| CreditOrdersPage | `/dashboard/pos/credit` | 66 | 0 | 100 % |
+| AnalyticsPage | `/dashboard/analytics` | 56 | 0 | 100 % |
+| StaffActivityLogsPage | `/dashboard/staff/logs` | 52 | 0 | 100 % |
+| FinanceCashFlowPage | `/dashboard/finance/cashflow` | 49 | 0 | 100 % |
+| SettingsReceiptPage | `/dashboard/settings/receipt` | 49 | 0 | 100 % |
+| FinanceLedgerPage | `/dashboard/finance/ledger` | 45 | 0 | 100 % |
 | SettingsLanguagePage | `/dashboard/settings/language` | 6 | 0 | 100 % |
 | FinanceTaxPage | `/dashboard/finance/tax` | 0 | 0 | 100 % |
 
@@ -207,7 +207,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.goToNextPage`: Go to next page
 - `common.goToLastPage`: Go to last page
 
-### ProductsPage — 163 missing
+### ProductsPage — 161 missing
 
 - `products.exportPermissionError`: You do not have permission to export the product catalogue.
 - `products.exportExistsError`: A file with that name already exists. Choose another name or confirm replacement.
@@ -229,6 +229,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `products.description`: Manage product records, pricing, stock levels, and inventory status.
 - `products.activeCount`: {{count}} active products in catalogue
 - `products.stockRiskDescription`: Products currently below safe stock level
+- `products.inventoryCostValue`: Inventory Cost Value
 - `products.inventoryCostDescription`: Capital currently tied up in stock
 - `products.averageMarginDescription`: Average product profit margin
 - `products.catalogDescription`: Track and maintain your business inventory
@@ -241,6 +242,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `common.cancel`: Cancel
 - `products.replacing`: Replacing...
 - `products.replaceCsvAction`: Replace CSV
+- `products.deactivate`: Deactivate Product
 - `products.deactivateDescription`: This product will remain in records but will be hidden from active operations.
 - `products.units`: {{count}} units
 - `products.detailsDescription`: Review pricing, stock position, status, and catalogue metadata.
@@ -255,9 +257,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `inventory.lastUpdated`: Last Updated
 - `products.needsRestocking`: Needs Restocking
 - `products.adequateStock`: Adequate Stock
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 - `productForm.nameRequired`: Product name is required
 - `productForm.skuRequired`: SKU is required
 - `productForm.categoryRequired`: Category is required
@@ -269,7 +268,8 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `productForm.stockItem`: Stock Item
 - `productForm.service`: Service
 - `productForm.digital`: Digital
-- … and 103 more
+- `productForm.inventoryType`: Inventory Type
+- … and 101 more
 
 ### AccountPage — 45 missing
 
@@ -319,11 +319,12 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `accountUi.offlinePasswordUnavailableShort`: Offline password changes are not available yet
 - `account.updatePassword`: Update Password
 
-### CustomersPage — 103 missing
+### CustomersPage — 101 missing
 
 - `sales.invoice`: Invoice
 - `customers.purchaseDate`: Purchase Date
 - `customers.totalAmount`: Total Amount
+- `customers.viewPurchase`: View purchase
 - `customers.viewReceipt`: View receipt
 - `customers.description`: Manage customer profiles, loyalty, and credit relationships.
 - `customers.recentlyAcquired`: Recently acquired customers
@@ -352,9 +353,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `customers.purchaseDetails`: Purchase Details
 - `customers.purchaseDetailsDescription`: Review customer transaction details and purchase summary.
 - `sales.paymentMethod`: Payment Method
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 - `customers.nameRequired`: Customer name is required
 - `customers.emailInvalid`: Email is invalid
 - `customers.creditLimitInvalid`: Credit limit must be a valid number
@@ -381,9 +379,11 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `importExport.importing`: Importing...
 - `importExport.importRecords`: Import {{count}} Records
 - `importExport.done`: Done
-- … and 43 more
+- `importExport.dragFile`: Drag & drop your file here
+- `common.or`: or
+- … and 41 more
 
-### ProductCategoriesPage — 65 missing
+### ProductCategoriesPage — 62 missing
 
 - `categories.exportPermissionError`: You do not have permission to export the category catalogue.
 - `products.exportExistsError`: A file with that name already exists. Choose another name or confirm replacement.
@@ -425,9 +425,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `categories.detailsDescription`: Review category information and inventory grouping summary.
 - `common.noDescription`: No description provided.
 - `categories.deactivateDescription`: This category will remain in records but will be hidden from active operations.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 - `imports.sessionExpired`: This {{type}} import session is no longer available. Validate the CSV again before applying it.
 - `imports.permissionError`: You do not have permission to complete this {{type}} import.
 - `imports.requestError`: The import request could not be completed. Please try again.
@@ -445,9 +442,12 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `dateRange.last7`: Last 7 days
 - `dateRange.last30`: Last 30 days
 - `reports.thisMonth`: This month
-- … and 5 more
+- `dateRange.preset`: {{label}} preset
+- `dateRange.choose`: Choose a preset
+- `dateRange.pick`: Pick a date range
+- … and 2 more
 
-### SuppliersPage — 72 missing
+### SuppliersPage — 69 missing
 
 - `suppliers.outstanding`: Outstanding Payables
 - `suppliers.description`: Manage supplier profiles, purchasing relationships, and balances.
@@ -470,9 +470,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `suppliers.detailsDescription`: Review supplier information, procurement activity, and payable exposure.
 - `suppliers.noAddress`: No address provided.
 - `suppliers.lastSupplyDate`: Last Supply Date
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 - `importExport.selectFile`: Select Import File
 - `importExport.importDescription`: Upload your file and import data into AkiliBiz
 - `importExport.importing`: Importing...
@@ -509,9 +506,12 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `importExport.completedIn`: Completed in {{seconds}} seconds
 - `importExport.importingWait`: Importing data... Please wait
 - `importExport.savedDownloads`: File saved to Downloads folder
-- … and 12 more
+- `importExport.exportUnavailable`: The export could not be completed. Please try again.
+- `importExport.csvDescription`: Comma-separated values - compatible with most spreadsheet apps
+- `importExport.jsonDescription`: JavaScript Object Notation - best for developers
+- … and 9 more
 
-### StaffPage — 48 missing
+### StaffPage — 45 missing
 
 - `staff.notAvailable`: N/A
 - `staff.directoryDescription`: Manage team members, monitor activity, and review staff performance.
@@ -526,9 +526,6 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `staff.profileDescription`: Review staff details and performance summary.
 - `reports.totalSales`: Total Sales
 - `staff.editMember`: Edit Staff Member
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 - `staff.usernameRequired`: Username is required
 - `staff.emailRequired`: Email is required
 - `staff.emailInvalid`: Email is invalid
@@ -562,7 +559,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `staff.adding`: Adding...
 - `staff.saveChanges`: Save Changes
 
-### SupplierPurchaseOrdersPage — 69 missing
+### SupplierPurchaseOrdersPage — 66 missing
 
 - `supplierOrdersUi.receiveGoodsAction`: Receive goods
 - `supplierOrdersUi.orderValueDesc`: Total value committed in supplier orders
@@ -624,9 +621,47 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `supplierOrdersUi.loadingReceipts`: Loading receipts...
 - `supplierOrdersUi.loadReceiptsError`: Receipt history could not be loaded.
 - `supplierOrdersUi.noReceipts`: No goods receipts have been recorded for this order.
-- … and 9 more
+- … and 6 more
 
-### FinanceOverviewPage — 47 missing
+### SettingsBusinessProfilePage — 21 missing
+
+- `businessProfile.mediaUpdated`: {{kind}} updated
+- `businessProfile.mediaUpdateFailed`: Unable to update the {{kind}}
+- `businessProfile.mediaRemoved`: {{kind}} removed
+- `businessProfile.mediaRemoveFailed`: Unable to remove the {{kind}}
+- `businessProfile.description`: Manage the information shown on receipts, reports, and future marketplace listings.
+- `businessProfile.removeCover`: Remove cover
+- `businessProfile.logoFallback`: Business logo placeholder
+- `businessProfile.setup`: Set up your business
+- `businessProfile.complete`: Profile complete
+- `businessProfile.inProgress`: Profile in progress
+- `businessProfile.identityDescription`: Business identity used across daily operations, receipts, and reports.
+- `businessProfile.logoHint`: Logo should be PNG, JPEG, GIF, or WebP up to 5 MB.
+- `businessProfile.removeLogo`: Remove logo
+- `businessProfile.detailsHint`: Use your registered information where it is available.
+- `businessProfile.registeredName`: Registered business name
+- `businessProfile.contactLocation`: Contact and location
+- `businessProfile.contactHint`: Keep the details customers and documents rely on up to date.
+- `businessProfile.email`: Business email
+- `businessProfile.phone`: Business phone
+- `businessProfile.imagesHint`: Your logo and cover image identify your business.
+- `businessProfile.changesHint`: Changes appear on receipts and reports.
+
+### SettingsTaxConfigurationPage — 11 missing
+
+- `taxSettings.saved`: Tax settings saved.
+- `taxSettings.saveFailed`: Unable to save tax settings. Please try again.
+- `taxSettings.description`: Set your business VAT registration and how tax appears on receipts.
+- `taxSettings.disclaimer`: AkiliBiz records tax information but does not file tax returns or submit information to URA or EFRIS.
+- `taxSettings.registeredHint`: Turn this on only if your business is registered for VAT.
+- `taxSettings.taxName`: Tax name shown to customers
+- `taxSettings.businessTin`: Business tax identification number (if different)
+- `taxSettings.standardRateHint`: Based on AkiliBiz's local tax rules, not an editable sale rate.
+- `taxSettings.productsHint`: Choose the VAT treatment and whether prices include VAT for each product in Products. VAT-registered businesses must classify products before selling them.
+- `taxSettings.roundingHint`: Tax is calculated to the nearest whole UGX for the full invoice.
+- `taxSettings.saving`: Saving tax settings…
+
+### FinanceOverviewPage — 44 missing
 
 - `financeHome.checkUnavailable`: Unable to check financial records
 - `financeHome.referenceRequired`: Enter a document reference and a review note of at least ten characters.
@@ -672,64 +707,8 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `financeHome.saving`: Saving…
 - `financeHome.saveReview`: Save review
 - `financeHome.empty`: No finance transactions found.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
-### SettingsBusinessProfilePage — 21 missing
-
-- `businessProfile.mediaUpdated`: {{kind}} updated
-- `businessProfile.mediaUpdateFailed`: Unable to update the {{kind}}
-- `businessProfile.mediaRemoved`: {{kind}} removed
-- `businessProfile.mediaRemoveFailed`: Unable to remove the {{kind}}
-- `businessProfile.description`: Manage the information shown on receipts, reports, and future marketplace listings.
-- `businessProfile.removeCover`: Remove cover
-- `businessProfile.logoFallback`: Business logo placeholder
-- `businessProfile.setup`: Set up your business
-- `businessProfile.complete`: Profile complete
-- `businessProfile.inProgress`: Profile in progress
-- `businessProfile.identityDescription`: Business identity used across daily operations, receipts, and reports.
-- `businessProfile.logoHint`: Logo should be PNG, JPEG, GIF, or WebP up to 5 MB.
-- `businessProfile.removeLogo`: Remove logo
-- `businessProfile.detailsHint`: Use your registered information where it is available.
-- `businessProfile.registeredName`: Registered business name
-- `businessProfile.contactLocation`: Contact and location
-- `businessProfile.contactHint`: Keep the details customers and documents rely on up to date.
-- `businessProfile.email`: Business email
-- `businessProfile.phone`: Business phone
-- `businessProfile.imagesHint`: Your logo and cover image identify your business.
-- `businessProfile.changesHint`: Changes appear on receipts and reports.
-
-### SettingsAccountingPeriodsPage — 12 missing
-
-- `settings.periods.description`: Manage the dates used for your business accounts. Closing a period prevents new entries for those dates.
-- `settings.periods.permission`: You do not have permission to manage accounting periods.
-- `settings.periods.list`: Your accounting periods
-- `settings.periods.empty`: No accounting periods have been created.
-- `settings.periods.to`: to
-- `settings.periods.openEnded`: Open-ended
-- `settings.periods.closedBy`: Closed by {{name}} on {{date}}
-- `settings.periods.unknownDate`: an unknown date
-- `settings.periods.createDescription`: Use the calendar year unless your business uses another accounting period.
-- `settings.periods.closeTitle`: Close accounting period?
-- `settings.periods.closeDescription`: Closing this period stops new entries dated from {{from}} to {{to}}. To fix a past mistake, record the correction in an open period.
-- `settings.periods.reason`: Reason for closing
-
-### SettingsTaxConfigurationPage — 11 missing
-
-- `taxSettings.saved`: Tax settings saved.
-- `taxSettings.saveFailed`: Unable to save tax settings. Please try again.
-- `taxSettings.description`: Set your business VAT registration and how tax appears on receipts.
-- `taxSettings.disclaimer`: AkiliBiz records tax information but does not file tax returns or submit information to URA or EFRIS.
-- `taxSettings.registeredHint`: Turn this on only if your business is registered for VAT.
-- `taxSettings.taxName`: Tax name shown to customers
-- `taxSettings.businessTin`: Business tax identification number (if different)
-- `taxSettings.standardRateHint`: Based on AkiliBiz's local tax rules, not an editable sale rate.
-- `taxSettings.productsHint`: Choose the VAT treatment and whether prices include VAT for each product in Products. VAT-registered businesses must classify products before selling them.
-- `taxSettings.roundingHint`: Tax is calculated to the nearest whole UGX for the full invoice.
-- `taxSettings.saving`: Saving tax settings…
-
-### InventoryPage — 42 missing
+### InventoryPage — 39 missing
 
 - `inventory.lastUpdated`: Last Updated
 - `inventory.viewHistory`: View history
@@ -770,11 +749,8 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `inventoryUi.projectedLevel`: Projected Stock Level
 - `pos.cancel`: Cancel
 - `customers.saveChanges`: Save Changes
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
-### InventoryLowStockAlertsPage — 34 missing
+### InventoryLowStockAlertsPage — 31 missing
 
 - `stockAlerts.defaultNote`: Restocking {{name}} to meet minimum stock level
 - `stockAlerts.noProduct`: No product selected for restocking
@@ -807,11 +783,21 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `stockAlerts.adding`: Adding
 - `stockAlerts.newLevel`: New Stock Level
 - `stockAlerts.confirm`: Confirm Restock
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
-### DashboardPage — 28 missing
+### SettingsAccountingPeriodsPage — 10 missing
+
+- `settings.periods.description`: Manage the dates used for your business accounts. Closing a period prevents new entries for those dates.
+- `settings.periods.permission`: You do not have permission to manage accounting periods.
+- `settings.periods.list`: Your accounting periods
+- `settings.periods.empty`: No accounting periods have been created.
+- `settings.periods.openEnded`: Open-ended
+- `settings.periods.closedBy`: Closed by {{name}} on {{date}}
+- `settings.periods.unknownDate`: an unknown date
+- `settings.periods.closeTitle`: Close accounting period?
+- `settings.periods.closeDescription`: Closing this period stops new entries dated from {{from}} to {{to}}. To fix a past mistake, record the correction in an open period.
+- `settings.periods.reason`: Reason for closing
+
+### DashboardPage — 21 missing
 
 - `dashboard.utcPeriod`: UTC period: {{from}} to {{to}}. Read-only operational data.
 - `dashboard.salesDescription`: {{count}} completed sales · includes VAT where charged
@@ -828,103 +814,14 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `dashboard.emptySales`: No completed sales in the selected period
 - `dashboard.paymentsDescription`: Payments received during the selected period (not a cash-flow statement)
 - `dashboard.emptyPayments`: Waiting for payments data
-- `dashboard.periodTo`: to
 - `dashboard.noStaffActivity`: No attributed staff activity
 - `dashboard.outOfStockAlert`: {{count}} out-of-stock products
 - `dashboard.supplierPayablesAlert`: {{amount}} supplier payable balance
 - `dashboard.busiestHour`: Busiest completed-sale hour: {{hour}}
 - `dashboard.noSalesActivity`: No completed-sale activity in the selected period.
 - `dashboard.saleSummary`: Structured completed-sale summary
-- `dateRange.last7`: Last 7 days
-- `dateRange.last30`: Last 30 days
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
 
-### ReportsSalesPage — 28 missing
-
-- `salesReportUi.overview`: Overview
-- `salesReportUi.saleTotal`: Sale total
-- `salesReportUi.saleDate`: Sale date
-- `salesReportUi.amountPaid`: Amount paid
-- `salesReportUi.balanceDue`: Balance due
-- `salesReportUi.changeGiven`: Change given
-- `salesReportUi.reversalStatus`: Reversal status
-- `salesReportUi.cancelledOn`: Cancelled on
-- `salesReportUi.noItems`: No sale items recorded.
-- `salesReportUi.lineTotal`: Line total
-- `salesReportUi.noPayments`: No payments recorded.
-- `salesReportUi.paymentReference`: Payment reference
-- `salesReportUi.totalPaid`: Total paid
-- `salesReportUi.noTax`: No tax details recorded for this sale.
-- `salesReportUi.taxClassification`: Tax classification
-- `salesReportUi.taxCode`: Tax code
-- `salesReportUi.taxableAmount`: Taxable amount
-- `salesReportUi.taxAmount`: Tax amount
-- `salesReportUi.registerDescription`: Stable backend order; select a row for persisted sale detail.
-- `salesReportUi.refresh`: Refresh sales report
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `dashboard.today`: Today
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
-
-### ReportsInventoryPage — 24 missing
-
-- `inventoryReportUi.quantityOnHand`: Quantity on hand
-- `inventoryReportUi.noMovements`: No stock movements recorded.
-- `inventoryReportUi.stockBalance`: Stock balance:
-- `inventoryReportUi.moreDetails`: More details
-- `inventoryReportUi.totalValue`: Total stock value
-- `inventoryReportUi.stockQuantity`: Stock quantity
-- `inventoryReportUi.unitCost`: Average unit cost
-- `inventoryReportUi.valuationNote`: Valuation note
-- `inventoryReportUi.readOnlyDescription`: Read-only stock, movement and report-only valuation data.
-- `inventoryReportUi.onHandDescription`: On-hand stock in returned register
-- `inventoryReportUi.statusDescription`: Explicit stock status
-- `inventoryReportUi.refresh`: Refresh inventory report
-- `inventoryReportUi.valuedOnly`: Representable valued stock only
-- `inventoryReportUi.noHistoricValue`: No historic value is invented
-- `inventoryReportUi.currentValuation`: Authoritative current valuation
-- `inventoryReportUi.loadingUnavailable`: Loading or unavailable.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `dashboard.today`: Today
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
-
-### ReportsPurchasingPage — 21 missing
-
-- `purchasingReport.loadError`: Failed to load purchasing report.
-- `purchasingReport.loadMoreError`: Failed to load more receipts.
-- `receipt.preview`: Receipt preview
-- `purchasingReport.description`: Read-only goods-received and supplier purchasing records. Voided receipts remain visible.
-- `dashboard.dateRange`: Date range (UTC)
-- `purchasingReport.refresh`: Refresh purchasing report
-- `purchasingReport.empty`: No goods receipts are available.
-- `purchasingReport.loadMore`: Load more receipts
-- `purchasingReport.receivedFrom`: Goods received from {{name}}.
-- `purchasingReport.receivedOn`: Received on
-- `purchasingReport.receiptTotal`: Receipt total
-- `purchasingReport.taxRecorded`: Tax recorded
-- `purchasingReport.receiptStatus`: Receipt status
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `dashboard.today`: Today
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
-
-### FinanceExpensesPage — 36 missing
+### FinanceExpensesPage — 35 missing
 
 - `expensesUi.overdue`: Overdue
 - `expensesUi.loadError`: Unable to load expense records
@@ -948,6 +845,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `expensesUi.fileHint`: PDF, PNG or JPEG, up to 2 MB. Saved with your expense for future reference.
 - `expensesUi.fileTooBig`: The selected file exceeds 2 MB.
 - `expensesUi.expenseReference`: Expense reference
+- `expensesUi.paymentMethod`: Payment method
 - `expensesUi.postedOn`: Posted on
 - `expensesUi.paymentDue`: Payment due
 - `expensesUi.issuedBy`: Issued by
@@ -959,30 +857,32 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `expensesUi.amountPaid`: Amount paid (UGX)
 - `expensesUi.paymentDate`: Payment date
 - `expensesUi.howPaid`: How was it paid?
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
+- `creditOrders.recordPayment`: Record Payment
 
-### ReportsFinancialPage — 16 missing
+### ReportsSalesPage — 20 missing
 
-- `financialReportUi.detailedTrialBalance`: Detailed Trial Balance
-- `financialReportUi.refresh`: Refresh report
-- `financialReportUi.salesRevenue`: Sales revenue
-- `financialReportUi.costGoods`: Cost of goods sold
-- `financialReportUi.reportingPeriod`: Reporting period
-- `financialReportUi.incomplete`: Some transactions are not included in this report.
-- `financialReportUi.earningsNote`: Earnings from posted income and expense records, calculated as of the selected date. No new equity transaction has been created.
-- `financialReportUi.noDetails`: No additional details are available for this entry.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `dashboard.today`: Today
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
+- `salesReportUi.overview`: Overview
+- `salesReportUi.saleTotal`: Sale total
+- `salesReportUi.saleDate`: Sale date
+- `salesReportUi.amountPaid`: Amount paid
+- `salesReportUi.balanceDue`: Balance due
+- `salesReportUi.changeGiven`: Change given
+- `salesReportUi.reversalStatus`: Reversal status
+- `salesReportUi.cancelledOn`: Cancelled on
+- `salesReportUi.noItems`: No sale items recorded.
+- `salesReportUi.lineTotal`: Line total
+- `salesReportUi.noPayments`: No payments recorded.
+- `salesReportUi.paymentReference`: Payment reference
+- `salesReportUi.totalPaid`: Total paid
+- `salesReportUi.noTax`: No tax details recorded for this sale.
+- `salesReportUi.taxClassification`: Tax classification
+- `salesReportUi.taxCode`: Tax code
+- `salesReportUi.taxableAmount`: Taxable amount
+- `salesReportUi.taxAmount`: Tax amount
+- `salesReportUi.registerDescription`: Stable backend order; select a row for persisted sale detail.
+- `salesReportUi.refresh`: Refresh sales report
 
-### InventoryStockAdjustmentPage — 21 missing
+### InventoryStockAdjustmentPage — 19 missing
 
 - `inventory.returnIn`: Return In
 - `inventory.system`: System
@@ -995,6 +895,7 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `inventory.allChanges`: All recorded stock changes
 - `inventory.lossesDamages`: Losses & damages
 - `inventory.selectProduct`: Select a product
+- `inventory.selectAdjustmentType`: Select adjustment type
 - `inventory.reasonHint`: Why is this adjustment being made?
 - `inventory.notesHint`: Optional additional notes
 - `inventory.preview`: Stock preview
@@ -1002,11 +903,27 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `inventory.searchHistory`: Search by product, SKU, type, or user...
 - `inventory.noAdjustments`: No stock adjustments recorded yet.
 - `inventory.adjustmentDetailsDescription`: Review the selected inventory adjustment record.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
-### StaffRolesPermissionsPage — 20 missing
+### ReportsInventoryPage — 16 missing
+
+- `inventoryReportUi.quantityOnHand`: Quantity on hand
+- `inventoryReportUi.noMovements`: No stock movements recorded.
+- `inventoryReportUi.stockBalance`: Stock balance:
+- `inventoryReportUi.moreDetails`: More details
+- `inventoryReportUi.totalValue`: Total stock value
+- `inventoryReportUi.stockQuantity`: Stock quantity
+- `inventoryReportUi.unitCost`: Average unit cost
+- `inventoryReportUi.valuationNote`: Valuation note
+- `inventoryReportUi.readOnlyDescription`: Read-only stock, movement and report-only valuation data.
+- `inventoryReportUi.onHandDescription`: On-hand stock in returned register
+- `inventoryReportUi.statusDescription`: Explicit stock status
+- `inventoryReportUi.refresh`: Refresh inventory report
+- `inventoryReportUi.valuedOnly`: Representable valued stock only
+- `inventoryReportUi.noHistoricValue`: No historic value is invented
+- `inventoryReportUi.currentValuation`: Authoritative current valuation
+- `inventoryReportUi.loadingUnavailable`: Loading or unavailable.
+
+### StaffRolesPermissionsPage — 17 missing
 
 - `roles.createFailed`: Failed to create role
 - `roles.created`: Role created successfully
@@ -1025,11 +942,24 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `customers.selectStatus`: Select status
 - `roles.creating`: Creating...
 - `rolesUi.editDescription`: Enable or restrict access using permission codes grouped by module.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
 
-### SettingsOverviewPage — 14 missing
+### ReportsPurchasingPage — 13 missing
+
+- `purchasingReport.loadError`: Failed to load purchasing report.
+- `purchasingReport.loadMoreError`: Failed to load more receipts.
+- `receipt.preview`: Receipt preview
+- `purchasingReport.description`: Read-only goods-received and supplier purchasing records. Voided receipts remain visible.
+- `dashboard.dateRange`: Date range (UTC)
+- `purchasingReport.refresh`: Refresh purchasing report
+- `purchasingReport.empty`: No goods receipts are available.
+- `purchasingReport.loadMore`: Load more receipts
+- `purchasingReport.receivedFrom`: Goods received from {{name}}.
+- `purchasingReport.receivedOn`: Received on
+- `purchasingReport.receiptTotal`: Receipt total
+- `purchasingReport.taxRecorded`: Tax recorded
+- `purchasingReport.receiptStatus`: Receipt status
+
+### SettingsOverviewPage — 11 missing
 
 - `settingsOverview.businessName`: Business name: {{name}}
 - `settingsOverview.businessIncomplete`: Business identity and contact details not fully configured
@@ -1042,43 +972,34 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `wallets.title`: Merchant Wallets
 - `settingsOverview.walletDescription`: Save your MTN MoMo and Airtel Money business accounts. Payment collection requires a separate verified connection.
 - `settingsOverview.manageWallets`: Manage wallets
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### ReportsOverviewPage — 11 missing
-
-- `reports.upToDate`: Up to Date
-- `reports.lastUpdated`: Last Updated
-- `reports.overviewDescription`: Review high-level reporting across sales, purchasing, inventory, and financial activity.
-- `reports.salesOverviewDescription`: Completed sales across all recorded dates
-- `reports.inventoryOverviewDescription`: Estimated using current product costs; see Inventory Reports for verified valuation
-- `reports.financialOverviewDescription`: Transitional income less expenses; see Financial Reports for posted-journal results
-- `reports.summaryDescription`: Reporting totals use different historical coverage; check each report for its accounting basis
-- `reports.refreshOverview`: Refresh reports overview
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### SettingsReceiptPage — 10 missing
-
-- `receiptSettings.details`: Receipt details
-- `receiptSettings.detailsDescription`: Choose what appears on receipts and how they print. The preview updates as you make changes.
-- `receiptPreview.copies`: Previewing one receipt · {{count}} {{label}} will print per sale
-- `pos.mobileMoney`: Mobile Money
-- `businessProfile.logoAlt`: Business logo
-- `receipt.reprint`: RECEIPT · REPRINT
-- `sales.phone`: Phone
-- `receipt.cancelledReversed`: Cancelled / reversed
-- `receipt.discount`: Discount
-- `receipt.balance`: Balance
 
 ### App shell (sidebar, header, navigation) — 2 missing
 
 - `common.notLoggedIn`: Not logged in
 - `common.pleaseSignIn`: Please sign in
 
-### SupplierPaymentsPage — 15 missing
+### ReportsOverviewPage — 7 missing
+
+- `reports.upToDate`: Up to Date
+- `reports.lastUpdated`: Last Updated
+- `reports.salesOverviewDescription`: Completed sales across all recorded dates
+- `reports.inventoryOverviewDescription`: Estimated using current product costs; see Inventory Reports for verified valuation
+- `reports.financialOverviewDescription`: Transitional income less expenses; see Financial Reports for posted-journal results
+- `reports.summaryDescription`: Reporting totals use different historical coverage; check each report for its accounting basis
+- `reports.refreshOverview`: Refresh reports overview
+
+### ReportsFinancialPage — 8 missing
+
+- `financialReportUi.detailedTrialBalance`: Detailed Trial Balance
+- `financialReportUi.refresh`: Refresh report
+- `financialReportUi.salesRevenue`: Sales revenue
+- `financialReportUi.costGoods`: Cost of goods sold
+- `financialReportUi.reportingPeriod`: Reporting period
+- `financialReportUi.incomplete`: Some transactions are not included in this report.
+- `financialReportUi.earningsNote`: Earnings from posted income and expense records, calculated as of the selected date. No new equity transaction has been created.
+- `financialReportUi.noDetails`: No additional details are available for this entry.
+
+### SupplierPaymentsPage — 11 missing
 
 - `supplierPaymentsUi.enterPaymentRef`: Enter payment ref
 - `supplierPaymentsUi.generatePaymentRef`: Generate payment reference
@@ -1091,79 +1012,3 @@ parity is reviewed per screen in `docs/ui-parity/screens.md`.
 - `supplierPaymentsUi.allocateDescription`: Allocate a payment to one existing supplier payable.
 - `supplierPaymentsUi.invoiceLoadError`: Unable to load unpaid invoices. Reopen this form to retry.
 - `supplierPaymentsUi.amountUgx`: Amount (UGX)
-- `supplierPaymentsUi.detailsDescription`: Review payment information, payable balance, and settlement status.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### AnalyticsPage — 10 missing
-
-- `dashboard.customRange`: Custom range
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-- `dateRange.last7`: Last 7 days
-- `dateRange.last30`: Last 30 days
-- `reports.thisMonth`: This month
-- `dateRange.preset`: {{label}} preset
-- `dateRange.choose`: Choose a preset
-- `dateRange.pick`: Pick a date range
-
-### FinanceLedgerPage — 7 missing
-
-- `finance.ledger.description`: Review debit and credit entries across the business financial record.
-- `finance.ledger.net`: Net Position
-- `finance.ledger.netDescription`: Credit less debit balance
-- `finance.ledger.refresh`: Refresh ledger
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### StaffActivityLogsPage — 8 missing
-
-- `activityUi.description`: Monitor user actions, failed attempts, and operational activity across the system.
-- `activityUi.totalDescription`: Recorded user activity entries
-- `activityUi.registerDescription`: Track staff actions, system access, and operational events
-- `activityUi.empty`: No activity logs found.
-- `activityUi.detailsDescription`: Review the selected user activity record.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### FinanceIncomePage — 6 missing
-
-- `income.description`: Track incoming revenue, customer payments, and other business income sources.
-- `income.selectMethod`: Select method
-- `income.selectStatus`: Select status
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### CreditOrdersPage — 6 missing
-
-- `creditOrders.across`: Across {{count}} credit orders
-- `creditOrders.partialDescription`: In progress payments
-- `creditOrders.empty`: No credit orders found
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### FinanceCashFlowPage — 4 missing
-
-- `finance.cashflow.refresh`: Refresh cash flow
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### CustomerPurchaseHistoryPage — 4 missing
-
-- `customers.purchaseHistoryDescription`: Review customer buying activity, transaction value, and purchase frequency.
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.
-
-### SalesHistoryPage — 3 missing
-
-- `common.no`: No
-- `table.noMatching`: No matching records
-- `table.tryFilters`: Try another search or change your filters.

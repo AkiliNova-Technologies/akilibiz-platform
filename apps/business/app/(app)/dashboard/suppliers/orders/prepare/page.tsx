@@ -11,6 +11,7 @@ import {
   type PurchaseOrderDraftLine,purchaseOrderDraftTotal,parseMilliQuantityInput,
 } from "@/lib/purchase-order-draft-validation";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Supplier={id:string;name:string;local_business_public_id:string};
 type Product={id:string;name:string;sku:string;stock_unit:string;local_business_public_id:string};
 type Draft={
@@ -31,6 +32,7 @@ const newDraft=():Draft=>({
   expected_delivery:null,notes:null,lines:[emptyLine()],updated_at:"",
 });
 export default function PreparePurchaseOrderPage(){
+  const { t } = useI18n();
   const [drafts,setDrafts]=useState<Draft[]>([]);
   const [suppliers,setSuppliers]=useState<Supplier[]>([]);
   const [products,setProducts]=useState<Product[]>([]);
@@ -139,7 +141,7 @@ export default function PreparePurchaseOrderPage(){
       </div>
       <div className="flex gap-2">
         <Button variant="outline" asChild><Link href="/dashboard/suppliers/orders">Back to orders</Link></Button>
-        <Button type="button" variant="outline" onClick={()=>void reload()} disabled={loading||busy}>Refresh</Button>
+        <Button type="button" variant="outline" onClick={()=>void reload()} disabled={loading||busy}>{t("pos.refresh")}</Button>
         <Button type="button" onClick={()=>{setDraft(newDraft());setNotice(null);setError(null);}}
           disabled={loading||busy||!!error}>New draft</Button>
       </div>
@@ -154,7 +156,7 @@ export default function PreparePurchaseOrderPage(){
           <Input value={draft.po_number} maxLength={100}
             onChange={event=>setDraft({...draft,po_number:event.target.value})}/>
         </label>
-        <label className="space-y-1 text-sm">Supplier
+        <label className="space-y-1 text-sm">{t("suppliers.supplier")}
           <Select value={draft.supplier_id||undefined} disabled={Boolean(draft.updated_at)}
             onValueChange={value=>{
               const supplier=suppliers.find(s=>s.id===value);
@@ -183,7 +185,7 @@ export default function PreparePurchaseOrderPage(){
           const lineTotal=purchaseOrderDraftTotal([line]);
           const product=availableProducts.find(p=>p.id===line.product_id);
           return <div key={index} className="grid gap-3 rounded-md border p-3 md:grid-cols-[minmax(0,2fr)_1fr_1fr_auto] md:items-end">
-            <label className="space-y-1 text-sm">Product
+            <label className="space-y-1 text-sm">{t("inventory.product")}
               <Select value={line.product_id||undefined}
                 onValueChange={value=>setLine(index,{product_id:value})}>
                 <SelectTrigger className="w-full"><SelectValue placeholder="Choose product"/></SelectTrigger>
@@ -215,17 +217,17 @@ export default function PreparePurchaseOrderPage(){
         <Button variant="outline" type="button" disabled={draft.lines.length>=100||!selectedSupplier}
           onClick={()=>setDraft({...draft,lines:[...draft.lines,emptyLine()]})}>Add item</Button>
       </div>
-      <label className="block space-y-1 text-sm">Notes
+      <label className="block space-y-1 text-sm">{t("inventory.notes")}
         <Textarea maxLength={2000} value={draft.notes??""}
           onChange={event=>setDraft({...draft,notes:event.target.value||null})}/>
       </label>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <p className="font-semibold">Draft total: {total===null?"Check item amounts":money(total)}</p>
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={()=>setDraft(null)}>Close</Button>
+          <Button type="button" variant="outline" onClick={()=>setDraft(null)}>{t("receipt.close")}</Button>
           <Button type="button" disabled={busy||currentSubmitted||total===null||!selectedSupplier||
             draft.lines.some(line=>!line.product_id)} onClick={()=>void save()}>
-            {busy?"Saving…":"Save draft"}
+            {busy?t("businessProfile.saving"):"Save draft"}
           </Button>
         </div>
       </div>

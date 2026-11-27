@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = FinancialReportEntry & TableData;
 const ugx = (value: number) =>
   new Intl.NumberFormat("en-UG", {
@@ -52,6 +53,7 @@ const tabs: Array<[FinancialReportTab, string]> = [
 ];
 
 export default function ReportsFinancialPage() {
+  const { t } = useI18n();
   const {
     entries,
     loading,
@@ -78,7 +80,7 @@ export default function ReportsFinancialPage() {
     [entries, from, tab, to],
   );
   const fields: TableField<Row>[] = [
-    { key: "label", header: "Reference" },
+    { key: "label", header: t("finance.reference") },
     { key: "date", header: "UTC date" },
     {
       key: "amount",
@@ -88,19 +90,19 @@ export default function ReportsFinancialPage() {
     },
     {
       key: "debit",
-      header: "Debit",
+      header: t("finance.ledger.debit"),
       align: "right",
       cell: (value) => (value === undefined ? "—" : ugx(Number(value))),
     },
     {
       key: "credit",
-      header: "Credit",
+      header: t("customers.creditBalance"),
       align: "right",
       cell: (value) => (value === undefined ? "—" : ugx(Number(value))),
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => <Badge variant="outline">{String(value ?? "")}</Badge>,
     },
   ];
@@ -118,7 +120,7 @@ export default function ReportsFinancialPage() {
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">Financial Reports</h2>
+            <h2 className="text-2xl font-semibold">{t("nav.financialReports")}</h2>
             <p className="text-sm text-muted-foreground">
               Review receivables, payables, tax, profitability, and statement
               information.
@@ -144,7 +146,7 @@ export default function ReportsFinancialPage() {
                     {asOfTabs.includes(key) ? (
                       <DateRangePicker
                         id={`financial-report-as-of-${key}`}
-                        label="As of date (UTC)"
+                        label={t("financialReportUi.asOf")}
                         from={draftAsOf}
                         to={draftAsOf}
                         onRangeChange={(_, nextTo) => setDraftAsOf(nextTo)}
@@ -153,7 +155,7 @@ export default function ReportsFinancialPage() {
                       <>
                         <DateRangePicker
                           id={`financial-report-date-range-${key}`}
-                          label="Date range (UTC)"
+                          label={t("dashboard.dateRange")}
                           from={draftFrom}
                           to={draftTo}
                           onRangeChange={(nextFrom, nextTo) => {
@@ -186,7 +188,7 @@ export default function ReportsFinancialPage() {
                         ) : null}
                         {asOfTabs.includes(key)
                           ? "Apply as of date"
-                          : "Apply period"}
+                          : t("dashboard.applyPeriod")}
                       </Button>
                       {!asOfTabs.includes(key) ? (
                         <Button
@@ -198,7 +200,7 @@ export default function ReportsFinancialPage() {
                             setFrom("");
                             setTo("");
                           }}>
-                          Clear period
+                          {t("purchasingReport.clearPeriod")}
                         </Button>
                       ) : null}
                     </div>
@@ -221,7 +223,7 @@ export default function ReportsFinancialPage() {
                         <Button
                           variant="outline"
                           onClick={() => void refresh()}
-                          disabled={loading} size="icon" aria-label="Refresh" title="Refresh">
+                          disabled={loading} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")}>
                           {loading ? (
                             <LoaderCircle className="size-4 animate-spin" />
                           ) : (

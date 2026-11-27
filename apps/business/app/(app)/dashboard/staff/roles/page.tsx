@@ -57,6 +57,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = {
   role_name: string;
   users_count: number;
@@ -80,6 +81,7 @@ const group = (permissions: Permission[]) =>
   );
 
 export default function StaffRolesPermissionsPage() {
+  const { t } = useI18n();
   const {
     roles,
     permissions,
@@ -176,33 +178,33 @@ export default function StaffRolesPermissionsPage() {
   const fields: TableField<Row>[] = [
     {
       key: "role_name",
-      header: "Role",
+      header: t("staff.role"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "users_count",
-      header: "Assigned Users",
+      header: t("rolesUi.assignedUsers"),
       align: "center",
       enableSorting: true,
       cell: (value) => <Badge variant="secondary">{Number(value)}</Badge>,
     },
     {
       key: "access_scope",
-      header: "Access Scope",
+      header: t("rolesUi.accessScope"),
       align: "center",
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
     {
       key: "permissions_count",
-      header: "Permissions",
+      header: t("rolesUi.permissions"),
       align: "center",
       enableSorting: true,
       cell: (value) => <span className="font-medium">{Number(value)}</span>,
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => (
         <Badge variant={value === "Active" ? "outline" : "secondary"}>
@@ -212,15 +214,15 @@ export default function StaffRolesPermissionsPage() {
     },
   ];
   const actions: TableAction<Row>[] = [
-    { type: "view", label: "View role", onClick: (row) => void view(row) },
+    { type: "view", label: t("rolesUi.viewRole"), onClick: (row) => void view(row) },
     {
       type: "edit",
-      label: "Edit permissions",
+      label: t("rolesUi.edit"),
       onClick: (row) => void edit(row),
     },
     {
       type: "custom",
-      label: "Delete role",
+      label: t("rolesUi.delete"),
       icon: <Trash2 className="size-4" />,
       onClick: (row) => {
         setSelected(row.role);
@@ -235,7 +237,7 @@ export default function StaffRolesPermissionsPage() {
         <div className="flex flex-col gap-6">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Roles & Permissions
+              {t("roles.title")}
             </h2>
             <p className="text-sm text-muted-foreground">
               Control staff access across business areas and manage operational
@@ -244,25 +246,25 @@ export default function StaffRolesPermissionsPage() {
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Roles"
+              title={t("rolesUi.total")}
               value={summary ? String(summary.total_roles) : "—"}
               description={summary ? `${summary.active_roles} active roles configured` : "Role records unavailable"}
               icon={<ShieldCheck className="size-5" />}
             />
             <MetricCard
-              title="Assigned Users"
+              title={t("rolesUi.assignedUsers")}
               value={summary ? String(summary.total_assigned_users) : "—"}
-              description="Users mapped to permission roles"
+              description={t("rolesUi.usersDescription")}
               icon={<Users className="size-5" />}
             />
             <MetricCard
-              title="Average Permissions"
+              title={t("rolesUi.average")}
               value={summary ? String(summary.average_permissions) : "—"}
-              description="Average enabled permissions per role"
+              description={t("rolesUi.averageDescription")}
               icon={<KeyRound className="size-5" />}
             />
             <MetricCard
-              title="Access Control"
+              title={t("rolesUi.accessControl")}
               value="—"
               description="Role details unavailable"
               icon={<LockKeyhole className="size-5" />}
@@ -271,21 +273,21 @@ export default function StaffRolesPermissionsPage() {
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable<Row>
-                title="Roles Register"
-                description="Manage access levels and permission assignments across staff roles"
+                title={t("rolesUi.register")}
+                description={t("rolesUi.registerDescription")}
                 data={rows}
                 fields={fields}
                 actions={actions}
                 enableGlobalSearch
-                searchPlaceholder="Search roles..."
+                searchPlaceholder={t("rolesUi.search")}
                 pageSize={10}
                 onRowClick={(row) => void view(row)}
-                emptyMessage={loading ? "Loading roles..." : "No roles available."}
+                emptyMessage={loading ? t("rolesUi.loading") : "No roles available."}
                 toolbarActions={
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => void refreshRolesPermissions()} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                      onClick={() => void refreshRolesPermissions()} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled>
                       <RefreshCw className="size-4" />
                       
                     </Button>
@@ -301,7 +303,7 @@ export default function StaffRolesPermissionsPage() {
                         setCreateOpen(true);
                       }}>
                       <Plus className="mr-2 size-4" />
-                      Create Role
+                      {t("roles.create")}
                     </Button>
                   </div>
                 }
@@ -313,7 +315,7 @@ export default function StaffRolesPermissionsPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Role</AlertDialogTitle>
+            <AlertDialogTitle>{t("roles.delete")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the role &quot;{selected?.role_name}&quot;?
               {selected && selected.users_count > 0 ? (
@@ -329,11 +331,11 @@ export default function StaffRolesPermissionsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("roles.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => void confirmDelete()}>
-              Delete Role
+              {t("roles.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -341,14 +343,14 @@ export default function StaffRolesPermissionsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create Role</DialogTitle>
+            <DialogTitle>{t("roles.create")}</DialogTitle>
             <DialogDescription>
-              Create a custom role and assign permissions later.
+              {t("rolesUi.createDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <FieldLabel required>Role Name</FieldLabel>
+              <FieldLabel required>{t("rolesUi.roleName")}</FieldLabel>
               <Input
                 value={form.role_name}
                 onChange={(event) => {
@@ -358,7 +360,7 @@ export default function StaffRolesPermissionsPage() {
                   }));
                   setFormError("");
                 }}
-                placeholder="e.g., Sales Manager, Support Agent"
+                placeholder={t("rolesUi.nameHint")}
                 className={formError ? "border-red-500" : ""}
               />
               {formError ? (
@@ -366,7 +368,7 @@ export default function StaffRolesPermissionsPage() {
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("finance.description")}</Label>
               <Textarea
                 rows={3}
                 value={form.description}
@@ -376,11 +378,11 @@ export default function StaffRolesPermissionsPage() {
                     description: event.target.value,
                   }))
                 }
-                placeholder="Brief description of this role's purpose"
+                placeholder={t("rolesUi.descriptionHint")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t("reports.status")}</Label>
               <Select
                 value={form.is_active ? "Active" : "Inactive"}
                 onValueChange={(value) =>
@@ -393,26 +395,26 @@ export default function StaffRolesPermissionsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Active">{t("common.active")}</SelectItem>
+                  <SelectItem value="Inactive">{t("common.inactive")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {t("roles.cancel")}
             </Button>
-            <Button disabled title="Role creation unavailable" onClick={() => void create()}>Create Role</Button>
+            <Button disabled title="Role creation unavailable" onClick={() => void create()}>{t("roles.create")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Role Details</DialogTitle>
+            <DialogTitle>{t("rolesUi.details")}</DialogTitle>
             <DialogDescription>
-              Review assigned access scope and enabled permissions.
+              {t("rolesUi.detailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {selected ? (
@@ -471,7 +473,7 @@ export default function StaffRolesPermissionsPage() {
                               {permission.code}
                             </p>
                           </div>
-                          <Badge variant="outline">Allowed</Badge>
+                          <Badge variant="outline">{t("rolesUi.allowed")}</Badge>
                         </div>
                       ))}
                     </div>
@@ -491,7 +493,7 @@ export default function StaffRolesPermissionsPage() {
                   setEditOpen(true);
                 }
               }}>
-              Edit Permissions
+              {t("roles.editPermissions")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -499,7 +501,7 @@ export default function StaffRolesPermissionsPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Edit Permissions</DialogTitle>
+            <DialogTitle>{t("roles.editPermissions")}</DialogTitle>
             <DialogDescription>
               Enable or restrict access using permission codes grouped by
               business area.
@@ -510,7 +512,7 @@ export default function StaffRolesPermissionsPage() {
               <div>
                 <h3 className="font-semibold">{selected.role_name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Adjust permission-level access for this role.
+                  {t("rolesUi.adjustDescription")}
                 </p>
               </div>
               {selected.is_system ? (
@@ -547,7 +549,7 @@ export default function StaffRolesPermissionsPage() {
                             ) : null}
                           </div>
                           <Badge variant={enabled ? "outline" : "secondary"}>
-                            {enabled ? "Allowed" : "Blocked"}
+                            {enabled ? t("rolesUi.allowed") : t("rolesUi.blocked")}
                           </Badge>
                         </button>
                       );
@@ -557,12 +559,12 @@ export default function StaffRolesPermissionsPage() {
               ))}
               <DialogFooter>
                 <Button variant="outline" onClick={() => setEditOpen(false)}>
-                  Cancel
+                  {t("roles.cancel")}
                 </Button>
                 <Button
                   onClick={() => void savePermissions()}
                   disabled title="Permission editing unavailable">
-                  Save Permissions
+                  {t("roles.savePermissions")}
                 </Button>
               </DialogFooter>
             </div>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { TaxEvidence } from "./tax-management-data";
 import { indexLatestProductVatReviews, productVatReviewKey } from "./tax-review-matching";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Product = {
   id:string;
   local_business_public_id:string;
@@ -19,6 +20,7 @@ type Product = {
 const PAGE_SIZE=12;
 
 export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
+  const { t } = useI18n();
   const [products,setProducts]=useState<Product[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState<string|null>(null);
@@ -93,13 +95,13 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
             <p className="text-xs text-muted-foreground">SKU: {p.sku}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-full border px-2 py-0.5">
-                {review?"Review recorded":"No confirmation received"}
+                {review?t("financeHome.reviewRecorded"):"No confirmation received"}
               </span>
               <span className="text-muted-foreground">{review?.title??"Current treatment cannot be verified on the web"}</span>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={()=>setSelected(p.id)}>
-            {review?"View review":"View details"}
+            {review?"View review":t("products.view")}
           </Button>
         </div>;
       })}
@@ -107,15 +109,15 @@ export function TaxProductReviewList({reviews}: {reviews:TaxEvidence[]}) {
     {!loading&&!error&&filtered.length>PAGE_SIZE&&<div className="flex items-center justify-between gap-2 text-sm">
       <span className="text-muted-foreground">{offset+1}–{Math.min(filtered.length,offset+PAGE_SIZE)} of {filtered.length}</span>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-PAGE_SIZE))}>Previous</Button>
-        <Button variant="outline" size="sm" disabled={offset+PAGE_SIZE>=filtered.length} onClick={()=>setOffset(offset+PAGE_SIZE)}>Next</Button>
+        <Button variant="outline" size="sm" disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-PAGE_SIZE))}>{t("common.previous")}</Button>
+        <Button variant="outline" size="sm" disabled={offset+PAGE_SIZE>=filtered.length} onClick={()=>setOffset(offset+PAGE_SIZE)}>{t("common.next")}</Button>
       </div>
     </div>}
     {selectedProduct&&<div className="rounded-lg border p-4" role="region" aria-label="Product VAT review details">
       <div className="flex items-start justify-between gap-3">
         <div><h3 className="font-semibold">{selectedProduct.name}</h3>
         <p className="text-xs text-muted-foreground">{selectedProduct.sku}</p></div>
-        <Button variant="outline" size="sm" onClick={()=>setSelected(null)}>Close</Button>
+        <Button variant="outline" size="sm" onClick={()=>setSelected(null)}>{t("receipt.close")}</Button>
       </div>
       <div className="mt-3 space-y-1 text-sm">
         {selectedReview?<>

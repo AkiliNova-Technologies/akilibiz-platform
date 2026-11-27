@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 import { LinkedAccounts } from "@/components/akilibiz/auth/linked-accounts";
 import { AccountActionsPanel } from "@/components/akilibiz/auth/account-actions-panel";
 
+import { getI18n } from "@/lib/i18n/server";
 export default async function AccountProfilePage() {
+  const { t } = await getI18n();
   const business = await requireActiveBusiness();
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -28,7 +30,7 @@ export default async function AccountProfilePage() {
   return (
     <main className="flex min-w-0 flex-col gap-5">
       <div className="space-y-1 pt-1">
-        <h1 className="text-xl font-semibold sm:text-2xl">My Account</h1>
+        <h1 className="text-xl font-semibold sm:text-2xl">{t("accountUi.title")}</h1>
         <p className="text-sm text-muted-foreground">Your profile and account security.</p>
       </div>
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -50,7 +52,7 @@ export default async function AccountProfilePage() {
               <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                 <div className="space-y-1"><dt className="text-muted-foreground">Full name</dt><dd className="break-words font-medium">{displayName}</dd></div>
                 <div className="space-y-1"><dt className="text-muted-foreground">Email address</dt><dd className="break-all font-medium">{user.email ?? "—"}</dd></div>
-                <div className="space-y-1"><dt className="text-muted-foreground">Phone number</dt><dd className="font-medium">{user.phone || "Not provided"}</dd></div>
+                <div className="space-y-1"><dt className="text-muted-foreground">Phone number</dt><dd className="font-medium">{user.phone || t("account.notProvided")}</dd></div>
                 <div className="space-y-1"><dt className="text-muted-foreground">Account created</dt><dd className="font-medium">{joined}</dd></div>
               </dl>
             </section>
@@ -62,14 +64,14 @@ export default async function AccountProfilePage() {
               <h2 className="font-semibold">Business access</h2>
               <dl className="space-y-3 text-sm">
                 <div className="flex items-start justify-between gap-3"><dt className="shrink-0 text-muted-foreground">Business</dt><dd className="break-words text-right font-medium">{business.name}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Role</dt><dd className="font-medium capitalize">{business.role.replaceAll("_", " ")}</dd></div>
-                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Status</dt><dd className="font-medium">Signed in</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{t("staff.role")}</dt><dd className="font-medium capitalize">{business.role.replaceAll("_", " ")}</dd></div>
+                <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{t("reports.status")}</dt><dd className="font-medium">Signed in</dd></div>
               </dl>
             </CardContent>
           </Card>
           <Card className="gap-0 py-0">
             <CardContent className="space-y-4 px-4 py-5 sm:px-5">
-              <h2 className="font-semibold">Account security</h2>
+              <h2 className="font-semibold">{t("accountUi.securityHeading")}</h2>
               <AccountActionsPanel name={fullName} />
               <Separator />
               <LinkedAccounts googleConnected={googleConnected} />

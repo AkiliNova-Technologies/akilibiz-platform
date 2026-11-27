@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { PairingForm } from "@/app/(app)/dashboard/settings/desktop-sync/pairing-form";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function BackupRestorePage({ canPair, businessName }: { canPair: boolean; businessName: string }) {
+  const { t } = useI18n();
   const backup = useBrowserBackupRestore();
   const filePickerRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
@@ -112,7 +114,7 @@ export function BackupRestorePage({ canPair, businessName }: { canPair: boolean;
                     <th className="px-3 py-2 font-medium">Date &amp; time</th>
                     <th className="px-3 py-2 font-medium">File name</th>
                     <th className="px-3 py-2 font-medium">Size</th>
-                    <th className="px-3 py-2 font-medium">Status</th>
+                    <th className="px-3 py-2 font-medium">{t("reports.status")}</th>
                     <th className="px-3 py-2 text-right font-medium">Actions</th>
                   </tr>
                 </thead>

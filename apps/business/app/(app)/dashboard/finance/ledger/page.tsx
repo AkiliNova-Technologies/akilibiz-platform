@@ -29,9 +29,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = LedgerRow & TableData;
 
 export default function FinanceLedgerPage() {
+  const { t } = useI18n();
   const { ledgerEntries, ledgerSummary, loading, error, lastSuccessfulSync, isStale, refreshLedger } =
     useFinanceLedgerData();
   useEffect(() => {
@@ -44,32 +46,32 @@ export default function FinanceLedgerPage() {
   const fields: TableField<Row>[] = [
     {
       key: "reference",
-      header: "Reference",
+      header: t("finance.reference"),
       cell: (value) => (
         <span className="font-mono text-sm">{String(value)}</span>
       ),
     },
     {
       key: "entry_type",
-      header: "Entry Type",
+      header: t("finance.ledger.entryType"),
       align: "center",
       cell: (value) =>
         value === "Credit" ? (
-          <Badge variant="outline">Credit</Badge>
+          <Badge variant="outline">{t("finance.ledger.credit")}</Badge>
         ) : (
-          <Badge variant="secondary">Debit</Badge>
+          <Badge variant="secondary">{t("finance.ledger.debit")}</Badge>
         ),
     },
-    { key: "source", header: "Source", align: "center", enableSorting: true },
+    { key: "source", header: t("finance.ledger.source"), align: "center", enableSorting: true },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "amount",
-      header: "Amount",
+      header: t("finance.amount"),
       align: "right",
       enableSorting: true,
       cell: (value) => (
@@ -78,16 +80,16 @@ export default function FinanceLedgerPage() {
         </span>
       ),
     },
-    { key: "account", header: "Account", align: "center", enableSorting: true },
+    { key: "account", header: t("finance.ledger.account"), align: "center", enableSorting: true },
     {
       key: "recorded_by",
-      header: "Recorded By",
+      header: t("finance.ledger.recordedBy"),
       align: "center",
       enableSorting: true,
     },
     {
       key: "date",
-      header: "Date",
+      header: t("finance.date"),
       align: "center",
       enableSorting: true,
       cell: (value) => formatFinanceDate(String(value)),
@@ -97,10 +99,9 @@ export default function FinanceLedgerPage() {
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="text-2xl font-semibold">Financial Ledger</h2>
+          <h2 className="text-2xl font-semibold">{t("finance.ledger.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Review debit and credit entries across the business financial
-            record.
+            {t("finance.ledger.description")}
           </p>
         </div>
         <FinancialMirrorStatus loading={loading} error={error} lastSuccessfulSync={lastSuccessfulSync} isStale={isStale} />
@@ -119,39 +120,39 @@ export default function FinanceLedgerPage() {
         ) : null}
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            title="Total Credits"
+            title={t("finance.ledger.totalCredits")}
             value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.total_credits) : "—"}
-            description="All credit-side ledger entries"
+            description={t("finance.ledger.totalCreditsDescription")}
             icon={<ArrowUp className="size-5" />}
           />
           <MetricCard
-            title="Total Debits"
+            title={t("finance.ledger.totalDebits")}
             value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.total_debits) : "—"}
-            description="All debit-side ledger entries"
+            description={t("finance.ledger.totalDebitsDescription")}
             icon={<ArrowDown className="size-5" />}
           />
           <MetricCard
-            title="Debit / credit difference"
+            title={t("finance.ledger.net")}
             value={ledgerSummary ? formatFinanceCurrency(ledgerSummary.net_position) : "—"}
-            description="Journal entries should balance to zero"
+            description={t("finance.ledger.netDescription")}
             icon={<CircleDollarSign className="size-5" />}
           />
           <MetricCard
-            title="Ledger Entries"
+            title={t("finance.ledger.entries")}
             value={ledgerSummary ? String(ledgerSummary.total_entries) : "—"}
-            description="Recorded financial entries"
+            description={t("finance.ledger.entriesDescription")}
             icon={<BookOpen className="size-5" />}
           />
         </section>
         <Card>
           <CardContent>
             <DataTable<Row>
-              title="Ledger Register"
-              description="Trace debit and credit activity across business finance"
+              title={t("finance.ledger.register")}
+              description={t("finance.ledger.registerDescription")}
               data={rows}
               fields={fields}
               enableGlobalSearch
-              searchPlaceholder="Search ledger entries..."
+              searchPlaceholder={t("finance.ledger.search")}
               pageSize={10}
               loading={loading}
               emptyMessage={
@@ -163,7 +164,7 @@ export default function FinanceLedgerPage() {
                 <Button
                   variant="outline"
                   onClick={() => void refreshLedger()}
-                  disabled={loading} size="icon" aria-label="Refresh" title="Refresh">
+                  disabled={loading} size="icon" aria-label={t("finance.ledger.refresh")} title={t("finance.ledger.refresh")}>
                   {loading ? (
                     <LoaderCircle className="size-4 animate-spin" />
                   ) : (

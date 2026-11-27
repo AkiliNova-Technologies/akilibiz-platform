@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = {
   receipt_number: string;
   receipt_date_utc: string;
@@ -44,6 +45,7 @@ const money = (value: number) =>
   }).format(value);
 
 export default function ReportsPurchasingPage() {
+  const { t } = useI18n();
   const { goodsReceived, getGoodsReceivedRegister, getGoodsReceiptLines, loading, error } =
     useReportsPurchasingData();
   useEffect(()=>{void getGoodsReceivedRegister({skip:0,limit:5000});},[getGoodsReceivedRegister]);
@@ -90,14 +92,14 @@ export default function ReportsPurchasingPage() {
     const fields: TableField<Row>[] = [
     {
       key: "receipt_number",
-      header: "Receipt",
+      header: t("receipt.number"),
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
-    { key: "receipt_date_utc", header: "Date" },
-    { key: "supplier_name", header: "Supplier" },
+    { key: "receipt_date_utc", header: t("finance.date") },
+    { key: "supplier_name", header: t("suppliers.supplier") },
     {
       key: "total_amount_ugx",
-      header: "Total",
+      header: t("sales.total"),
       align: "right",
       cell: (value) => money(Number(value)),
     },
@@ -109,7 +111,7 @@ export default function ReportsPurchasingPage() {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
@@ -117,7 +119,7 @@ export default function ReportsPurchasingPage() {
   const actions: TableAction<Row>[] = [
     {
       type: "view",
-      label: "View receipt detail",
+      label: t("purchasingReport.viewDetail"),
       icon: <Eye className="size-4" />,
       onClick: setSelected,
     },
@@ -136,7 +138,7 @@ export default function ReportsPurchasingPage() {
           {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
           {loading && <p role="status" className="text-sm text-muted-foreground">Loading goods receipts…</p>}
           <div>
-            <h2 className="text-2xl font-semibold">Purchasing Reports</h2>
+            <h2 className="text-2xl font-semibold">{t("nav.purchasingReports")}</h2>
             <p className="text-sm text-muted-foreground">
               Goods-received and supplier purchasing records. Voided receipts
               remain visible.
@@ -144,15 +146,15 @@ export default function ReportsPurchasingPage() {
           </div>
           <section className="grid gap-4 md:grid-cols-2">
             <MetricCard
-              title="Posted receipts"
+              title={t("purchasingReport.posted")}
               value={verified?money(postedValue):"—"}
-              description="Exact UGX from posted goods receipts"
+              description={t("purchasingReport.postedDescription")}
               icon={<ReceiptText className="size-5" />}
             />
             <MetricCard
-              title="Receipt register"
+              title={t("purchasingReport.register")}
               value={verified?rows.length.toLocaleString("en-UG"):"—"}
-              description="Posted and voided receipts remain traceable"
+              description={t("purchasingReport.registerDescription")}
               icon={<Truck className="size-5" />}
             />
           </section>
@@ -185,7 +187,7 @@ export default function ReportsPurchasingPage() {
                     void getGoodsReceivedRegister({date_from:draftDateFrom,date_to:draftDateTo,skip:0,limit:5000});
                   }}
                   disabled={!draftDateFrom || !draftDateTo}>
-                  Apply period
+                  {t("dashboard.applyPeriod")}
                 </Button>
                 <Button
                   variant="outline"
@@ -197,7 +199,7 @@ export default function ReportsPurchasingPage() {
                     setDateTo("");
                     void getGoodsReceivedRegister({skip:0,limit:5000});
                   }}>
-                  Clear period
+                  {t("purchasingReport.clearPeriod")}
                 </Button>
               </div>
             </CardContent>
@@ -205,14 +207,14 @@ export default function ReportsPurchasingPage() {
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable<Row>
-                title="Goods Received Register"
-                description="Posted and voided receipt history."
+                title={t("purchasingReport.goodsRegister")}
+                description={t("purchasingReport.goodsDescription")}
                 data={rows}
                 fields={fields}
                 actions={actions}
                 onRowClick={setSelected}
                 toolbarActions={
-                  <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
+                  <Button variant="outline" onClick={refresh} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled={loading}>
                     <RefreshCw className="size-4" />
                     
                   </Button>

@@ -15,6 +15,7 @@ import {
 } from "@/lib/goods-receipt-draft-validation";
 import {parseMilliQuantityInput} from "@/lib/purchase-order-draft-validation";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Order={id:number;source:string;number:string;supplier:string;status:string};
 type OrderLine={id:number;product_id:number;remaining:number;price:number;unit:string|null};
 type SavedDraft=PreparedGoodsReceipt&{updated_at:string};
@@ -49,6 +50,7 @@ const initialInvoice=(receipt:PreparedGoodsReceipt):PreparedSupplierInvoice=>({
 });
 
 export default function PrepareGoodsReceiptPage(){
+  const { t } = useI18n();
   const [orders,setOrders]=React.useState<Order[]>([]);
   const [orderLines,setOrderLines]=React.useState<OrderLine[]>([]);
   const [saved,setSaved]=React.useState<SavedDraft[]>([]);
@@ -183,7 +185,7 @@ export default function PrepareGoodsReceiptPage(){
       </div>
       <div className="flex gap-2">
         <Button asChild variant="outline"><Link href="/dashboard/suppliers/orders">Back to orders</Link></Button>
-        <Button variant="outline" disabled={busy||loading} onClick={()=>void reload()}>Refresh</Button>
+        <Button variant="outline" disabled={busy||loading} onClick={()=>void reload()}>{t("pos.refresh")}</Button>
       </div>
     </div>
     {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
@@ -283,20 +285,20 @@ export default function PrepareGoodsReceiptPage(){
                   change({source_kind:value as PreparedSupplierInvoice["source_kind"]})}>
                   <SelectTrigger><SelectValue/></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EFRIS_E_INVOICE">EFRIS e-invoice</SelectItem>
+                    <SelectItem value="EFRIS_E_INVOICE">{t("supplierOrdersUi.efris")}</SelectItem>
                     <SelectItem value="TAX_INVOICE">Tax invoice</SelectItem>
                   </SelectContent>
                 </Select>
               </label>
-              <label className="space-y-1 text-sm">Invoice number
+              <label className="space-y-1 text-sm">{t("supplierOrdersUi.invoiceNumber")}
                 <Input value={evidence.invoice_number} maxLength={100}
                   onChange={event=>change({invoice_number:event.target.value})}/>
               </label>
-              <label className="space-y-1 text-sm">Invoice date
+              <label className="space-y-1 text-sm">{t("supplierOrdersUi.invoiceDate")}
                 <Input type="date" value={evidence.invoice_date}
                   onChange={event=>change({invoice_date:event.target.value})}/>
               </label>
-              <label className="space-y-1 text-sm">Evidence reference
+              <label className="space-y-1 text-sm">{t("financeHome.evidence")}
                 <Input value={evidence.evidence_reference} maxLength={160}
                   onChange={event=>change({evidence_reference:event.target.value})}/>
               </label>
@@ -338,9 +340,9 @@ export default function PrepareGoodsReceiptPage(){
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <p className="font-semibold">Delivery cost: {total===null?"Invalid amount":currency(total)}</p>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={()=>{setDraft(null);setOrderLines([]);}}>Close</Button>
+          <Button variant="outline" onClick={()=>{setDraft(null);setOrderLines([]);}}>{t("receipt.close")}</Button>
           <Button disabled={busy||!draft.receipt_number.trim()||total===null||!draft.lines.length}
-            onClick={()=>void save()}>{busy?"Saving…":"Save receipt draft"}</Button>
+            onClick={()=>void save()}>{busy?t("businessProfile.saving"):"Save receipt draft"}</Button>
         </div>
       </div>
       <p className="text-xs text-muted-foreground">

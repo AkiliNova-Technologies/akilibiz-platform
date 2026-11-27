@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type ProfileFormProps = {
   isDirty: boolean;
   loading: boolean;
@@ -62,6 +63,7 @@ export function BusinessProfileForm({
   onUpdateField,
   profile,
 }: ProfileFormProps) {
+  const { t } = useI18n();
   const [error, setError] = React.useState<string | null>(null);
   const [mediaBusy, setMediaBusy] = React.useState<ProfileMediaKind | null>(
     null,
@@ -132,7 +134,7 @@ export function BusinessProfileForm({
           <ImagePlus className="mr-2 size-4" />
         )}
         {mediaBusy === kind
-          ? "Saving…"
+          ? t("businessProfile.saving")
           : hasMedia
             ? `Change ${kind}`
             : `Add ${kind}`}
@@ -165,12 +167,12 @@ export function BusinessProfileForm({
   return (
     <Card className="gap-0 overflow-visible py-0">
       <CardContent className="px-0">
-        <section aria-label="Business identity" className="relative">
+        <section aria-label={t("businessProfile.identity")} className="relative">
           <div className="relative z-0 h-32 overflow-hidden rounded-t-xl sm:h-40 md:h-44 lg:h-52">
             {profile.cover_media_url ? (
               <img
                 src={profile.cover_media_url}
-                alt="Business cover"
+                alt={t("businessProfile.coverAlt")}
                 className="size-full object-cover"
               />
             ) : (
@@ -187,7 +189,7 @@ export function BusinessProfileForm({
                   disabled={mediaBusy !== null}
                 >
                   <Trash2 className="mr-2 size-4" />
-                  Remove cover
+                  {t("businessProfile.removeCover")}
                 </Button>
               ) : null}
             </div>
@@ -196,7 +198,7 @@ export function BusinessProfileForm({
             {profile.logo_media_url ? (
               <img
                 src={profile.logo_media_url}
-                alt="Business logo"
+                alt={t("businessProfile.logoAlt")}
                 className="size-32 rounded-3xl bg-card object-cover shadow-sm sm:size-[104px] lg:size-[128px]"
               />
             ) : (
@@ -210,10 +212,10 @@ export function BusinessProfileForm({
             <div className="min-w-0 flex-1 space-y-2 sm:pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="min-w-0 break-words text-xl font-semibold leading-tight">
-                  {profile.business_name || "Set up your business"}
+                  {profile.business_name || t("businessProfile.setup")}
                 </h2>
                 <Badge variant="outline" className="shrink-0">
-                  {isComplete ? "Profile complete" : "Profile in progress"}
+                  {isComplete ? t("businessProfile.complete") : t("businessProfile.inProgress")}
                 </Badge>
               </div>
               {profile.trading_name ? (
@@ -222,8 +224,7 @@ export function BusinessProfileForm({
                 </p>
               ) : null}
               <p className="max-w-xl text-sm text-muted-foreground">
-                Business identity used across daily operations, receipts, and
-                reports.
+                {t("businessProfile.identityDescription")}
               </p>
               <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
                 <Info className="size-4 shrink-0" />
@@ -243,7 +244,7 @@ export function BusinessProfileForm({
                   disabled={mediaBusy !== null}
                 >
                   <Trash2 className="mr-2 size-4" />
-                  Remove logo
+                  {t("businessProfile.removeLogo")}
                 </Button>
               ) : null}
             </div>
@@ -288,16 +289,16 @@ export function BusinessProfileForm({
                 id="business-details-heading"
                 className="text-base font-semibold"
               >
-                Business details
+                {t("businessProfile.details")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Use your registered information where it is available.
+                {t("businessProfile.detailsHint")}
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <FieldLabel required htmlFor="business_name">
-                  Registered business name
+                  {t("businessProfile.registeredName")}
                 </FieldLabel>
                 <Input
                   id="business_name"
@@ -307,7 +308,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="trading_name">Trading name</Label>
+                <Label htmlFor="trading_name">{t("businessProfile.tradingName")}</Label>
                 <Input
                   id="trading_name"
                   value={profile.trading_name}
@@ -315,7 +316,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="owner_name">Owner / director</Label>
+                <Label htmlFor="owner_name">{t("businessProfile.owner")}</Label>
                 <Input
                   id="owner_name"
                   value={profile.owner_name}
@@ -323,7 +324,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="registration_number">Registration number</Label>
+                <Label htmlFor="registration_number">{t("businessProfile.registrationNumber")}</Label>
                 <Input
                   id="registration_number"
                   value={profile.registration_number}
@@ -345,15 +346,15 @@ export function BusinessProfileForm({
                 id="contact-location-heading"
                 className="text-base font-semibold"
               >
-                Contact and location
+                {t("businessProfile.contactLocation")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Keep the details customers and documents rely on up to date.
+                {t("businessProfile.contactHint")}
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="email">Business email</Label>
+                <Label htmlFor="email">{t("businessProfile.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -362,7 +363,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Business phone</Label>
+                <Label htmlFor="phone">{t("businessProfile.phone")}</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -371,7 +372,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">{t("customers.address")}</Label>
                 <Textarea
                   id="address"
                   rows={3}
@@ -380,7 +381,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">{t("businessProfile.city")}</Label>
                 <Input
                   id="city"
                   value={profile.city}
@@ -388,7 +389,7 @@ export function BusinessProfileForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
+                <Label htmlFor="country">{t("businessProfile.country")}</Label>
                 <Input
                   id="country"
                   value={profile.country}
@@ -397,7 +398,7 @@ export function BusinessProfileForm({
               </div>
               <div className="space-y-2">
                 <FieldLabel required htmlFor="timezone">
-                  Timezone
+                  {t("businessProfile.timezone")}
                 </FieldLabel>
                 <Input
                   id="timezone"
@@ -408,7 +409,7 @@ export function BusinessProfileForm({
               </div>
               <div className="space-y-2">
                 <FieldLabel required htmlFor="currency">
-                  Currency
+                  {t("businessProfile.currency")}
                 </FieldLabel>
                 <Input
                   id="currency"
@@ -428,7 +429,7 @@ export function BusinessProfileForm({
           </aside>
           <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              Changes appear on receipts and reports.
+              {t("businessProfile.changesHint")}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button
@@ -438,7 +439,7 @@ export function BusinessProfileForm({
                 disabled={loading || !isDirty}
               >
                 <RotateCcw className="mr-2 size-4" />
-                Reset changes
+                {t("receiptSettings.reset")}
               </Button>
               <Button
                 type="submit"
@@ -448,7 +449,7 @@ export function BusinessProfileForm({
                 {loading ? (
                   <LoaderCircle className="mr-2 size-4 animate-spin" />
                 ) : null}
-                {loading ? "Saving…" : "Save changes"}
+                {loading ? t("businessProfile.saving") : t("receiptSettings.save")}
               </Button>
             </div>
           </div>

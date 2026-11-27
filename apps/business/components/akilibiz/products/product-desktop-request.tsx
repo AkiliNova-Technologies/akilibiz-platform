@@ -3,17 +3,22 @@
 import { useEffect,useState } from "react";
 import { Button } from "@/components/ui/button";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 type Saved={requestId:string;commandId?:string;state?:string};
 type HostedRequest={command_id:string;draft_id:string;state:"pending"|"staged"|"applied"|"conflict"|"published";requested_at:string};
 export function ProductDesktopRequest({draftId,initialRequest,onRequested}:{
   draftId:string;initialRequest?:HostedRequest;onRequested?:()=>void;
 }){
+  const { t } = useI18n();
   const key=`akilibiz.product-request.${draftId}`;
   const [saved,setSaved]=useState<Saved|null>(null);
   const [loaded,setLoaded]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
+  // Re-read only when the hosted request identity or state changes.
+  const initialCommandId=initialRequest?.command_id;
+  const initialState=initialRequest?.state;
   useEffect(()=>{
     let active=true;
     queueMicrotask(()=>{
@@ -29,14 +34,14 @@ export function ProductDesktopRequest({draftId,initialRequest,onRequested}:{
     }catch{/* Browser storage may be unavailable; hosted status still prevails. */}
     // Hosted status is authoritative, including after browser changes and
     // across devices. Local storage is only the retry identity for unknown POSTs.
-    if(initialRequest && UUID.test(initialRequest.command_id)){
+    if(initialCommandId && initialState && UUID.test(initialCommandId)){
       setSaved({requestId:cached?.requestId??"",
-        commandId:initialRequest.command_id,state:initialRequest.state});
+        commandId:initialCommandId,state:initialState});
     }else setSaved(cached);
     setLoaded(true);
     });
     return()=>{active=false;};
-  },[key,initialRequest?.command_id,initialRequest?.state]);
+  },[key,initialCommandId,initialState]);
   const persist=(value:Saved)=>{
     // Refuse the network request if its identity cannot survive a refresh.
     window.sessionStorage.setItem(key,JSON.stringify(value));
@@ -86,7 +91,7 @@ export function ProductDesktopRequest({draftId,initialRequest,onRequested}:{
           "Sent to desktop · awaiting review"}
       </span>
       <Button size="sm" variant="outline" disabled={busy} onClick={()=>void check()}>
-        {busy?"Checking…":"Check desktop request"}
+        {busy?t("financeHome.checking"):"Check desktop request"}
       </Button>
     </>:<Button size="sm" variant="outline" disabled={busy||!loaded}
       onClick={()=>void send()}>

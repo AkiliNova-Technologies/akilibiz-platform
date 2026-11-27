@@ -1,3 +1,7 @@
+// GENERATED from the AkiliBiz Desktop repository (src/components/data-table.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
+"use client";
+
 import * as React from "react";
 import {
   closestCenter,
@@ -50,10 +54,11 @@ import {
   XIcon,
   DownloadIcon,
   InfoIcon,
-  RefreshCwIcon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/akilibiz/desktop-shared/feedback-state";
+import { RefreshButton } from "@/components/akilibiz/desktop-shared/refresh-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -84,34 +89,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const tableLabels: Record<string, string> = {
-  "common.search": "Search",
-  "common.noResults": "No results.",
-  "common.selectAll": "Select all",
-  "common.selectRow": "Select row",
-  "common.clearSearch": "Clear search",
-  "common.refresh": "Refresh",
-  "common.columns": "Columns",
-  "common.export": "Export",
-  "common.rowsPerPage": "Rows per page",
-  "common.goToFirstPage": "Go to first page",
-  "common.goToPreviousPage": "Go to previous page",
-  "common.goToNextPage": "Go to next page",
-  "common.goToLastPage": "Go to last page",
-};
-
-function t(
-  key: string,
-  values?: { count?: number; selected?: number; page?: number; total?: number },
-) {
-  if (key === "common.selectedCount") return `${values?.count ?? 0} selected`;
-  if (key === "common.rowsSelected")
-    return `${values?.selected ?? 0} of ${values?.total ?? 0} row(s) selected`;
-  if (key === "common.pageOf")
-    return `Page ${values?.page ?? 0} of ${values?.total ?? 0}`;
-  return tableLabels[key] ?? key;
-}
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -164,58 +142,57 @@ interface DataTableProps<TData extends TableData> {
   // Data
   data: TData[];
   fields: TableField<TData>[];
-
+  
   // Header
   title?: string;
   description?: string;
   /** Concise, optional explanation of the table's purpose and displayed data. */
   helpText?: string;
-
+  
   // Features
   actions?: TableAction<TData>[];
   bulkActions?: BulkAction<TData>[];
   loading?: boolean;
-
+  
   // Selection
   enableSelection?: boolean;
   onSelectionChange?: (selectedRows: TData[]) => void;
-
+  
   // Pagination
   enablePagination?: boolean;
   pageSize?: number;
   pageSizeOptions?: number[];
-
+  
   // Sorting & Filtering
   enableSorting?: boolean;
   // enableFiltering?: boolean;  // Reserved for future use
   // filters?: TableFilter[];     // Reserved for future use
-
+  
   // Search
   enableGlobalSearch?: boolean;
   searchPlaceholder?: string;
-
+  
   // Drag & Drop
   enableDragDrop?: boolean;
   onReorder?: (newData: TData[]) => void;
-
+  
   // Column Visibility
   enableColumnVisibility?: boolean;
-
+  
   // Export
   enableExport?: boolean;
   onExport?: (data: TData[]) => void;
-
+  
   // Row Actions
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
-
+  
   // Toolbar
   toolbarFilters?: React.ReactNode;
   toolbarActions?: React.ReactNode;
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
-  refreshDisabled?: boolean;
-
+  
   // Customization
   emptyMessage?: string;
   className?: string;
@@ -232,47 +209,33 @@ const defaultIcons = {
   delete: <TrashIcon className="size-4" />,
 } as const;
 
-// Default cell renderers
-const defaultCellRenderers = {
-  string: (value: string) => <span>{value}</span>,
-  number: (value: number) => <span>{value.toLocaleString()}</span>,
-  boolean: (value: boolean) => (
-    <Badge variant={value ? "default" : "secondary"}>
-      {value ? "Yes" : "No"}
-    </Badge>
-  ),
-  date: (value: string | Date) => (
-    <span>{new Date(value).toLocaleDateString()}</span>
-  ),
-} as const;
-
-// Helper function to determine value type and render appropriately
-const renderValue = (value: unknown): React.ReactNode => {
+// Default rendering is presentation-only. Keep raw values intact for sorting and export.
+const renderValue = (
+  value: unknown,
+  locale: string,
+  t: ReturnType<typeof useI18n>["t"],
+): React.ReactNode => {
   if (value === null || value === undefined) {
     return <span className="text-muted-foreground">-</span>;
   }
-
   if (typeof value === "string") {
-    // Check if it's a date string
-    if (!isNaN(Date.parse(value)) && value.includes("-")) {
-      return defaultCellRenderers.date(value);
+    if (/^\\d{4}-\\d{2}-\\d{2}(?:T|$)/.test(value)) {
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) {
+        return <span>{new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric" }).format(date)}</span>;
+      }
     }
-    return defaultCellRenderers.string(value);
+    return <span>{value}</span>;
   }
-
   if (typeof value === "number") {
-    return defaultCellRenderers.number(value);
+    return <span>{new Intl.NumberFormat(locale).format(value)}</span>;
   }
-
   if (typeof value === "boolean") {
-    return defaultCellRenderers.boolean(value);
+    return <Badge variant={value ? "default" : "secondary"}>{value ? t("common.yes") : t("common.no")}</Badge>;
   }
-
   if (value instanceof Date) {
-    return defaultCellRenderers.date(value);
+    return <span>{new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric" }).format(value)}</span>;
   }
-
-  // Fallback for other types
   return <span>{String(value)}</span>;
 };
 
@@ -294,6 +257,7 @@ const getAlignmentClass = (align?: "left" | "center" | "right"): string => {
 // ============================================================================
 
 function DragHandle({ id }: { id: number | string }) {
+  const { t } = useI18n();
   const { attributes, listeners } = useSortable({
     id,
   });
@@ -307,7 +271,7 @@ function DragHandle({ id }: { id: number | string }) {
       className="size-7 text-muted-foreground hover:bg-transparent cursor-grab active:cursor-grabbing"
     >
       <GripVerticalIcon className="size-4" />
-      <span className="sr-only">Drag to reorder</span>
+      <span className="sr-only">{t("common.dragToReorder")}</span>
     </Button>
   );
 }
@@ -347,70 +311,67 @@ function DataTable<TData extends TableData>({
   // Data
   data: initialData,
   fields,
-
+  
   // Header
   title,
   description,
   helpText,
-
+  
   // Features
   actions = [],
   bulkActions = [],
   loading = false,
-
+  
   // Selection
   enableSelection = true,
   onSelectionChange,
-
+  
   // Pagination
   enablePagination = true,
   pageSize = 10,
   pageSizeOptions = [5, 10, 20, 30, 40, 50],
-
+  
   // Sorting & Filtering
   enableSorting = true,
   // enableFiltering = false,  // Reserved for future use
   // filters = [],              // Reserved for future use
-
+  
   // Search
   enableGlobalSearch = true,
   searchPlaceholder,
-
+  
   // Drag & Drop
   enableDragDrop = false,
   onReorder,
-
+  
   // Column Visibility
   enableColumnVisibility = true,
-
+  
   // Export
   enableExport = false,
   onExport,
-
+  
   // Row Actions
   onRowClick,
   rowClassName,
-
+  
   // Toolbar
   toolbarFilters,
   toolbarActions,
   onRefresh,
   refreshing = false,
-  refreshDisabled = false,
-
+  
   // Customization
   emptyMessage,
   className = "",
 }: DataTableProps<TData>) {
+  const { t, locale } = useI18n();
   const resolvedSearchPlaceholder = searchPlaceholder ?? t("common.search");
   const resolvedEmptyMessage = emptyMessage ?? t("common.noResults");
   const [data, setData] = React.useState<TData[]>(initialData);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [pagination, setPagination] = React.useState({
@@ -428,12 +389,12 @@ function DataTable<TData extends TableData>({
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {}),
+    useSensor(KeyboardSensor, {})
   );
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data?.map(({ id }) => id) || [],
-    [data],
+    [data]
   );
 
   // Create a map of field alignments for easy access
@@ -521,7 +482,7 @@ function DataTable<TData extends TableData>({
 
           return (
             <div className={`flex ${getAlignmentClass(alignment)}`}>
-              {renderValue(value)}
+              {renderValue(value, locale, t)}
             </div>
           );
         },
@@ -538,9 +499,8 @@ function DataTable<TData extends TableData>({
         cell: ({ row }) => (
           <div className="flex items-center gap-2 justify-end">
             {actions.map((action, index) => {
-              const isDestructive =
-                action.variant === "destructive" || action.type === "delete";
-
+              const isDestructive = action.variant === "destructive" || action.type === "delete";
+              
               return (
                 <Button
                   key={index}
@@ -551,10 +511,9 @@ function DataTable<TData extends TableData>({
                     action.onClick(row.original);
                   }}
                   title={action.label || action.type}
-                  aria-label={action.label || action.type}
-                  className={`size-8 hover:bg-muted ${
-                    isDestructive
-                      ? "text-destructive hover:text-destructive"
+                  className={`size-8 rounded-lg border border-border bg-muted/40 shadow-none hover:bg-muted/70 ${
+                    isDestructive 
+                      ? "text-destructive hover:text-destructive" 
                       : "text-muted-foreground"
                   }`}
                   disabled={
@@ -576,7 +535,7 @@ function DataTable<TData extends TableData>({
     }
 
     return baseColumns;
-  }, [fields, actions, enableSelection, enableDragDrop, enableSorting]);
+  }, [fields, actions, enableSelection, enableDragDrop, enableSorting, t, locale]);
 
   // The TanStack Table's `useReactTable()` API returns functions that are not safe to memoize.
   // Disable the incompatible-library ESLint check here to avoid the memoization warning.
@@ -602,9 +561,7 @@ function DataTable<TData extends TableData>({
     onPaginationChange: enablePagination ? setPagination : undefined,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: enablePagination
-      ? getPaginationRowModel()
-      : undefined,
+    getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -635,9 +592,7 @@ function DataTable<TData extends TableData>({
   }, [rowSelection, onSelectionChange, table]);
 
   // Get selected rows
-  const selectedRows = table
-    .getSelectedRowModel()
-    .rows.map((row) => row.original);
+  const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
   const hasSelection = selectedRows.length > 0;
 
   // Handle export
@@ -669,7 +624,7 @@ function DataTable<TData extends TableData>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 );
@@ -680,7 +635,10 @@ function DataTable<TData extends TableData>({
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center"
+              >
                 <div className="flex items-center justify-center">
                   <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
                 </div>
@@ -697,7 +655,10 @@ function DataTable<TData extends TableData>({
                     key={cell.id}
                     className={`py-4 ${getAlignmentClass(alignment)}`}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
                   </TableCell>
                 );
               });
@@ -726,8 +687,16 @@ function DataTable<TData extends TableData>({
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                {resolvedEmptyMessage}
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center"
+              >
+                  <EmptyState
+                    size="compact"
+                    titleClassName="font-normal"
+                    title={data.length > 0 ? t("table.noMatching") : resolvedEmptyMessage}
+                    description={data.length > 0 ? t("table.tryFilters") : undefined}
+                  />
               </TableCell>
             </TableRow>
           )}
@@ -744,10 +713,7 @@ function DataTable<TData extends TableData>({
           sensors={sensors}
           id={sortableId}
         >
-          <SortableContext
-            items={dataIds}
-            strategy={verticalListSortingStrategy}
-          >
+          <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
             {content}
           </SortableContext>
         </DndContext>
@@ -765,9 +731,7 @@ function DataTable<TData extends TableData>({
           <div className="flex min-w-0 flex-col items-start gap-2">
             {title && (
               <div className="flex min-w-0 items-center gap-1.5">
-                <h2 className="min-w-0 break-words text-2xl font-bold tracking-tight">
-                  {title}
-                </h2>
+                <h2 className="min-w-0 break-words text-2xl font-bold tracking-tight">{title}</h2>
                 {helpText && (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -781,22 +745,14 @@ function DataTable<TData extends TableData>({
                         <InfoIcon className="size-4" aria-hidden="true" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      sideOffset={6}
-                      className="max-w-xs"
-                    >
+                    <TooltipContent side="right" sideOffset={6} className="max-w-xs">
                       {helpText}
                     </TooltipContent>
                   </Tooltip>
                 )}
               </div>
             )}
-            {description && (
-              <p className="min-w-0 break-words text-sm text-muted-foreground">
-                {description}
-              </p>
-            )}
+            {description && <p className="min-w-0 break-words text-sm text-muted-foreground">{description}</p>}
           </div>
         </div>
 
@@ -856,22 +812,12 @@ function DataTable<TData extends TableData>({
             {toolbarActions}
 
             {onRefresh && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => void onRefresh()}
-                    disabled={loading || refreshing || refreshDisabled}
-                    aria-label={t("common.refresh")}
-                  >
-                    <RefreshCwIcon
-                      className={`size-4 ${refreshing ? "animate-spin" : ""}`}
-                    />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t("common.refresh")}</TooltipContent>
-              </Tooltip>
+              <RefreshButton
+                label={t("common.refresh")}
+                onClick={() => void onRefresh()}
+                loading={refreshing}
+                disabled={loading}
+              />
             )}
 
             {/* Column Visibility Dropdown */}
@@ -880,15 +826,9 @@ function DataTable<TData extends TableData>({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        aria-label={t("common.columns")}
-                      >
+                      <Button variant="outline" size="lg" aria-label={t("common.columns")}>
                         <ColumnsIcon className="size-4" />
-                        <span className="hidden lg:inline">
-                          {t("common.columns")}
-                        </span>
+                        <span className="hidden lg:inline">{t("common.columns")}</span>
                         <ChevronDownIcon className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -901,7 +841,7 @@ function DataTable<TData extends TableData>({
                     .filter(
                       (column) =>
                         typeof column.accessorFn !== "undefined" &&
-                        column.getCanHide(),
+                        column.getCanHide()
                     )
                     .map((column) => {
                       return (
@@ -932,9 +872,7 @@ function DataTable<TData extends TableData>({
                     aria-label={t("common.export")}
                   >
                     <DownloadIcon className="size-4" />
-                    <span className="hidden lg:inline">
-                      {t("common.export")}
-                    </span>
+                    <span className="hidden lg:inline">{t("common.export")}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t("common.export")}</TooltipContent>
@@ -952,14 +890,14 @@ function DataTable<TData extends TableData>({
 
         {/* Pagination */}
         {enablePagination && !loading && (
-          <div className="flex min-w-0 items-center justify-between px-1 sm:px-4">
+          <div className="flex items-center justify-between px-4">
             <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
               {t("common.rowsSelected", {
                 selected: table.getFilteredSelectedRowModel().rows.length,
                 total: table.getFilteredRowModel().rows.length,
               })}
             </div>
-            <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:gap-4 lg:w-fit lg:justify-start lg:gap-8">
+            <div className="flex w-full items-center gap-8 lg:w-fit">
               <div className="hidden items-center gap-2 lg:flex">
                 <Label htmlFor="rows-per-page" className="text-sm font-medium">
                   {t("common.rowsPerPage")}
@@ -984,13 +922,13 @@ function DataTable<TData extends TableData>({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="shrink-0 whitespace-nowrap text-sm font-medium">
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
                 {t("common.pageOf", {
                   page: table.getState().pagination.pageIndex + 1,
                   total: table.getPageCount(),
                 })}
               </div>
-              <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 lg:ml-0">
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex"
@@ -1007,9 +945,7 @@ function DataTable<TData extends TableData>({
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
-                  <span className="sr-only">
-                    {t("common.goToPreviousPage")}
-                  </span>
+                  <span className="sr-only">{t("common.goToPreviousPage")}</span>
                   <ChevronLeftIcon className="size-4" />
                 </Button>
                 <Button

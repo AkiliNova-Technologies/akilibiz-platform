@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Props = {
   isDirty: boolean;
   loading: boolean;
@@ -25,6 +26,7 @@ type Props = {
 export function TaxSettingsForm({
   isDirty, loading, onReset, onSettingsChange, settings,
 }: Props) {
+  const { t } = useI18n();
   const setField = <K extends keyof TaxSettingsFormData>(
     key: K, value: TaxSettingsFormData[K],
   ) => onSettingsChange((previous) => ({ ...previous, [key]: value }));
@@ -38,7 +40,7 @@ export function TaxSettingsForm({
             <h3 className="text-lg font-semibold">VAT Registration</h3>
             <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
               <div className="space-y-1">
-                <Label htmlFor="vat_registered">Registered for VAT</Label>
+                <Label htmlFor="vat_registered">{t("taxSettings.registered")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Turn this on if your business is registered for VAT in Uganda.
                 </p>
@@ -47,12 +49,12 @@ export function TaxSettingsForm({
                 id="vat_registered"
                 checked={settings.vat_registered}
                 onCheckedChange={(checked) => setField("vat_registered", checked)}
-                aria-label="Registered for VAT"
+                aria-label={t("taxSettings.registered")}
               />
             </div>
             {settings.vat_registered && (
               <div className="max-w-lg space-y-2">
-                <Label htmlFor="vat_registration_number">VAT registration number</Label>
+                <Label htmlFor="vat_registration_number">{t("taxSettings.registrationNumber")}</Label>
                 <Input
                   id="vat_registration_number"
                   value={settings.vat_registration_number}
@@ -92,7 +94,7 @@ export function TaxSettingsForm({
                   The effective rate comes from your business tax records and is not changed here.
                 </p>
               </div>
-              <Badge variant="outline">Unavailable</Badge>
+              <Badge variant="outline">{t("dashboard.unavailable")}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               Review VAT treatment for individual products in Tax Management under Finance.
@@ -104,12 +106,12 @@ export function TaxSettingsForm({
           <section className="space-y-3">
             <h3 className="text-lg font-semibold">Receipt Options</h3>
             <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-              <Label htmlFor="show_tax_on_receipt">Show tax on receipts</Label>
+              <Label htmlFor="show_tax_on_receipt">{t("taxSettings.showOnReceipt")}</Label>
               <Switch
                 id="show_tax_on_receipt"
                 checked={settings.show_tax_on_receipt}
                 onCheckedChange={(checked) => setField("show_tax_on_receipt", checked)}
-                aria-label="Show tax on receipts"
+                aria-label={t("taxSettings.showOnReceipt")}
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -121,10 +123,10 @@ export function TaxSettingsForm({
 
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={onReset} disabled={loading || !isDirty}>
-              Reset changes
+              {t("receiptSettings.reset")}
             </Button>
             <Button type="button" disabled title="Tax settings saving is not yet connected">
-              Save changes
+              {t("receiptSettings.save")}
             </Button>
           </div>
                   </fieldset>

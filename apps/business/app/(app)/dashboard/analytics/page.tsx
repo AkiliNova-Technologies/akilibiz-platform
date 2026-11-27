@@ -57,6 +57,7 @@ import {
 } from "@/components/akilibiz/analytics/analytics-data";
 import { getAnalyticsData } from "@/components/akilibiz/analytics/analytics-data";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Granularity = "daily" | "weekly" | "monthly";
 type AppliedFilters = { from: string; to: string; granularity: Granularity };
 type TrendRow = TableData & { period: string; sales: number; orders: number };
@@ -110,6 +111,7 @@ const tableOptions = {
 };
 
 export default function AnalyticsPage() {
+  const { t } = useI18n();
   const initialTo = React.useMemo(() => todayUtc(), []);
   const [from, setFrom] = React.useState(() => dateBefore(initialTo, 30));
   const [to, setTo] = React.useState(initialTo);
@@ -211,11 +213,12 @@ export default function AnalyticsPage() {
   };
   const selectWindow = (value: string) => {
     setWindowDays(value);
-    setFrom(dateBefore(to, Number(value)));
+    if (value !== "custom") setFrom(dateBefore(to, Number(value)));
   };
   const selectDateRange = (nextFrom: string, nextTo: string) => {
     setFrom(nextFrom);
     setTo(nextTo);
+    setWindowDays("custom");
   };
 
   const trendRows: TrendRow[] = (trend?.current ?? []).map((point) => ({
@@ -250,18 +253,18 @@ export default function AnalyticsPage() {
     { key: "period", header: "UTC period" },
     {
       key: "sales",
-      header: "Completed sales",
+      header: t("dashboard.completedSales"),
       align: "right",
       cell: (value) => formatUgx(Number(value)),
     },
     { key: "orders", header: "Orders", align: "right" },
   ];
   const customerFields: TableField<CustomerRow>[] = [
-    { key: "customer_reference", header: "Customer" },
+    { key: "customer_reference", header: t("pos.customer") },
     { key: "order_count", header: "Orders", align: "right" },
     {
       key: "sales_total_ugx",
-      header: "Completed sales",
+      header: t("dashboard.completedSales"),
       align: "right",
       cell: (value) => formatUgx(Number(value)),
     },
@@ -271,7 +274,7 @@ export default function AnalyticsPage() {
     },
   ];
   const velocityFields: TableField<VelocityRow>[] = [
-    { key: "product_name", header: "Product" },
+    { key: "product_name", header: t("inventory.product") },
     {
       key: "quantity_milli",
       header: "Quantity sold",
@@ -286,12 +289,12 @@ export default function AnalyticsPage() {
     },
     {
       key: "classification",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
   ];
   const riskFields: TableField<RiskRow>[] = [
-    { key: "product_name", header: "Product" },
+    { key: "product_name", header: t("inventory.product") },
     {
       key: "current_stock_milli",
       header: "On hand",
@@ -312,14 +315,14 @@ export default function AnalyticsPage() {
     },
     {
       key: "confidence",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => (
         <Badge variant="outline">{String(value).replaceAll("_", " ")}</Badge>
       ),
     },
   ];
   const paymentFields: TableField<PaymentRow>[] = [
-    { key: "payment_method", header: "Payment method" },
+    { key: "payment_method", header: t("expensesUi.paymentMethod") },
     { key: "payment_count", header: "Recorded payments", align: "right" },
     {
       key: "total_amount_ugx",
@@ -329,7 +332,7 @@ export default function AnalyticsPage() {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => (
         <Badge variant="outline">{String(value).replaceAll("_", " ")}</Badge>
       ),
@@ -359,7 +362,7 @@ export default function AnalyticsPage() {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => (
         <Badge variant="outline">{String(value).replaceAll("_", " ")}</Badge>
       ),
@@ -371,7 +374,7 @@ export default function AnalyticsPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex min-w-0 flex-col gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">Business Insights</h2>
+            <h2 className="text-2xl font-semibold">{t("nav.businessInsights")}</h2>
             <p className="text-sm text-muted-foreground">
               Sales performance and business activity.
             </p>
@@ -379,7 +382,7 @@ export default function AnalyticsPage() {
 
           <section className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-5">
             <MetricCard
-              title="Selected-period sales"
+              title={t("analyticsUi.selectedSales")}
               value={
                 customers
                   ? formatUgx(customers.completed_sales_total_ugx)
@@ -397,7 +400,7 @@ export default function AnalyticsPage() {
               icon={<ChartLine className="size-5" />}
             />
             <MetricCard
-              title="Period comparison"
+              title={t("analyticsUi.periodComparison")}
               value={
                 trend
                   ? formatUgx(trend.absolute_change_ugx)
@@ -417,7 +420,7 @@ export default function AnalyticsPage() {
               icon={<ChartLine className="size-5" />}
             />
             <MetricCard
-              title="Customer behaviour"
+              title={t("analyticsUi.customerBehaviour")}
               value={
                 customers
                   ? String(customers.completed_customer_count)
@@ -435,7 +438,7 @@ export default function AnalyticsPage() {
               icon={<Users className="size-5" />}
             />
             <MetricCard
-              title="Payment methods"
+              title={t("analyticsUi.paymentMethods")}
               value={topPayment?.payment_method ?? "Unavailable"}
               description={
                 topPayment
@@ -445,7 +448,7 @@ export default function AnalyticsPage() {
               icon={<CreditCard className="size-5" />}
             />
             <MetricCard
-              title="Stock-out risk"
+              title={t("analyticsUi.stockRisk")}
               value={
                 stockRiskSummary
                   ? String(stockRiskSummary.out_of_stock_product_count)
@@ -468,28 +471,29 @@ export default function AnalyticsPage() {
             <CardContent className="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:items-end xl:grid-cols-4">
               <DateRangePicker
                 id="analytics-date-range"
-                label="Date range (UTC)"
+                label={t("dashboard.dateRange")}
                 from={from}
                 to={to}
                 onRangeChange={selectDateRange}
                 className="min-w-0 sm:col-span-2 xl:col-span-1"
               />
               <div className="grid min-w-0 gap-2">
-                <Label>Observation window</Label>
+                <Label>{t("dashboard.observationWindow")}</Label>
                 <Select value={windowDays} onValueChange={selectWindow}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7">Last 7 UTC days</SelectItem>
-                    <SelectItem value="30">Last 30 UTC days</SelectItem>
+                    <SelectItem value="custom">{t("dashboard.customRange")}</SelectItem>
+                    <SelectItem value="7">{t("dashboard.last7")}</SelectItem>
+                    <SelectItem value="30">{t("dashboard.last30")}</SelectItem>
                     <SelectItem value="90">Last 90 UTC days</SelectItem>
                     <SelectItem value="366">Last 366 UTC days</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid min-w-0 gap-2">
-                <Label>Trend grouping</Label>
+                <Label>{t("analyticsUi.trendGrouping")}</Label>
                 <Select
                   value={granularity}
                   onValueChange={selectTrendGranularity}
@@ -498,9 +502,9 @@ export default function AnalyticsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="daily">{t("analyticsUi.daily")}</SelectItem>
+                    <SelectItem value="weekly">{t("analyticsUi.weekly")}</SelectItem>
+                    <SelectItem value="monthly">{t("analyticsUi.monthly")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -511,7 +515,7 @@ export default function AnalyticsPage() {
                   disabled={loading || !from || !to}
                 >
                   {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-                  Apply period
+                  {t("dashboard.applyPeriod")}
                 </Button>
               </div>
             </CardContent>
@@ -531,7 +535,7 @@ export default function AnalyticsPage() {
               <TabsTrigger value="sales-customers">
                 Sales &amp; Customers
               </TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              <TabsTrigger value="inventory">{t("nav.inventory")}</TabsTrigger>
               <TabsTrigger value="payments-products">
                 Payments &amp; Products
               </TabsTrigger>
@@ -540,7 +544,7 @@ export default function AnalyticsPage() {
               <Card className="@container/card">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold tracking-tight">
-                    Sales Trend
+                    {t("analyticsUi.salesTrend")}
                   </CardTitle>
                   <CardDescription>
                     Completed sales · {periodLabel(filters)}
@@ -556,9 +560,9 @@ export default function AnalyticsPage() {
                       className="hidden @[620px]/card:flex"
                       aria-label="Sales trend grouping"
                     >
-                      <ToggleGroupItem value="daily">Daily</ToggleGroupItem>
-                      <ToggleGroupItem value="weekly">Weekly</ToggleGroupItem>
-                      <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+                      <ToggleGroupItem value="daily">{t("analyticsUi.daily")}</ToggleGroupItem>
+                      <ToggleGroupItem value="weekly">{t("analyticsUi.weekly")}</ToggleGroupItem>
+                      <ToggleGroupItem value="monthly">{t("analyticsUi.monthly")}</ToggleGroupItem>
                     </ToggleGroup>
                     <Select
                       value={filters.granularity}
@@ -572,9 +576,9 @@ export default function AnalyticsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="daily">{t("analyticsUi.daily")}</SelectItem>
+                        <SelectItem value="weekly">{t("analyticsUi.weekly")}</SelectItem>
+                        <SelectItem value="monthly">{t("analyticsUi.monthly")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </CardAction>
@@ -633,7 +637,7 @@ export default function AnalyticsPage() {
                               labelFormatter={(label) => String(label)}
                               formatter={(value, _name, item) => (
                                 <div className="flex w-full items-center justify-between gap-4">
-                                  <span>Completed sales</span>
+                                  <span>{t("dashboard.completedSales")}</span>
                                   <span className="font-mono font-medium tabular-nums">
                                     {formatUgx(Number(value))}
                                   </span>
@@ -669,7 +673,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<TrendRow>
-                      title="Trend periods"
+                      title={t("analyticsUi.trendPeriods")}
                       description={`Total completed sales for each ${filters.granularity} period, ${periodLabel(filters)}.`}
                       data={trendRows}
                       fields={trendFields}
@@ -682,7 +686,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<CustomerRow>
-                      title="Top customers"
+                      title={t("analyticsUi.topCustomers")}
                       description={`Customers ranked by completed-order value, ${periodLabel(filters)}.`}
                       data={customerRows}
                       fields={customerFields}
@@ -690,7 +694,7 @@ export default function AnalyticsPage() {
                       toolbarActions={
                         <Button asChild variant="outline" size="lg">
                           <Link href="/dashboard/reports/sales">
-                            Open sales detail
+                            {t("analyticsUi.salesDetail")}
                           </Link>
                         </Button>
                       }
@@ -705,7 +709,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<VelocityRow>
-                      title="Product velocity"
+                      title={t("analyticsUi.productVelocity")}
                       description={`How fast each product is selling, ${periodLabel(filters)}. Status compares it to your fastest-selling product.`}
                       data={velocityRows}
                       fields={velocityFields}
@@ -713,7 +717,7 @@ export default function AnalyticsPage() {
                       toolbarActions={
                         <Button asChild variant="outline" size="lg">
                           <Link href="/dashboard/reports/inventory">
-                            Open inventory detail
+                            {t("analyticsUi.inventoryDetail")}
                           </Link>
                         </Button>
                       }
@@ -724,7 +728,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<RiskRow>
-                      title="Stock-out risk"
+                      title={t("analyticsUi.stockRisk")}
                       description={`Estimated days of stock left based on sales pace, ${periodLabel(filters)}. "Unavailable" means there isn't enough sales history yet to estimate.`}
                       data={riskRows}
                       fields={riskFields}
@@ -732,7 +736,7 @@ export default function AnalyticsPage() {
                       toolbarActions={
                         <Button asChild variant="outline" size="lg">
                           <Link href="/dashboard/reports/inventory">
-                            Open inventory detail
+                            {t("analyticsUi.inventoryDetail")}
                           </Link>
                         </Button>
                       }
@@ -747,7 +751,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<PaymentRow>
-                      title="Payment methods"
+                      title={t("analyticsUi.paymentMethods")}
                       description={`Payments recorded against completed sales, ${periodLabel(filters)}.`}
                       data={paymentRows}
                       fields={paymentFields}
@@ -755,7 +759,7 @@ export default function AnalyticsPage() {
                       toolbarActions={
                         <Button asChild variant="outline" size="lg">
                           <Link href="/dashboard/reports/sales">
-                            Open sales detail
+                            {t("analyticsUi.salesDetail")}
                           </Link>
                         </Button>
                       }
@@ -766,7 +770,7 @@ export default function AnalyticsPage() {
                 <Card>
                   <CardContent className="px-6 pb-6">
                     <DataTable<AssociationRow>
-                      title="Frequently bought together"
+                      title={t("analyticsUi.boughtTogether")}
                       description={`Product pairs often bought in the same order, ${periodLabel(filters)}. Support shows how often that pairing happens, out of 10,000 orders.`}
                       data={associationRows}
                       fields={associationFields}
@@ -774,7 +778,7 @@ export default function AnalyticsPage() {
                       toolbarActions={
                         <Button asChild variant="outline" size="lg">
                           <Link href="/dashboard/reports/sales">
-                            Open sales detail
+                            {t("analyticsUi.salesDetail")}
                           </Link>
                         </Button>
                       }

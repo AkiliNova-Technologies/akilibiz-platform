@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBanner } from "@/components/akilibiz/status-banner";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function BusinessSettingsForm({
   initial,
   canEdit,
@@ -17,12 +18,13 @@ export function BusinessSettingsForm({
   initial: BusinessProfileInput;
   canEdit: boolean;
 }) {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState(updateBusinessProfile, initialBusinessFormState);
   const initials = (initial.tradingName || initial.name).replace(/[^a-zA-Z0-9]/g, "").slice(0, 2).toUpperCase() || "B";
   return (
     <Card className="gap-0 overflow-hidden py-0">
       <CardContent className="space-y-6 px-0 pb-6">
-        <section aria-label="Business identity" className="space-y-4">
+        <section aria-label={t("businessProfile.identity")} className="space-y-4">
           <div className="relative h-32 bg-primary/10 sm:h-40 md:h-44 lg:h-52">
             <Button type="button" variant="secondary" size="sm" disabled
               title="Business cover images are not yet connected" className="absolute bottom-3 right-3">
@@ -53,7 +55,7 @@ export function BusinessSettingsForm({
           </fieldset>
           {state.error ? <StatusBanner title="Could not save business profile" tone="error">{state.error}</StatusBanner> : state.saved ? <StatusBanner title="Business profile saved" tone="success">Your changes were saved for this business.</StatusBanner> : null}
           {canEdit ? <div className="flex justify-end border-t pt-5">
-            <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save changes"}</Button>
+            <Button type="submit" disabled={pending}>{pending ? t("businessProfile.saving") : t("businessProfile.save")}</Button>
           </div> : null}
         </form>
         </div>

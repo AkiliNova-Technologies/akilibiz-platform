@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function AccountNameForm({ name }: { name: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [value, setValue] = useState(name);
   const [busy, setBusy] = useState(false);
@@ -60,7 +62,7 @@ export function AccountNameForm({ name }: { name: string }) {
     {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
     {saved ? <p role="status" className="text-sm text-muted-foreground">Name saved.</p> : null}
     <Button type="submit" className="h-11 rounded-full" disabled={busy || !value.trim()}>
-      {busy ? "Saving…" : "Save name"}
+      {busy ? t("businessProfile.saving") : "Save name"}
     </Button>
   </form>;
 }

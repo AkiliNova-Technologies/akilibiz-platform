@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type LoadState =
   | { kind: "loading" }
   | { kind: "disabled"; message: string }
@@ -77,6 +78,7 @@ function FieldTable({ request }: { request: ContactChangeRequest }) {
  * either records "keep desktop" or queues the owner's values again.
  */
 export function DesktopSyncRequestsPage() {
+  const { t } = useI18n();
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [busy, setBusy] = React.useState<string | null>(null);
 
@@ -153,7 +155,7 @@ export function DesktopSyncRequestsPage() {
           </Button>
           <Button variant="outline" onClick={() => void load()} disabled={state.kind === "loading"}>
             <RefreshCw className="mr-2 size-4" />
-            Refresh
+            {t("pos.refresh")}
           </Button>
         </div>
       </div>
@@ -181,7 +183,7 @@ export function DesktopSyncRequestsPage() {
                   <CardHeader>
                     <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                       {request.contactName}
-                      <Badge variant="secondary">{request.entity === "customer" ? "Customer" : "Supplier"}</Badge>
+                      <Badge variant="secondary">{request.entity === "customer" ? t("pos.customer") : t("suppliers.supplier")}</Badge>
                       <Badge variant="outline">Expired</Badge>
                     </CardTitle>
                     <CardDescription>
@@ -203,7 +205,7 @@ export function DesktopSyncRequestsPage() {
                         disabled={busy !== null || !request.contactActive || !canResend(request)}
                         onClick={() => void decide(request, "resend")}
                       >
-                        {busy === request.commandId ? "Saving…" : "Resend"}
+                        {busy === request.commandId ? t("businessProfile.saving") : "Resend"}
                       </Button>
                     </div>
                   </CardContent>
@@ -213,7 +215,7 @@ export function DesktopSyncRequestsPage() {
                   <CardHeader>
                     <CardTitle className="flex flex-wrap items-center gap-2 text-base">
                       {request.contactName}
-                      <Badge variant="secondary">{request.entity === "customer" ? "Customer" : "Supplier"}</Badge>
+                      <Badge variant="secondary">{request.entity === "customer" ? t("pos.customer") : t("suppliers.supplier")}</Badge>
                     </CardTitle>
                     <CardDescription>
                       You changed this on {when(request.requestedAt)}, but the desktop had already changed it,
@@ -234,7 +236,7 @@ export function DesktopSyncRequestsPage() {
                         disabled={busy !== null || !request.contactActive}
                         onClick={() => void decide(request, "apply_mine")}
                       >
-                        {busy === request.commandId ? "Saving…" : "Apply my change"}
+                        {busy === request.commandId ? t("businessProfile.saving") : "Apply my change"}
                       </Button>
                     </div>
                   </CardContent>

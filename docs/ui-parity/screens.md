@@ -21,7 +21,7 @@ cards and tables in the same places. The desktop is the reference.
 
 ## Status (27 November 2026)
 
-Overall label parity: **59 %** (1,696 of 2,883 desktop labels). See `report.md` for each screen.
+Overall label parity: **64 %** (1,837 of 2,883 desktop labels). See `report.md` for each screen.
 
 | Area | Status |
 | --- | --- |
@@ -39,6 +39,17 @@ Overall label parity: **59 %** (1,696 of 2,883 desktop labels). See `report.md` 
   desktop keeps syncing and never clears them. Hosted qualification (web POS stage) checks the snapshot
   and a later change event.
 - Next: port the desktop POS page onto this data.
+
+## Shared wording and parts (28 November 2026)
+
+- Every web screen now takes its text from the desktop dictionaries, so changing the language changes it
+  everywhere, as on the desktop (before, only POS and Language did; the rest copied the English).
+  `scripts/adopt-desktop-wording.mjs` replaced about 1,100 hard-coded strings with the desktop key that has
+  the same English. Rerun it after rebuilding a screen; it skips text already translated.
+- The data table, empty state, refresh button, date-range picker (with presets) and receipt settings
+  preview are now the desktop's own files, synced by `sync-desktop-i18n.mjs`.
+- At 100 %: POS, Sales History, Credit Orders, Customer Purchase History, Income, Cash Flow, Ledger,
+  Staff Activity Logs, Receipt Settings, Analytics, Language.
 
 ## Receipts (28 November 2026)
 

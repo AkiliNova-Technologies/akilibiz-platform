@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = PurchaseOrder & TableData;
 const badge = (s: PurchaseOrderStatus) => (
   <Badge
@@ -63,6 +64,7 @@ const badge = (s: PurchaseOrderStatus) => (
   </Badge>
 );
 export default function SupplierPurchaseOrdersPage() {
+  const { t } = useI18n();
   const { orders, addOrder, editOrder, markReceived, getOrders, getOrderDetail, loading, error } =
     usePurchaseOrdersData();
   useEffect(()=>{void getOrders();},[getOrders]);
@@ -104,34 +106,34 @@ export default function SupplierPurchaseOrdersPage() {
   const receivedOrders=orders.filter(order=>order.status==="Received").length;
   const totalValue=orders.reduce((sum,order)=>sum+order.total_amount,0);
     const fields: TableField<Row>[] = [
-    { key: "po_number", header: "PO Number", enableSorting: true },
-    { key: "supplier_name", header: "Supplier", enableSorting: true },
+    { key: "po_number", header: t("supplierOrdersUi.poNumber"), enableSorting: true },
+    { key: "supplier_name", header: t("suppliers.supplier"), enableSorting: true },
     {
       key: "items_count",
-      header: "Items",
+      header: t("customers.items"),
       align: "center",
       cell: (v) => <Badge variant="outline">{Number(v)}</Badge>,
     },
     {
       key: "total_amount",
-      header: "Total Amount",
+      header: t("customers.totalAmount"),
       align: "right",
       cell: (v) => formatSupplierCurrency(Number(v)),
     },
-    { key: "order_date", header: "Order Date", align: "center" },
-    { key: "expected_delivery", header: "Expected Delivery", align: "center" },
+    { key: "order_date", header: t("creditOrders.orderDate"), align: "center" },
+    { key: "expected_delivery", header: t("supplierOrdersUi.expectedDelivery"), align: "center" },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (v) => badge(v as PurchaseOrderStatus),
     },
-    { key: "created_by_name", header: "Created By", align: "center" },
+    { key: "created_by_name", header: t("supplierOrdersUi.createdBy"), align: "center" },
   ];
   const actions: TableAction<Row>[] = [
     {
       type: "view",
-      label: "View order",
+      label: t("supplierOrdersUi.viewOrder"),
       onClick: (r) => {
         setSelected(r);
         setDetail(true);
@@ -139,7 +141,7 @@ export default function SupplierPurchaseOrdersPage() {
     },
     {
       type: "edit",
-      label: "Edit order",
+      label: t("supplierOrdersUi.editOrder"),
       disabled: () => true,
       onClick: (r) => {
         setSelected(r);
@@ -175,7 +177,7 @@ export default function SupplierPurchaseOrdersPage() {
           {error && <p role="alert" className="rounded-md border border-destructive/30 p-3 text-sm text-destructive">{error}</p>}
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Purchase Orders
+              {t("nav.purchaseOrders")}
             </h2>
             <p className="text-sm text-muted-foreground">
               Review synchronized supplier orders and prepare new purchase orders before desktop approval and
@@ -184,25 +186,25 @@ export default function SupplierPurchaseOrdersPage() {
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Orders"
+              title={t("supplierOrdersUi.totalOrders")}
               value={verified?orders.length.toLocaleString("en-UG"):"—"}
-              description="All recorded supplier orders"
+              description={t("supplierOrdersUi.totalOrdersDesc")}
               icon={<ClipboardList className="size-5" />}
             />
             <MetricCard
-              title="Pending Orders"
+              title={t("supplierOrdersUi.pendingOrders")}
               value={verified?pendingOrders.toLocaleString("en-UG"):"—"}
-              description="Orders awaiting fulfilment"
+              description={t("supplierOrdersUi.pendingDesc")}
               icon={<Truck className="size-5" />}
             />
             <MetricCard
-              title="Received Orders"
+              title={t("supplierOrdersUi.receivedOrders")}
               value={verified?receivedOrders.toLocaleString("en-UG"):"—"}
-              description="Orders fully delivered"
+              description={t("supplierOrdersUi.receivedDesc")}
               icon={<Package className="size-5" />}
             />
             <MetricCard
-              title="Order Value"
+              title={t("supplierOrdersUi.orderValue")}
               value={verified?formatSupplierCurrency(totalValue):"—"}
               description="Total value committed"
               icon={<Wallet className="size-5" />}
@@ -211,8 +213,8 @@ export default function SupplierPurchaseOrdersPage() {
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable
-                title="Purchase Order Register"
-                description="Track supplier orders, order value, and fulfilment status"
+                title={t("supplierOrdersUi.register")}
+                description={t("supplierOrdersUi.registerDesc")}
                 data={orders as Row[]}
                 fields={fields}
                 actions={actions}
@@ -232,7 +234,7 @@ export default function SupplierPurchaseOrdersPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Button type="button" variant="outline" disabled={loading}
                       onClick={()=>void getOrders()}>
-                      Refresh
+                      {t("pos.refresh")}
                     </Button>
                     <Button asChild variant="outline">
                       <Link href="/dashboard/suppliers/orders/receive">
@@ -264,7 +266,7 @@ export default function SupplierPurchaseOrdersPage() {
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <FieldLabel required>PO Number</FieldLabel>
+              <FieldLabel required>{t("supplierOrdersUi.poNumber")}</FieldLabel>
               <Input
                 value={data.po_number}
                 onChange={(e) =>
@@ -273,12 +275,12 @@ export default function SupplierPurchaseOrdersPage() {
               />
             </div>
             <div>
-              <FieldLabel required>Supplier</FieldLabel>
+              <FieldLabel required>{t("suppliers.supplier")}</FieldLabel>
               <Select
                 value={data.supplier_id}
                 onValueChange={(v) => setData({ ...data, supplier_id: v })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select supplier" />
+                  <SelectValue placeholder={t("supplierOrdersUi.selectSupplier")} />
                 </SelectTrigger>
                 <SelectContent>
                   {suppliers.map((s) => (
@@ -290,7 +292,7 @@ export default function SupplierPurchaseOrdersPage() {
               </Select>
             </div>
             <div>
-              <Label>Items Count</Label>
+              <Label>{t("sales.itemsCount")}</Label>
               <Input
                 type="number"
                 value={data.items_count}
@@ -300,7 +302,7 @@ export default function SupplierPurchaseOrdersPage() {
               />
             </div>
             <div>
-              <Label>Total Amount</Label>
+              <Label>{t("customers.totalAmount")}</Label>
               <Input
                 type="number"
                 value={data.total_amount}
@@ -310,7 +312,7 @@ export default function SupplierPurchaseOrdersPage() {
               />
             </div>
             <div>
-              <FieldLabel required>Order Date</FieldLabel>
+              <FieldLabel required>{t("creditOrders.orderDate")}</FieldLabel>
               <Input
                 type="date"
                 value={data.order_date}
@@ -320,7 +322,7 @@ export default function SupplierPurchaseOrdersPage() {
               />
             </div>
             <div>
-              <Label>Expected Delivery</Label>
+              <Label>{t("supplierOrdersUi.expectedDelivery")}</Label>
               <Input
                 type="date"
                 value={data.expected_delivery}
@@ -330,7 +332,7 @@ export default function SupplierPurchaseOrdersPage() {
               />
             </div>
             <div>
-              <Label>Status</Label>
+              <Label>{t("reports.status")}</Label>
               <Select
                 value={data.status}
                 onValueChange={(v: PurchaseOrderStatus) =>
@@ -356,7 +358,7 @@ export default function SupplierPurchaseOrdersPage() {
             </div>
           </div>
           <div className="mt-4">
-            <Label>Notes</Label>
+            <Label>{t("inventory.notes")}</Label>
             <Textarea
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
@@ -364,7 +366,7 @@ export default function SupplierPurchaseOrdersPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setForm(false)}>
-              Cancel
+              {t("pos.cancel")}
             </Button>
             <Button
               disabled
@@ -403,9 +405,9 @@ export default function SupplierPurchaseOrdersPage() {
       <Dialog open={detail} onOpenChange={setDetail}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Purchase Order Details</DialogTitle>
+            <DialogTitle>{t("supplierOrdersUi.details")}</DialogTitle>
             <DialogDescription>
-              Review supplier order information and fulfilment status.
+              {t("supplierOrdersUi.detailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {selected && (
@@ -430,7 +432,7 @@ export default function SupplierPurchaseOrdersPage() {
                   </div>
                 ))}
                 <div className="flex justify-between">
-                  <span>Status</span>
+                  <span>{t("reports.status")}</span>
                   {badge(selected.status)}
                 </div>
                 {detailLoading && <p role="status" className="text-sm text-muted-foreground">Loading purchased items and goods receipts…</p>}
@@ -465,14 +467,14 @@ export default function SupplierPurchaseOrdersPage() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <p className="font-semibold">Goods receipt history</p>
+                      <p className="font-semibold">{t("supplierOrdersUi.goodsHistory")}</p>
                       {orderDetail.receipts.length===0 ? (
                         <p className="text-sm text-muted-foreground">No synchronized goods receipts linked to this order.</p>
                       ) : orderDetail.receipts.map(receipt=>(
                         <div key={receipt.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
                           <div>
                             <p className="font-medium">{receipt.receipt_number}</p>
-                            <p className="text-xs text-muted-foreground">{receipt.receipt_date} · {receipt.status==="voided"?"Voided":"Posted"}</p>
+                            <p className="text-xs text-muted-foreground">{receipt.receipt_date} · {receipt.status==="voided"?t("purchasingReport.voidedStatus"):t("purchasingReport.postedStatus")}</p>
                           </div>
                           <span>{formatSupplierCurrency(receipt.total_amount_ugx)}</span>
                         </div>

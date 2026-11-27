@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireActiveBusiness } from "@/lib/business-context";
 import { createClient } from "@/lib/supabase/server";
 
+import { getI18n } from "@/lib/i18n/server";
 type HostedCategory = {
   id: string;
   name: string;
@@ -24,6 +25,7 @@ function ugx(value: number | null): string {
 }
 
 export default async function SyncedDesktopCataloguePage() {
+  const { t } = await getI18n();
   const business = await requireActiveBusiness();
   const supabase = await createClient();
   const [{ data: categoryRows, error: categoryError }, { data: productRows, error: productError }] =
@@ -60,8 +62,8 @@ export default async function SyncedDesktopCataloguePage() {
         </p>
       </div>
       <div className="flex flex-wrap gap-3 text-sm">
-        <span className="rounded-lg border bg-card px-4 py-3"><strong>{categories.length}</strong> categories</span>
-        <span className="rounded-lg border bg-card px-4 py-3"><strong>{products.length}</strong> products</span>
+        <span className="rounded-lg border bg-card px-4 py-3"><strong>{categories.length}</strong> {t("categories.categories")}</span>
+        <span className="rounded-lg border bg-card px-4 py-3"><strong>{products.length}</strong> {t("products.products")}</span>
       </div>
       {products.length === 0 ? (
         <div className="rounded-xl border bg-card px-5 py-8 text-sm text-muted-foreground">
@@ -72,11 +74,11 @@ export default async function SyncedDesktopCataloguePage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b bg-muted/40 text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-medium">Product</th>
-                <th className="px-4 py-3 font-medium">SKU</th>
-                <th className="px-4 py-3 font-medium">Category</th>
+                <th className="px-4 py-3 font-medium">{t("inventory.product")}</th>
+                <th className="px-4 py-3 font-medium">{t("productForm.sku")}</th>
+                <th className="px-4 py-3 font-medium">{t("finance.category")}</th>
                 <th className="px-4 py-3 font-medium">Selling price</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">{t("reports.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -84,9 +86,9 @@ export default async function SyncedDesktopCataloguePage() {
                 <tr key={product.id} className="border-b last:border-0">
                   <td className="px-4 py-3 font-medium">{product.name}</td>
                   <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
-                  <td className="px-4 py-3">{names.get(product.category_id) ?? "Unknown"}</td>
+                  <td className="px-4 py-3">{names.get(product.category_id) ?? t("products.unknownCategory")}</td>
                   <td className="px-4 py-3 tabular-nums">{ugx(product.selling_price_ugx)}</td>
-                  <td className="px-4 py-3">{product.is_active ? "Active" : "Inactive"}</td>
+                  <td className="px-4 py-3">{product.is_active ? t("common.active") : t("common.inactive")}</td>
                 </tr>
               ))}
             </tbody>

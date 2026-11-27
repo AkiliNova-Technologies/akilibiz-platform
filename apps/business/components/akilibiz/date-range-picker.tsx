@@ -1,16 +1,39 @@
+// GENERATED from the AkiliBiz Desktop repository (src/components/date-range-picker.tsx). Do not edit here:
+// change the desktop file, then run `node apps/business/scripts/sync-desktop-i18n.mjs`.
 "use client";
 
 import * as React from "react";
 import { CalendarIcon, ChevronDownIcon } from "lucide-react";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 import { type DateRange } from "react-day-picker";
+import {
+  dateRangePresetLabels,
+  getDateRangePreset,
+  type DateRangePreset,
+} from "@/components/akilibiz/date-range-utils";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export interface DateRangePickerProps {
+  /** ISO "yyyy-MM-dd" start date */
   from: string;
+  /** ISO "yyyy-MM-dd" end date */
   to: string;
+  /** Called with the new ISO "yyyy-MM-dd" from/to whenever the selection changes */
   onRangeChange: (from: string, to: string) => void;
   id?: string;
   label?: string;
@@ -18,80 +41,119 @@ export interface DateRangePickerProps {
   align?: "start" | "center" | "end";
   numberOfMonths?: number;
   disableFuture?: boolean;
+  presets?: DateRangePreset[];
 }
 
 function parseIsoDate(value: string): Date | undefined {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  if (!value) return undefined;
   const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return undefined;
-  return date;
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
 }
 
 function toIsoDate(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-/** AkiliBiz Desktop-style calendar range, with a single pill trigger and a popover calendar.
- * All consumers retain control of their ISO UTC reporting boundaries.
+/**
+ * Uniform date-range picker built on the shadcn Calendar/Popover primitives.
+ * Consumers keep owning their own `from`/`to` string state — this component
+ * only translates between that state and the Calendar's DateRange shape.
  */
 export function DateRangePicker({
-  from, to, onRangeChange, id = "date-range-picker", label = "Date range",
-  className, align = "start", numberOfMonths = 2, disableFuture = true,
+  from,
+  to,
+  onRangeChange,
+  id = "date-range-picker",
+  label,
+  className,
+  align = "start",
+  numberOfMonths = 2,
+  disableFuture = true,
+  presets = [],
 }: DateRangePickerProps) {
-  const [open, setOpen] = React.useState(false);
-  const [selectionStart, setSelectionStart] = React.useState<string | null>(null);
+  const { t, locale } = useI18n();
+  const displayLabel = label ?? t("dateRange.label");
+  const displayDate = (date: Date) => new Intl.DateTimeFormat(locale, {year: "numeric", month: "short", day: "numeric"}).format(date);
+  const presetLabels: Record<DateRangePreset, string> = {
+    today: t("dashboard.today"), "7": t("dateRange.last7"), "30": t("dateRange.last30"), this_month: t("reports.thisMonth"),
+  };
   const selected: DateRange | undefined = React.useMemo(() => {
-    const start = parseIsoDate(from);
-    const end = parseIsoDate(to);
-    return start ? { from: start, to: end } : undefined;
+    const fromDate = parseIsoDate(from);
+    const toDate = parseIsoDate(to);
+    if (!fromDate && !toDate) return undefined;
+    return { from: fromDate, to: toDate };
   }, [from, to]);
-  const displayDate = (date: Date) =>
-    new Intl.DateTimeFormat("en-UG", { day: "numeric", month: "short", year: "numeric" }).format(date);
+
   const handleSelect = (range: DateRange | undefined) => {
     if (!range?.from) {
-      setSelectionStart(null);
       onRangeChange("", "");
       return;
     }
-    if (selectionStart === null) {
-      const value = toIsoDate(range.from);
-      setSelectionStart(value);
-      onRangeChange(value, value);
-      return;
-    }
-    const start = parseIsoDate(selectionStart);
-    if (start && range.to) {
-      onRangeChange(toIsoDate(range.from), toIsoDate(range.to));
-      setSelectionStart(null);
-      setOpen(false);
-    } else {
-      const value = toIsoDate(range.from);
-      onRangeChange(value, value);
-      setSelectionStart(value);
-    }
+    const nextFrom = toIsoDate(range.from);
+    // While the user has only clicked one end, mirror it to `to` so callers
+    // that immediately use `to` (e.g. as another field's min/max) stay valid.
+    const nextTo = range.to ? toIsoDate(range.to) : nextFrom;
+    onRangeChange(nextFrom, nextTo);
+  };
+
+  const handlePreset = (preset: string) => {
+    if (!(preset in dateRangePresetLabels)) return;
+    const range = getDateRangePreset(preset as DateRangePreset);
+    onRangeChange(range.from, range.to);
   };
 
   return (
     <Field className={className}>
-      {label ? <FieldLabel htmlFor={id}>{label}</FieldLabel> : null}
-      <Popover open={open} onOpenChange={(next) => { setOpen(next); if (!next) setSelectionStart(null); }}>
+      {displayLabel ? <FieldLabel htmlFor={id}>{displayLabel}</FieldLabel> : null}
+      {presets.length > 0 && (
+        <Select onValueChange={handlePreset}>
+          <SelectTrigger aria-label={t("dateRange.preset", {label: displayLabel})} className="w-full">
+            <SelectValue placeholder={t("dateRange.choose")} />
+          </SelectTrigger>
+          <SelectContent>
+            {presets.map((preset) => (
+              <SelectItem key={preset} value={preset}>
+                {presetLabels[preset]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      <Popover>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" id={id}
-            className="h-11 w-full min-w-0 justify-start gap-2 px-3 text-left font-normal">
-            <CalendarIcon className="size-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 flex-1 truncate">
-              {selected?.from
-                ? `${displayDate(selected.from)} - ${displayDate(selected.to ?? selected.from)}`
-                : "Choose a date range"}
-            </span>
-            <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Button
+            variant="outline"
+            id={id}
+            className="w-full h-11 justify-start px-2.5 font-normal">
+            <CalendarIcon className="mr-2 size-4" />
+            {selected?.from ? (
+              selected.to ? (
+                <>
+                  {displayDate(selected.from)} -{" "}
+                  {displayDate(selected.to)}
+                </>
+              ) : (
+                displayDate(selected.from)
+              )
+            ) : (
+              <span>{t("dateRange.pick")}</span>
+            )}
+            <ChevronDownIcon className="ml-auto size-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] overflow-x-auto p-0" align={align}>
-          <Calendar mode="range" defaultMonth={selected?.from} selected={selected}
-            onSelect={handleSelect} numberOfMonths={numberOfMonths}
-            disabled={disableFuture ? { after: new Date() } : undefined} />
+        <PopoverContent className="w-auto p-0" align={align}>
+          <Calendar
+            mode="range"
+            defaultMonth={selected?.from}
+            selected={selected}
+            onSelect={handleSelect}
+            numberOfMonths={numberOfMonths}
+            disabled={disableFuture ? { after: new Date() } : undefined}
+          />
         </PopoverContent>
       </Popover>
     </Field>

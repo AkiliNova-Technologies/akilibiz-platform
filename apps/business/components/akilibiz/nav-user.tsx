@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useSidebar } from "@/components/ui/sidebar-context";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function NavUser({ account }: { account: AccountDisplay }) {
+  const { t } = useI18n();
   const { isMobile } = useSidebar();
   return (
     <SidebarMenu>
@@ -31,7 +33,7 @@ export function NavUser({ account }: { account: AccountDisplay }) {
             <SidebarMenuButton
               className="h-13 rounded-xs data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-sidebar-accent/50"
               size="lg"
-              tooltip="Account"
+              tooltip={t("finance.ledger.account")}
             >
               <Avatar className="h-9 w-9 shrink-0 rounded-xs">
                 <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
@@ -43,7 +45,7 @@ export function NavUser({ account }: { account: AccountDisplay }) {
                   {account.displayName}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Staff
+                  {t("common.staff")}
                 </span>
               </div>
               <EllipsisVertical className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden" />
@@ -77,7 +79,7 @@ export function NavUser({ account }: { account: AccountDisplay }) {
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/account">
                   <UserCircle aria-hidden="true" className="size-4" />
-                  My Account
+                  {t("accountUi.title")}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>

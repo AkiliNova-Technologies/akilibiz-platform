@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import type { Position, ProductSummary } from "@/components/akilibiz/inventory/hosted-inventory";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type AdjustmentType = "stock_in" | "stock_out" | "damaged" | "lost" | "return_in" | "correction" | "opening_balance";
 type AdjustmentRow = TableData & {
   id: string;
@@ -67,6 +68,7 @@ export function HostedStockAdjustment({ positions, products, error }: {
   products: ProductSummary[];
   error?: string | null;
 }) {
+  const { t } = useI18n();
   const [form, setForm] = useState<Form>(initialForm);
   const [selectedMovement, setSelectedMovement] = useState<AdjustmentRow | null>(null);
 
@@ -92,51 +94,51 @@ export function HostedStockAdjustment({ positions, products, error }: {
   const movements: AdjustmentRow[] = [];
 
   const fields: TableField<AdjustmentRow>[] = [
-    { key: "product_name", header: "Product", enableSorting: true },
-    { key: "sku", header: "SKU", align: "center", cell: (value) => <span className="font-mono text-sm">{String(value)}</span> },
-    { key: "adjustment_type", header: "Type", align: "center", cell: (value) =>
+    { key: "product_name", header: t("inventory.product"), enableSorting: true },
+    { key: "sku", header: t("productForm.sku"), align: "center", cell: (value) => <span className="font-mono text-sm">{String(value)}</span> },
+    { key: "adjustment_type", header: t("finance.type"), align: "center", cell: (value) =>
       <Badge variant={value === "damaged" || value === "lost" ? "destructive" : "outline"}>
         {adjustmentLabels[value as AdjustmentType]}
       </Badge> },
     { key: "quantity_change", header: "Quantity Change", align: "center", enableSorting: true, cell: (value, row) =>
       <span className="font-medium">{Number(value) > 0 ? "+" : ""}{String(value)} {row.stock_unit}</span> },
-    { key: "stock_before", header: "Before", align: "center", enableSorting: true, cell: (value, row) => `${value} ${row.stock_unit}` },
-    { key: "stock_after", header: "After", align: "center", enableSorting: true, cell: (value, row) => `${value} ${row.stock_unit}` },
-    { key: "performed_by", header: "Performed By", align: "center", enableSorting: true },
-    { key: "created_at", header: "Date & Time", align: "center", enableSorting: true },
+    { key: "stock_before", header: t("inventory.before"), align: "center", enableSorting: true, cell: (value, row) => `${value} ${row.stock_unit}` },
+    { key: "stock_after", header: t("inventory.after"), align: "center", enableSorting: true, cell: (value, row) => `${value} ${row.stock_unit}` },
+    { key: "performed_by", header: t("inventory.performedBy"), align: "center", enableSorting: true },
+    { key: "created_at", header: t("inventory.dateTime"), align: "center", enableSorting: true },
   ];
   const actions: TableAction<AdjustmentRow>[] = [
-    { type: "view", label: "Inspect details", onClick: setSelectedMovement, disabled: () => true },
+    { type: "view", label: t("inventory.inspectDetails"), onClick: setSelectedMovement, disabled: () => true },
   ];
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Stock Adjustment</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">{t("inventory.adjustment")}</h2>
         <p className="text-sm text-muted-foreground">
           Record controlled stock changes and inspect adjustment activity.
         </p>
       </div>
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Total Adjustments" value="—" description="Adjustment records unavailable" icon={<ClipboardList className="size-5" />} />
-        <MetricCard title="Stock Added" value="—" description="Incoming inventory unavailable" icon={<ArrowUp className="size-5" />} />
-        <MetricCard title="Stock Removed" value="—" description="Outgoing inventory unavailable" icon={<ArrowDown className="size-5" />} />
-        <MetricCard title="Critical Cases" value="—" description="Losses and damages unavailable" icon={<AlertTriangle className="size-5" />} />
+        <MetricCard title={t("inventory.totalAdjustments")} value="—" description="Adjustment records unavailable" icon={<ClipboardList className="size-5" />} />
+        <MetricCard title={t("inventory.stockAdded")} value="—" description="Incoming inventory unavailable" icon={<ArrowUp className="size-5" />} />
+        <MetricCard title={t("inventory.stockRemoved")} value="—" description="Outgoing inventory unavailable" icon={<ArrowDown className="size-5" />} />
+        <MetricCard title={t("inventory.criticalCases")} value="—" description="Losses and damages unavailable" icon={<AlertTriangle className="size-5" />} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">New Adjustment</CardTitle>
-            <CardDescription>Record a controlled inventory change.</CardDescription>
+            <CardTitle className="text-lg">{t("inventory.newAdjustment")}</CardTitle>
+            <CardDescription>{t("inventory.controlledChange")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
               <div className="space-y-2">
-                <FieldLabel required>Product</FieldLabel>
+                <FieldLabel required>{t("inventory.product")}</FieldLabel>
                 <Select value={form.product_id} onValueChange={(product_id) => setForm((old) => ({ ...old, product_id, quantity_unit: "stock" }))}>
                   <SelectTrigger aria-required="true" className="w-full">
-                    <SelectValue placeholder="Select product" />
+                    <SelectValue placeholder={t("supplierOrdersUi.selectProduct")} />
                   </SelectTrigger>
                   <SelectContent>
                     {verifiedProducts.map(({ product }) => (
@@ -147,10 +149,10 @@ export function HostedStockAdjustment({ positions, products, error }: {
                 {verifiedProducts.length === 0 && !error && <p className="text-xs text-muted-foreground">No products with verified stock are available.</p>}
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Adjustment Type</FieldLabel>
+                <FieldLabel required>{t("inventory.adjustmentType")}</FieldLabel>
                 <Select value={form.adjustment_type} onValueChange={(adjustment_type) => setForm((old) => ({ ...old, adjustment_type: adjustment_type as AdjustmentType }))}>
                   <SelectTrigger aria-required="true" className="w-full">
-                    <SelectValue placeholder="Select adjustment type" />
+                    <SelectValue placeholder={t("inventory.selectTypeError")} />
                   </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(adjustmentLabels) as AdjustmentType[]).map((type) => (
@@ -160,10 +162,10 @@ export function HostedStockAdjustment({ positions, products, error }: {
                 </Select>
               </div>
               <div className="space-y-2">
-                <FieldLabel required>Quantity</FieldLabel>
+                <FieldLabel required>{t("inventory.quantity")}</FieldLabel>
                 <Input type="number" min="0" step="0.001" required
                   value={form.quantity} onChange={(event) => setForm((old) => ({ ...old, quantity: event.target.value }))}
-                  placeholder="Enter quantity" />
+                  placeholder={t("inventory.enterQuantity")} />
                 {form.quantity.trim() && !quantityValid && (
                   <p role="alert" className="text-xs text-destructive">Enter a positive quantity with up to three decimal places.</p>
                 )}
@@ -186,35 +188,35 @@ export function HostedStockAdjustment({ positions, products, error }: {
                 </div>
               )}
               <div className="space-y-2">
-                <FieldLabel required>Reason</FieldLabel>
+                <FieldLabel required>{t("inventory.reason")}</FieldLabel>
                 <Input value={form.reason} onChange={(event) => setForm((old) => ({ ...old, reason: event.target.value }))}
-                  placeholder="Reason for adjustment" />
+                  placeholder={t("inventoryUi.adjustReason")} />
               </div>
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label>{t("inventory.notes")}</Label>
                 <Textarea rows={4} value={form.notes}
                   onChange={(event) => setForm((old) => ({ ...old, notes: event.target.value }))} />
               </div>
               {selected && form.adjustment_type && form.quantity && (
                 <div className="rounded-lg border p-4">
-                  <p className="text-sm text-muted-foreground">Preview</p>
+                  <p className="text-sm text-muted-foreground">{t("stockAlerts.preview")}</p>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Current</span><span className="font-medium">{formatQuantity(selected.position.on_hand_milli, selected.product.stock_unit)}</span>
+                      <span>{t("inventory.current")}</span><span className="font-medium">{formatQuantity(selected.position.on_hand_milli, selected.product.stock_unit)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Change</span>
+                      <span>{t("inventory.change")}</span>
                       <span className="font-medium">{change === null ? "—" : `${change > 0 ? "+" : ""}${change} ${selected.product.stock_unit}`}</span>
                     </div>
                     <div className="mt-2 flex justify-between border-t pt-2">
-                      <span>New Stock</span>
+                      <span>{t("inventory.newStock")}</span>
                       <span className="font-semibold">{newStock === null ? "—" : `${newStock} ${selected.product.stock_unit}`}</span>
                     </div>
                   </div>
                 </div>
               )}
               <Button type="submit" className="w-full" disabled title="Stock adjustments unavailable">
-                Save Adjustment
+                {t("inventory.saveAdjustment")}
               </Button>
             </form>
           </CardContent>
@@ -222,13 +224,13 @@ export function HostedStockAdjustment({ positions, products, error }: {
         <Card>
           <CardContent>
             <DataTable<AdjustmentRow>
-              title="Adjustment History"
+              title={t("inventory.adjustmentHistory")}
               description="Review stock movement and audit activity"
               data={movements} fields={fields} actions={actions}
               enableGlobalSearch searchPlaceholder="Search adjustment history..."
               pageSize={5} onRowClick={undefined}
               emptyMessage={error ?? "No adjustment history available."}
-              onRefresh={() => {}} refreshDisabled
+              
             />
           </CardContent>
         </Card>
@@ -237,7 +239,7 @@ export function HostedStockAdjustment({ positions, products, error }: {
       <Dialog open={selectedMovement !== null} onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Adjustment Details</DialogTitle>
+            <DialogTitle>{t("inventory.adjustmentDetails")}</DialogTitle>
             <DialogDescription>Review the recorded inventory adjustment.</DialogDescription>
           </DialogHeader>
           {selectedMovement && (

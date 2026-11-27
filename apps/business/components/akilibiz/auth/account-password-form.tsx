@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export function AccountPasswordForm() {
+  const { t } = useI18n();
   const [password,setPassword] = useState("");
   const [confirmation,setConfirmation] = useState("");
   const [busy,setBusy] = useState(false);
@@ -45,6 +47,6 @@ export function AccountPasswordForm() {
     </div>
     {error?<p role="alert" className="text-sm text-destructive">{error}</p>:null}
     {done?<p role="status" className="text-sm text-muted-foreground">Password saved.</p>:null}
-    <Button className="h-11 rounded-full" disabled={busy} type="submit">{busy?"Saving…":"Save password"}</Button>
+    <Button className="h-11 rounded-full" disabled={busy} type="submit">{busy?t("businessProfile.saving"):"Save password"}</Button>
   </form>;
 }

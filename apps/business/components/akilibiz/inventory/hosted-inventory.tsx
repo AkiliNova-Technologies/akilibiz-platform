@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 export type Position = TableData & {
   id: string;
   product_id: string;
@@ -100,6 +101,7 @@ export function HostedInventory({
   error?: string | null;
   categoryError?: string | null;
 }) {
+  const { t } = useI18n();
   const [selectedPosition, setSelectedPosition] = useState<InventoryRow | null>(null);
   const productNames = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
   const categoryNames = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
@@ -133,23 +135,23 @@ export function HostedInventory({
 
   const unitFor = (productId: string) => productNames.get(productId)?.stock_unit ?? "units";
   const fields: TableField<InventoryRow>[] = [
-    { key: "product_name", header: "Product", enableSorting: true },
+    { key: "product_name", header: t("inventory.product"), enableSorting: true },
     {
       key: "sku",
-      header: "SKU",
+      header: t("productForm.sku"),
       align: "center",
       cell: (value) => <span className="font-mono text-sm">{String(value)}</span>,
     },
     {
       key: "category",
-      header: "Category",
+      header: t("finance.category"),
       align: "center",
       enableSorting: false,
       cell: (value) => value ? <span>{String(value)}</span> : <span className="text-muted-foreground">—</span>,
     },
     {
       key: "current_stock",
-      header: "Current Stock",
+      header: t("inventory.currentStock"),
       align: "center",
       enableSorting: true,
       cell: (_, row) => {
@@ -165,13 +167,13 @@ export function HostedInventory({
     },
     {
       key: "min_stock",
-      header: "Min Stock",
+      header: t("inventory.minStock"),
       align: "center",
       cell: (_, row) => <span className="text-sm text-muted-foreground">{exactQuantity(row.minimum_milli, unitFor(row.product_id))}</span>,
     },
     {
       key: "max_stock",
-      header: "Max Stock",
+      header: t("inventory.maxStock"),
       align: "center",
       cell: (_, row) => <span className="text-sm text-muted-foreground">{exactQuantity(row.maximum_milli, unitFor(row.product_id))}</span>,
     },
@@ -184,46 +186,46 @@ export function HostedInventory({
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => <StatusBadge status={value as InventoryRow["status"]} />,
     },
   ];
   const actions: TableAction<InventoryRow>[] = [
-    { type: "view", label: "View details", onClick: setSelectedPosition },
-    { type: "edit", label: "Adjust stock", onClick: () => {}, disabled: () => true },
+    { type: "view", label: t("products.view"), onClick: setSelectedPosition },
+    { type: "edit", label: t("inventory.adjustStock"), onClick: () => {}, disabled: () => true },
   ];
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Inventory Control</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t("inventoryUi.control")}</h2>
         <p className="text-sm text-muted-foreground">
           Monitor stock levels, adjust quantities, and track inventory health across the business.
         </p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <MetricCard title="Inventory Items" value={error ? "—" : String(rows.length)}
+        <MetricCard title={t("inventoryUi.items")} value={error ? "—" : String(rows.length)}
           description="Current stock positions" icon={<Package className="size-5" />} />
-        <MetricCard title="Low Stock" value={error || lowStockCount === null ? "—" : String(lowStockCount)}
+        <MetricCard title={t("inventory.lowStock")} value={error || lowStockCount === null ? "—" : String(lowStockCount)}
           description="Products below minimum stock" icon={<AlertTriangle className="size-5" />} />
-        <MetricCard title="Out of Stock" value={error || outOfStockCount === null ? "—" : String(outOfStockCount)}
+        <MetricCard title={t("inventory.outOfStock")} value={error || outOfStockCount === null ? "—" : String(outOfStockCount)}
           description="Products currently unavailable" icon={<ArrowDownRight className="size-5" />} />
-        <MetricCard title="Stock Value" value="—"
+        <MetricCard title={t("inventoryUi.stockValue")} value="—"
           description="Cost valuation unavailable" icon={<ArrowUpRight className="size-5" />} />
       </section>
 
       <Card>
         <CardContent className="min-w-0 px-3 pb-4 sm:px-4 md:px-6 md:pb-6">
           <DataTable<InventoryRow>
-            title="Inventory Overview"
+            title={t("inventory.overview")}
             description={categoryError ?? "Current inventory quantities and stock status."}
             data={rows}
             fields={fields}
             actions={actions}
             enableGlobalSearch
-            searchPlaceholder="Search by product name or SKU..."
+            searchPlaceholder={t("pos.search")}
             pageSize={10}
             onRowClick={setSelectedPosition}
             emptyMessage={error ?? "No current inventory positions are available."}
@@ -240,7 +242,7 @@ export function HostedInventory({
       <Dialog open={selectedPosition !== null} onOpenChange={(open) => { if (!open) setSelectedPosition(null); }}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-5xl min-w-0 overflow-x-hidden overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Product Details</DialogTitle>
+            <DialogTitle>{t("products.details")}</DialogTitle>
             <DialogDescription>Review recorded stock quantities for this product.</DialogDescription>
           </DialogHeader>
           {selectedPosition && (
@@ -269,7 +271,7 @@ export function HostedInventory({
               </Card>
               <div className="flex flex-wrap justify-end gap-2">
                 <Button variant="outline" disabled>View Stock History</Button>
-                <Button disabled>Adjust Stock</Button>
+                <Button disabled>{t("inventoryUi.adjust")}</Button>
               </div>
             </div>
           )}

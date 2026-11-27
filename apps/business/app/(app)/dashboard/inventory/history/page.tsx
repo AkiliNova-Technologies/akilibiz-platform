@@ -6,12 +6,14 @@ import {
 } from "@/lib/hosted-stock-movement-history";
 import { Button } from "@/components/ui/button";
 
+import { getI18n } from "@/lib/i18n/server";
 type Query = { page?: string | string[] };
 type Product = { local_product_id:number; local_business_public_id:string; name:string; sku:string; stock_unit:string };
 
 export default async function InventoryStockHistoryPage({
   searchParams,
 }: { searchParams: Promise<Query> }) {
+  const { t } = await getI18n();
   const active = await requireActiveBusiness();
   const supabase = await createClient();
   const params = await searchParams;
@@ -60,13 +62,13 @@ export default async function InventoryStockHistoryPage({
       <table className="w-full min-w-[800px] text-left text-sm">
         <thead className="border-b bg-muted/40 text-muted-foreground">
           <tr>
-            <th className="px-4 py-3 font-medium">Product</th>
+            <th className="px-4 py-3 font-medium">{t("inventory.product")}</th>
             <th className="px-4 py-3 font-medium">Movement</th>
-            <th className="px-4 py-3 font-medium">Change</th>
-            <th className="px-4 py-3 font-medium">Before</th>
-            <th className="px-4 py-3 font-medium">After</th>
-            <th className="px-4 py-3 font-medium">Reason</th>
-            <th className="px-4 py-3 font-medium">Received</th>
+            <th className="px-4 py-3 font-medium">{t("inventory.change")}</th>
+            <th className="px-4 py-3 font-medium">{t("inventory.before")}</th>
+            <th className="px-4 py-3 font-medium">{t("inventory.after")}</th>
+            <th className="px-4 py-3 font-medium">{t("inventory.reason")}</th>
+            <th className="px-4 py-3 font-medium">{t("income.receivedStatus")}</th>
           </tr>
         </thead>
         <tbody>
@@ -75,7 +77,7 @@ export default async function InventoryStockHistoryPage({
             const unit=product?.stock_unit??"units";
             return <tr key={row.movement_id} className="border-b last:border-0">
               <td className="px-4 py-3">
-                <div className="font-medium">{product?.name??"Product unavailable"}</div>
+                <div className="font-medium">{product?.name??t("purchaseUi.productUnavailable")}</div>
                 <div className="text-xs text-muted-foreground">{product?.sku??`Source ID ${row.local_product_id}`}</div>
               </td>
               <td className="px-4 py-3">{row.movement_type?.replaceAll("_"," ")??"Stock change"}</td>
@@ -95,10 +97,10 @@ export default async function InventoryStockHistoryPage({
     {!error && <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-muted-foreground">Page {page} of {pageCount}</span>
       <div className="flex gap-2">
-        {page>1?<Button asChild variant="outline"><Link href={href(page-1)}>Previous</Link></Button>:
-          <Button disabled variant="outline">Previous</Button>}
-        {page<pageCount?<Button asChild variant="outline"><Link href={href(page+1)}>Next</Link></Button>:
-          <Button disabled variant="outline">Next</Button>}
+        {page>1?<Button asChild variant="outline"><Link href={href(page-1)}>{t("common.previous")}</Link></Button>:
+          <Button disabled variant="outline">{t("common.previous")}</Button>}
+        {page<pageCount?<Button asChild variant="outline"><Link href={href(page+1)}>{t("common.next")}</Link></Button>:
+          <Button disabled variant="outline">{t("common.next")}</Button>}
       </div>
     </div>}
   </main>;

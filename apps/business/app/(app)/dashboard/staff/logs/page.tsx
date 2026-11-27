@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type Row = ActivityLog & TableData;
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString("en-UG", {
@@ -50,38 +51,39 @@ function StatusBadge({ status }: { status: ActivityLogStatus }) {
 }
 
 export default function StaffActivityLogsPage() {
+  const { t } = useI18n();
   const { logs, summary, loading } = useActivityLogsData();
   const [selected, setSelected] = useState<Row | null>(null);
   const fields: TableField<Row>[] = [
     {
       key: "user_name",
-      header: "User",
+      header: t("common.user"),
       enableSorting: true,
       cell: (value) => <span className="font-medium">{String(value)}</span>,
     },
     {
       key: "role",
-      header: "Role",
+      header: t("staff.role"),
       align: "center",
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
-    { key: "action", header: "Action", enableSorting: true },
+    { key: "action", header: t("activityUi.action"), enableSorting: true },
     {
       key: "module",
-      header: "Module",
+      header: t("activityUi.module"),
       align: "center",
       cell: (value) => <Badge variant="secondary">{String(value)}</Badge>,
     },
-    { key: "target", header: "Target", align: "center" },
+    { key: "target", header: t("activityUi.target"), align: "center" },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       align: "center",
       cell: (value) => <StatusBadge status={value as ActivityLogStatus} />,
     },
     {
       key: "created_at",
-      header: "Date & Time",
+      header: t("inventory.dateTime"),
       align: "center",
       enableSorting: true,
       cell: (value) => (
@@ -94,7 +96,7 @@ export default function StaffActivityLogsPage() {
   const actions: TableAction<Row>[] = [
     {
       type: "custom",
-      label: "View",
+      label: t("reports.view"),
       icon: <Eye className="size-4" />,
       onClick: setSelected,
     },
@@ -105,54 +107,53 @@ export default function StaffActivityLogsPage() {
         <div className="flex flex-col gap-6">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Activity Logs
+              {t("nav.activityLogs")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Monitor staff actions, unsuccessful attempts, and operational
-              activity.
+              {t("activityUi.description")}
             </p>
           </div>
           <section className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MetricCard
-              title="Total Logs"
+              title={t("activityUi.total")}
               value={summary ? String(summary.total_logs) : "—"}
-              description="Recorded staff activity entries"
+              description={t("activityUi.totalDescription")}
               icon={<Activity className="size-5" />}
             />
             <MetricCard
-              title="Successful Actions"
+              title={t("activityUi.successful")}
               value={summary ? String(summary.successful_logs) : "—"}
-              description="Completed actions without issues"
+              description={t("activityUi.successfulDescription")}
               icon={<Check className="size-5" />}
             />
             <MetricCard
-              title="Failed Actions"
+              title={t("activityUi.failed")}
               value={summary ? String(summary.failed_logs) : "—"}
-              description="Failed attempts or blocked operations"
+              description={t("activityUi.failedDescription")}
               icon={<ShieldAlert className="size-5" />}
             />
             <MetricCard
-              title="Warnings"
+              title={t("activityUi.warnings")}
               value={summary ? String(summary.warning_logs) : "—"}
-              description="Actions requiring review or attention"
+              description={t("activityUi.warningsDescription")}
               icon={<AlertTriangle className="size-5" />}
             />
           </section>
           <Card>
             <CardContent className="px-6 pb-6">
               <DataTable<Row>
-                title="System Activity Register"
-                description="Track staff actions, business access, and operational events"
+                title={t("activityUi.register")}
+                description={t("activityUi.registerDescription")}
                 data={logs as Row[]}
                 fields={fields}
                 actions={actions}
                 enableGlobalSearch
                 emptyMessage={
                   loading
-                    ? "Loading activity logs..."
-                    : "No staff activity recorded."
+                    ? t("activityUi.loading")
+                    : t("activityUi.empty")
                 }
-                searchPlaceholder="Search logs by user, action, module, or target..."
+                searchPlaceholder={t("activityUi.search")}
                 pageSize={10}
                 onRowClick={setSelected}
               />
@@ -165,9 +166,9 @@ export default function StaffActivityLogsPage() {
         onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Activity Log Details</DialogTitle>
+            <DialogTitle>{t("activityUi.details")}</DialogTitle>
             <DialogDescription>
-              Review the selected staff activity record.
+              {t("activityUi.detailsDescription")}
             </DialogDescription>
           </DialogHeader>
           {selected ? (
@@ -189,29 +190,29 @@ export default function StaffActivityLogsPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Action</span>
+                    <span className="text-muted-foreground">{t("activityUi.action")}</span>
                     <span>{selected.action}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Module</span>
+                    <span className="text-muted-foreground">{t("activityUi.module")}</span>
                     <span>{selected.module}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Target</span>
+                    <span className="text-muted-foreground">{t("activityUi.target")}</span>
                     <span>{selected.target}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">IP Address</span>
+                    <span className="text-muted-foreground">{t("activityUi.ip")}</span>
                     <span>{selected.ip_address}</span>
                   </div>
                   <div className="flex justify-between text-sm md:col-span-2">
-                    <span className="text-muted-foreground">Date & Time</span>
+                    <span className="text-muted-foreground">{t("inventory.dateTime")}</span>
                     <span>{formatDateTime(selected.created_at)}</span>
                   </div>
                 </div>
                 <Separator />
                 <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Details</p>
+                  <p className="mb-1 text-sm text-muted-foreground">{t("activityUi.detailsLabel")}</p>
                   <p className="text-sm">{selected.details}</p>
                 </div>
               </CardContent>

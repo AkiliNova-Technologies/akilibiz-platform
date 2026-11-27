@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 type StockRow = {
   product: string;
   category: string;
@@ -65,6 +66,7 @@ const ugx = (value: number) =>
   }).format(value);
 
 export default function ReportsInventoryPage() {
+  const { t } = useI18n();
   const {
     stockOnHand,
     movements,
@@ -129,8 +131,8 @@ export default function ReportsInventoryPage() {
     [valuation],
   );
   const stockFields: TableField<StockRow>[] = [
-    { key: "product", header: "Product" },
-    { key: "category", header: "Category" },
+    { key: "product", header: t("inventory.product") },
+    { key: "category", header: t("finance.category") },
     {
       key: "quantity",
       header: "On hand",
@@ -145,13 +147,13 @@ export default function ReportsInventoryPage() {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("reports.status"),
       cell: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },
   ];
   const moveFields: TableField<MoveRow>[] = [
     { key: "date", header: "UTC date" },
-    { key: "type", header: "Type" },
+    { key: "type", header: t("finance.type") },
     {
       key: "movement",
       header: "Signed movement",
@@ -171,10 +173,10 @@ export default function ReportsInventoryPage() {
     },
   ];
   const valueFields: TableField<ValueRow>[] = [
-    { key: "product", header: "Product" },
+    { key: "product", header: t("inventory.product") },
     {
       key: "quantity",
-      header: "Quantity",
+      header: t("inventory.quantity"),
       align: "right",
       cell: (value) => qty(Number(value)),
     },
@@ -186,7 +188,7 @@ export default function ReportsInventoryPage() {
     },
     {
       key: "value",
-      header: "Value",
+      header: t("reports.value"),
       align: "right",
       cell: (value) => (value === null ? "Unvalued" : ugx(Number(value))),
     },
@@ -215,7 +217,7 @@ export default function ReportsInventoryPage() {
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-2xl font-semibold">Inventory Reports</h2>
+            <h2 className="text-2xl font-semibold">{t("nav.inventoryReports")}</h2>
             <p className="text-sm text-muted-foreground">
               Stock, movement and valuation information for your inventory.
             </p>
@@ -224,21 +226,21 @@ export default function ReportsInventoryPage() {
           <Tabs value={tab} onValueChange={setTab}>
             <div className="min-w-0 overflow-x-auto pb-1" aria-label="Inventory report sections">
               <TabsList className="h-auto min-w-max justify-start gap-1 rounded-full bg-card p-1.5">
-                <TabsTrigger value="stock">Stock Overview</TabsTrigger>
-                <TabsTrigger value="movements">Movements</TabsTrigger>
-                <TabsTrigger value="valuation">Valuation</TabsTrigger>
+                <TabsTrigger value="stock">{t("nav.stockOverview")}</TabsTrigger>
+                <TabsTrigger value="movements">{t("inventoryReportUi.movementTab")}</TabsTrigger>
+                <TabsTrigger value="valuation">{t("inventoryReportUi.valuationTab")}</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value="stock">
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
-                  title="Products shown"
+                  title={t("inventoryReportUi.productsShown")}
                   value={loading ? "—" : String(stock.length)}
                   description="On-hand stock in current register"
                   icon={<Eye className="size-5" />}
                 />
                 <MetricCard
-                  title="Low or out of stock"
+                  title={t("inventoryReportUi.lowOrOut")}
                   value={loading ? "—" : String(stock.filter(row => row.status === "Low stock" || row.status === "Out of stock").length)}
                   description="Current stock status"
                   icon={<Eye className="size-5" />}
@@ -249,11 +251,11 @@ export default function ReportsInventoryPage() {
                   <DataTable<StockRow>
                     data={stock}
                     fields={stockFields}
-                    title="Stock on hand"
+                    title={t("inventoryReportUi.stockOnHand")}
                     actions={action((row: StockRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled={loading}>
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled={loading}>
                         <RefreshCw className="size-4" />
                         
                       </Button>
@@ -272,7 +274,7 @@ export default function ReportsInventoryPage() {
                 <CardContent className="grid gap-4 px-4 md:grid-cols-4 md:items-end">
                   <DateRangePicker
                     id="inventory-movements-date-range"
-                    label="Date range (UTC)"
+                    label={t("dashboard.dateRange")}
                     from={draftFrom}
                     to={draftTo}
                     onRangeChange={(nextFrom, nextTo) => {
@@ -296,7 +298,7 @@ export default function ReportsInventoryPage() {
                         setTo(draftTo);
                       }}
                       disabled={!draftFrom || !draftTo}>
-                      Apply period
+                      {t("dashboard.applyPeriod")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -307,7 +309,7 @@ export default function ReportsInventoryPage() {
                         setFrom("");
                         setTo("");
                       }}>
-                      Clear period
+                      {t("purchasingReport.clearPeriod")}
                     </Button>
                   </div>
                 </CardContent>
@@ -317,11 +319,11 @@ export default function ReportsInventoryPage() {
                   <DataTable<MoveRow>
                     data={moves}
                     fields={moveFields}
-                    title="Movement history"
+                    title={t("inventoryReportUi.movements")}
                     actions={action((row: MoveRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled>
                         <RefreshCw className="size-4" />
                         
                       </Button>
@@ -338,13 +340,13 @@ export default function ReportsInventoryPage() {
             <TabsContent value="valuation">
               <section className="mb-4 grid gap-4 md:grid-cols-2">
                 <MetricCard
-                  title="Valuation total"
+                  title={t("inventoryReportUi.valuationTotal")}
                   value={valuationSummary ? ugx(valuationSummary.total_value_ugx) : "—"}
                   description="Valued stock"
                   icon={<Eye className="size-5" />}
                 />
                 <MetricCard
-                  title="Unvalued stock"
+                  title={t("inventoryReportUi.unvalued")}
                   value={valuationSummary ? String(valuationSummary.unvalued_stock_count) : "—"}
                   description="Stock without a current value"
                   icon={<Eye className="size-5" />}
@@ -359,7 +361,7 @@ export default function ReportsInventoryPage() {
                     actions={action((row: ValueRow) => row.source.product_id)}
                     onRowClick={(row) => open(row.source.product_id)}
                     toolbarActions={
-                      <Button variant="outline" onClick={refresh} size="icon" aria-label="Refresh" title="Refresh" disabled>
+                      <Button variant="outline" onClick={refresh} size="icon" aria-label={t("pos.refresh")} title={t("pos.refresh")} disabled>
                         <RefreshCw className="size-4" />
                         
                       </Button>
@@ -388,17 +390,17 @@ export default function ReportsInventoryPage() {
           </DialogHeader>
           {productDetail ? (
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <span className="text-muted-foreground">Product</span>
+              <span className="text-muted-foreground">{t("inventory.product")}</span>
               <span>{productDetail.product_name}</span>
-              <span className="text-muted-foreground">SKU</span>
+              <span className="text-muted-foreground">{t("productForm.sku")}</span>
               <span>{productDetail.sku}</span>
-              <span className="text-muted-foreground">Category</span>
+              <span className="text-muted-foreground">{t("finance.category")}</span>
               <span>{productDetail.category_name}</span>
               <span className="text-muted-foreground">On hand</span>
               <span>
                 {productDetail.quantity_on_hand} {productDetail.stock_unit}
               </span>
-              <span className="text-muted-foreground">Reorder level</span>
+              <span className="text-muted-foreground">{t("inventoryReportUi.reorderLevel")}</span>
               <span>
                 {productDetail.min_stock_level} {productDetail.stock_unit}
               </span>
