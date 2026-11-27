@@ -46,6 +46,22 @@ timeout. Migration `20261126120000` uses `PT409` instead.
 
 Steps 1–3 below are covered by this run. Steps 4–5 remain before production enablement.
 
+## Conflict resolution (27 November 2026)
+
+Migration `20261127180000` and the **Settings → Desktop synchronization** page
+(`/dashboard/settings/desktop-sync`, API `/api/sync/contact-conflicts`) let the owner see every recent
+web contact change and decide each conflict:
+
+- **Keep desktop version** (`keep_desktop_contact_version`) records the decision; nothing is sent.
+- **Apply my change** (`reapply_desktop_contact_change`) atomically re-queues only the fields that still
+  differ, based on the current synchronized version, and links the new request to the conflict. If the
+  desktop already has the owner's values, the conflict closes as already current and nothing is sent.
+- A conflict can be resolved only once; repeating the same decision is idempotent.
+
+Hosted qualification (contact stage, 58 PASS, 0 FAIL) covers all three outcomes with the real desktop
+worker: a re-applied change is applied on the desktop, a kept conflict changes nothing, and an
+already-current conflict sends nothing. Step 4's command expiry and operational monitoring remain.
+
 ## Required next steps
 
 1. Complete isolated real-database tests for atomic contact application, conflict receipts, ACK retry, crash/restart and the existing outbound dirty triggers.

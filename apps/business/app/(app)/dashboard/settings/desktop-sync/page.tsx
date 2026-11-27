@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { DesktopSyncRequestsPage } from "@/components/akilibiz/sync/desktop-sync-requests";
 
 export default function DesktopSyncPage() {
-  redirect("/dashboard/settings/backup");
+  return <DesktopSyncRequestsPage />;
 }

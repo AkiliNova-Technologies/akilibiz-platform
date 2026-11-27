@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,6 +128,13 @@ export function ContactEditDialog({ contact, entity, onClose }: {
           : state==="applied"
           ?"Applied on the desktop. Refresh the directory after the next outbound sync."
           :"Conflict: the desktop version was changed. No edit was overwritten."}
+        {state==="conflict"&&<Link href="/dashboard/settings/desktop-sync"
+          className="mt-2 block font-medium underline underline-offset-4">
+          Review and resolve in Desktop synchronization
+        </Link>}
+        {state==="pending"&&<span className="mt-1 block text-muted-foreground">
+          You can follow it later in Settings → Desktop synchronization.
+        </span>}
       </p>}
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>Close</Button>
