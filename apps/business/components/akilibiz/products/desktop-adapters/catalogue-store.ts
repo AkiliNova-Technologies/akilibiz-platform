@@ -7,11 +7,11 @@ import type { DesktopProductRow } from "@/lib/desktop-product-row";
 
 export type WebCategory = { id: number; hosted_id: string; name: string; is_active: boolean };
 type State = {
-  products: DesktopProductRow[]; categories: WebCategory[]; role: string | null;
+  products: DesktopProductRow[]; categories: WebCategory[]; role: string | null; changeRequestsEnabled: boolean;
   loading: boolean; error: string | null; loaded: boolean;
 };
 
-let state: State = { products: [], categories: [], role: null, loading: false, error: null, loaded: false };
+let state: State = { products: [], categories: [], role: null, changeRequestsEnabled: false, loading: false, error: null, loaded: false };
 const listeners = new Set<() => void>();
 const set = (next: Partial<State>) => { state = { ...state, ...next }; listeners.forEach((l) => l()); };
 let inflight: Promise<void> | null = null;
@@ -26,9 +26,9 @@ export const catalogueStore = {
       try {
         const response = await fetch("/api/products/catalogue", { cache: "no-store" });
         const body = await response.json().catch(() => null) as
-          { products?: DesktopProductRow[]; categories?: WebCategory[]; role?: string; error?: string } | null;
+          { products?: DesktopProductRow[]; categories?: WebCategory[]; role?: string; changeRequestsEnabled?: boolean; error?: string } | null;
         if (!response.ok || !body?.products) throw new Error(body?.error ?? "Could not load products.");
-        set({ products: body.products, categories: body.categories ?? [], role: body.role ?? null, loaded: true, loading: false });
+        set({ products: body.products, categories: body.categories ?? [], role: body.role ?? null, changeRequestsEnabled: body.changeRequestsEnabled === true, loaded: true, loading: false });
       } catch (cause) {
         set({ loading: false, error: cause instanceof Error ? cause.message : "Could not load products." });
       } finally {

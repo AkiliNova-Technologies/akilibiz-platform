@@ -3,7 +3,7 @@
 // low stock (src-tauri/src/services/product_service.rs map_product).
 
 export type HostedCatalogueProduct = {
-  id: string; local_product_id: number; category_id: string; name: string; sku: string;
+  id: string; local_business_public_id: string; local_product_id: number; category_id: string; name: string; sku: string;
   barcode: string | null; description: string | null; brand: string | null; stock_unit: string;
   sales_unit: string | null; selling_price_ugx: number | null; cost_price_ugx: number | null;
   allow_decimal_quantity: boolean | null; tax_inclusive: boolean | null; is_active: boolean;
@@ -40,6 +40,7 @@ export function desktopProductRow(
   return {
     id: p.local_product_id,
     hosted_id: p.id,
+    source: p.local_business_public_id,
     name: p.name,
     sku: p.sku,
     barcode: p.barcode,

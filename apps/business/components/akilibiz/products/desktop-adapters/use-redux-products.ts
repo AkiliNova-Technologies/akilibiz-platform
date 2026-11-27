@@ -6,6 +6,7 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { catalogueStore, useCatalogueState } from "./catalogue-store";
+import { requestProductDeactivation, requestProductEdit } from "./product-change-requests";
 
 export type DesktopCreateProduct = {
   name: string; sku: string; barcode: string | null; category_id: number; brand: string | null;
@@ -68,12 +69,8 @@ export function useReduxProducts() {
   const { products, loading, error } = useCatalogueState();
   const getProducts = useCallback(() => catalogueStore.load(), []);
   const addProduct = useCallback((input: DesktopCreateProduct) => requestDesktopProductCreate(input), []);
-  // Replaced by desktop change requests in edit-requests.ts.
-  const editProduct = useCallback(async (_id: number, _input: DesktopCreateProduct) => {
-    toast.info("Edit this product on the desktop for now."); return false;
-  }, []);
-  const removeProduct = useCallback(async (_id: number) => {
-    toast.info("Deactivate this product on the desktop for now."); return false;
-  }, []);
+  // Edits and deactivations are requests the desktop reviews (product-change-requests.ts).
+  const editProduct = useCallback((id: number, input: DesktopCreateProduct) => requestProductEdit(id, input), []);
+  const removeProduct = useCallback((id: number) => requestProductDeactivation(id), []);
   return { products, loading, error, getProducts, addProduct, editProduct, removeProduct };
 }

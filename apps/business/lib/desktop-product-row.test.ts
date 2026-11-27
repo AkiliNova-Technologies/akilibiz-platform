@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { desktopProductRow, type HostedCatalogueProduct } from "./desktop-product-row";
 
 const base: HostedCatalogueProduct = {
-  id: "8d0f1c2e-1111-4a6b-9c3d-000000000001", local_product_id: 7, category_id: "c1", name: "Sugar 1kg",
+  id: "8d0f1c2e-1111-4a6b-9c3d-000000000001", local_business_public_id: "src", local_product_id: 7, category_id: "c1", name: "Sugar 1kg",
   sku: "SUG-1", barcode: null, description: null, brand: null, stock_unit: "pcs", sales_unit: "pcs",
   selling_price_ugx: 5000, cost_price_ugx: 4000, allow_decimal_quantity: false, tax_inclusive: true,
   is_active: true, updated_at: "2026-11-27T10:00:00Z",

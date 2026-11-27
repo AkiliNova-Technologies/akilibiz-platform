@@ -62,8 +62,14 @@ Overall label parity: **68 %** (1,959 of 2,883 desktop labels). See `report.md` 
 - Add product (owner): prepares a draft and asks the paired desktop to create it; it appears after the
   desktop applies it and syncs. Wholesale price, minimum price, pack size and tax class are not carried by
   this request yet; set them on the desktop.
-- Export downloads the catalogue CSV. Edit and deactivate, variants, CSV import and import history are done
-  on the desktop for now (the buttons stay in the desktop positions and say so).
+- Edit and deactivate (owner): the web sends only the changed fields to the paired desktop
+  (`/api/sync/product-changes`, hosted `20261128140000`). Desktop staff review each request (Backup & Restore →
+  Review web product changes) and an approved change runs through the desktop's own product update. A product
+  changed on the desktop since the web loaded it is refused automatically, never overwritten. Switches: web
+  `AKILIBIZ_ENABLE_PRODUCT_CHANGE_REQUESTS=1`, the business's row in `private.desktop_product_change_controls`,
+  desktop `AKILIBIZ_ENABLE/APPLY/ACK_PRODUCT_CHANGE_INBOX=1` and `VITE_AKILIBIZ_PRODUCT_CHANGE_REVIEW_UI=1`.
+- Export downloads the catalogue CSV. Variants, CSV import and import history are done on the desktop for now
+  (the buttons stay in the desktop positions and say so).
 
 ## Receipts (28 November 2026)
 

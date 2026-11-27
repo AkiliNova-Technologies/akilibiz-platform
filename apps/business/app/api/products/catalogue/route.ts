@@ -20,7 +20,7 @@ export async function GET() {
   const products: HostedCatalogueProduct[] = [];
   for (let from = 0; from < LIMIT; from += PAGE) {
     const page = await supabase.from("desktop_products")
-      .select("id,local_product_id,category_id,name,sku,barcode,description,brand,stock_unit,sales_unit,selling_price_ugx,cost_price_ugx,allow_decimal_quantity,tax_inclusive,is_active,updated_at,details")
+      .select("id,local_business_public_id,local_product_id,category_id,name,sku,barcode,description,brand,stock_unit,sales_unit,selling_price_ugx,cost_price_ugx,allow_decimal_quantity,tax_inclusive,is_active,updated_at,details")
       .eq("business_id", business.id).order("local_product_id").range(from, from + PAGE - 1);
     if (page.error) return apiCompatJson({ error: "Could not load products." }, { status: 502, headers });
     products.push(...(page.data as HostedCatalogueProduct[]));
@@ -34,6 +34,7 @@ export async function GET() {
   const categoryById = new Map((categories.data ?? []).map((c) => [c.id as string, c]));
   return apiCompatJson({
     role: business.role,
+    changeRequestsEnabled: process.env.AKILIBIZ_ENABLE_PRODUCT_CHANGE_REQUESTS === "1",
     stockAvailable: !stock.error,
     categories: (categories.data ?? []).map((c) => ({ id: c.local_category_id, hosted_id: c.id, name: c.name, is_active: c.is_active })),
     products: products.map((p) => desktopProductRow(p, categoryById.get(p.category_id) ?? null, onHand.get(p.id) ?? null)),
