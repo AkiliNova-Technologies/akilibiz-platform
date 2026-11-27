@@ -30,6 +30,16 @@ Overall label parity: **56 %** (1,643 of 2,925 desktop labels). See `report.md` 
 | App shell: sidebar menu, page header, theme switch, account menu | Done: desktop keys, order and wording ("Backup, Restore & Sync" is now the desktop's "Backup & Restore"). Not applicable: the desktop's signed-out sidebar text (the web redirects to sign-in). |
 | All other screens | To rebuild from the desktop source, in this order (most used first): POS new sale, Products, Customers, Inventory, Suppliers and purchase orders, Dashboard, Sales history, Finance, Reports, Staff, Settings |
 
+## POS prerequisites (28 November 2026)
+
+- POS wording uses the desktop dictionary (24 differing wordings fixed).
+- The web catalogue now receives each product's **selling unit**, **decimal-quantity setting** and
+  **VAT-inclusive flag** (hosted migration `20261128090000`, desktop migration `0127`), which the desktop
+  POS layout needs for "Sell in", measured quantities and VAT presentation. Optional fields: an older
+  desktop keeps syncing and never clears them. Hosted qualification (web POS stage) checks the snapshot
+  and a later change event.
+- Next: port the desktop POS page onto this data.
+
 ## Platform differences that stay
 
 Web-only capabilities keep their own entries without moving any shared element:
