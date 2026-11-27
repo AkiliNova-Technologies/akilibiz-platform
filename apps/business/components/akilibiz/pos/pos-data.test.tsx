@@ -179,7 +179,7 @@ describe("POS catalogue request lifecycle", () => {
     vi.mocked(fetch).mockRejectedValueOnce(new Error("offline"));
     const renderer = await renderHarness();
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(current.error).toContain("could not be loaded");
+    expect(current.error).toBe("products.loadFailed"); // shown via the desktop dictionary
     await act(async () => renderer.update(<Harness businessId="business-a" onData={capture} />));
     expect(fetch).toHaveBeenCalledTimes(1);
     await unmount(renderer);

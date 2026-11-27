@@ -64,9 +64,9 @@ import {
   CreateSalePayload,
   SalePaymentMethod,
   formatPosCurrency as formatCurrency,
-  t,
   usePosData,
 } from "@/components/akilibiz/pos/pos-data";
+import { useI18n } from "@/components/akilibiz/i18n/i18n-provider";
 import { toast } from "sonner";
 import { useActiveBusinessId } from "@/components/active-business-context";
 
@@ -108,6 +108,8 @@ const hostedCashCheckout = process.env.NEXT_PUBLIC_AKILIBIZ_ENABLE_WEB_POS === "
 // ============================================================================
 
 export default function POSPage() {
+  // Desktop wording through the shared dictionary (desktop src/app/dashboard/POSPage.tsx).
+  const { tw: t } = useI18n();
   const { registerClearSale, unregisterClearSale } = usePosHeaderControls();
   const activeBusinessId = useActiveBusinessId();
   const {
@@ -628,7 +630,7 @@ export default function POSPage() {
                   className="flex h-64 flex-col items-center justify-center gap-3 text-center"
                 >
                   <AlertTriangle className="size-8 text-destructive" />
-                  <p className="font-medium">{error}</p>
+                  <p className="font-medium">{t(error as "products.loadFailed")}</p>
                   <Button
                     type="button"
                     variant="outline"

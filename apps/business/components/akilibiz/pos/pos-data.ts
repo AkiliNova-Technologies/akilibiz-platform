@@ -96,59 +96,8 @@ export function formatPosCurrency(value: number) {
   }).format(value);
 }
 
-const labels: Record<string, string> = {
-  "pos.title": "Point of Sale",
-  "pos.clearSale": "Clear sale",
-  "pos.counter": "Product counter",
-  "pos.counterDescription": "Search and add products to this sale.",
-  "pos.search": "Search products",
-  "products.category": "Category",
-  "pos.refresh": "Refresh",
-  "pos.loadingProducts": "Loading products…",
-  "pos.noProducts": "No synchronized products are available",
-  "pos.adjustFilters": "Adjust your search or filters.",
-  "pos.loadError":
-    "Products could not be loaded. Check your connection and try again.",
-  "pos.currentSale": "Current sale",
-  "pos.cartDescription": "Review items before checkout.",
-  "pos.noItems": "No items in this sale",
-  "pos.noItemsDescription": "Add products from the counter.",
-  "pos.discount": "Discount",
-  "pos.subtotal": "Subtotal",
-  "pos.estimatedVat": "Estimated VAT",
-  "pos.total": "Total",
-  "pos.completeSale": "Complete sale",
-  "pos.placeCreditOrder": "Place credit order",
-  "pos.customer": "Customer",
-  "pos.walkInCustomer": "Walk-in customer",
-  "pos.items": "Items",
-  "pos.totalDue": "Total due",
-  "pos.selectCustomer": "Select customer",
-  "pos.paymentMethod": "Payment method",
-  "pos.cash": "Cash",
-  "pos.mobileMoney": "Mobile money",
-  "pos.cashReceived": "Cash received",
-  "pos.enterTender": "Enter amount",
-  "pos.changeDue": "Change due",
-  "pos.confirmMobileMoney": "Confirm mobile money payment",
-  "pos.cancel": "Cancel",
-  "pos.processing": "Processing…",
-  "pos.switchCreditOrder": "Switch to credit order",
-  "pos.guest": "Guest",
-  "pos.each": "each",
-  "pos.outOfStock": "Out of stock",
-  "pos.taxable": "Taxable",
-  "pos.lowStockItem": "Low stock item",
-  "pos.priceUnavailable": "Price unavailable",
-  "pos.inventoryUnavailable": "Inventory unavailable",
-};
-export const t = (key: string, values?: Record<string, string | number>) => {
-  if (key === "pos.lowStock" || key === "pos.inStock")
-    return `${values?.count ?? 0} in stock`;
-  if (key === "pos.saleCompleted" || key === "pos.orderPlaced")
-    return `Sale ${values?.number ?? ""} completed`;
-  return labels[key] ?? key;
-};
+/** Error code for a failed catalogue load; the page shows it in the active language. */
+export const POS_CATALOGUE_LOAD_FAILED = "products.loadFailed" as const;
 
 type CatalogueResponse = {
   business_id: string;
@@ -246,7 +195,7 @@ export function usePosData(activeBusinessId: string) {
         setProducts([]);
         setCategories([]);
         setItems([]);
-        setError(t("pos.loadError"));
+        setError(POS_CATALOGUE_LOAD_FAILED);
       } finally {
         if (generation === generationRef.current) setLoading(false);
         if (requestRef.current?.generation === generation)
